@@ -1,0 +1,22 @@
+D:/noc_with_cores/tb/tb_core.sv {1 {vlog -work work -sv -stats=none D:/noc_with_cores/tb/tb_core.sv
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module sm_rom
+-- Compiling module sm_register
+-- Compiling module sm_register_we
+-- Compiling module sr_mem_ctrl
+-- Compiling module sr_cpu
+-- Compiling module sr_decode
+-- Compiling module sr_control
+-- Compiling module sr_alu
+-- Compiling module sr_agu
+-- Compiling module sm_register_file
+-- Compiling module sm_top
+-- Compiling module sm_debouncer
+-- Compiling module sm_clk_divider
+-- Compiling module tb
+
+Top level modules:
+	sm_clk_divider
+	tb
+
+} {} {}}
