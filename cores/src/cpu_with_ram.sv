@@ -7,10 +7,10 @@
 module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH = 8, COLLECTOR_DEPTH = 8, parameter int PACKET_ID_WIDTH = 5) (
     input  logic clk, rst_n,
 
-    input logic [1 + 2*$clog2(NODE_COUNT) + 8 + PACKET_ID_WIDTH - 1 + 4 : 0] flitIn,
+    input logic [1 + 2*$clog2(NODE_COUNT) + 17 + PACKET_ID_WIDTH - 1 + 2 : 0] flitIn,
     output logic readFromNoc,
 
-    output logic [1 + 2*$clog2(NODE_COUNT) + 8 + PACKET_ID_WIDTH - 1 + 4 : 0] flitOut,
+    output logic [1 + 2*$clog2(NODE_COUNT) + 17 + PACKET_ID_WIDTH - 1 + 2 : 0] flitOut,
     input logic writeToNoc
 );
     // CPU-Controller
@@ -27,7 +27,7 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
     wire we;
 
     // Controller-Spliiter
-    wire[71:0] packetOut;
+    wire[67:0] packetOut;
     wire[$clog2(NODE_COUNT) - 1 : 0] nodeDest;
     wire[PACKET_ID_WIDTH-1:0] packetId;
     wire validControllerSplitter;

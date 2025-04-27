@@ -20,11 +20,11 @@ module sr_mem_ctrl #(
     output reg we,
 
     // NOC
-    input [71:0] packetIn, // | unused[71:67] | data[66:35] | address[34:3] | instr[2:0] |
+    input [67:0] packetIn, // | unused[67] | data[66:35] | address[34:3] | instr[2:0] |
     input [$clog2(NODE_COUNT) - 1:0] nodeStart,
     input validIn,
 
-    output reg [71:0] packetOut, // | unused[71:67] | data[66:35] | address[34:3] | instr[2:0] |
+    output reg [67:0] packetOut, // | unused[71:67] | data[66:35] | address[34:3] | instr[2:0] |
     output reg [$clog2(NODE_COUNT) - 1:0] nodeDest,
     output reg [PACKET_ID_WIDTH - 1:0] packetId,
     output reg validOut
@@ -37,9 +37,8 @@ module sr_mem_ctrl #(
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             counter <= 0;
-            packetInReg <= 0;
-            packetOut <= 72'd0;
-            packetOut <= 72'd0;
+            packetInReg <= 67'd0;
+            packetOut <= 67'd0;
             validOut <= 0;
             packetId <= 0;
             load_flag <= 0;
@@ -49,6 +48,10 @@ module sr_mem_ctrl #(
             validOut <= 0;
             dataSent <= 0;
             we <= 0;
+
+            if (dataSent) begin
+                load_flag <= 0;
+            end
 
             if (counter == 0) begin
                 if (validIn) begin
@@ -68,6 +71,9 @@ module sr_mem_ctrl #(
                         validOut <= 1;
                     end
                 end
+                else begin
+                    packetOut <= 67'b0;
+                end
             end
             else begin
                 validOut <= 0;
@@ -80,7 +86,7 @@ module sr_mem_ctrl #(
                         else begin
                             counter <= 0;
                             nodeDest <= nodeStart;
-                            packetOut <= {5'b0, rdData, 32'hFFFFFFFF, `LOAD_SATISFIED};
+                            packetOut <= {1'b0, rdData, 32'hFFFFFFFF, `LOAD_SATISFIED};
                             packetId <= packetId + 1;
                             validOut <= 1;
                             packetInReg <= 0;
@@ -90,7 +96,6 @@ module sr_mem_ctrl #(
                         counter <= 0;
                         dataToCpu <= packetInReg[66:35];
                         dataSent <= 1;
-                        load_flag <= 0;
                         packetInReg <= 0;
                     end
                     `STORE_TO_RAM: begin
