@@ -22,14 +22,10 @@ module sm_rom
     initial begin
         //$readmemh ("src/add_mul_testing.hex", rom);
         rom[0] = 32'h00500293;
-        rom[1] = 32'h00530333;
-        rom[2] = 32'h025303b3;
-        rom[3] = 32'h000382b3;
-        rom[4] = 32'h0071a023;
-        rom[5] = 32'h0071a0a3;
-        rom[6] = 32'h0001a283;
-        rom[7] = 32'h0011a303;
-        rom[8] = 32'h007383b3;
+        rom[1] = 32'h00528293;
+        rom[2] = 32'h0e51afa3;
+        rom[3] = 32'h0ff1a303;
+        rom[4] = 32'hfe000ae3;
 
     end
 

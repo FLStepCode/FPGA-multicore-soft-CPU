@@ -8,9 +8,9 @@
  *                        Aleksandr Romanov 
  */ 
 
-`include "src/sr_cpu.vh"
-`include "src/sm_register.v"
-`include "src/sr_mem_ctrl.v"
+`include "cores/src/sr_cpu.vh"
+`include "cores/src/sm_register.v"
+`include "cores/src/sm_rom.v"
 
 module sr_cpu
 (
@@ -18,9 +18,19 @@ module sr_cpu
     input           rst_n,      // reset
     input   [ 4:0]  regAddr,    // debug access reg address
     output  [31:0]  regData,    // debug access reg data
-    output  [31:0]  imAddr,     // instruction memory address
-    input   [31:0]  imData      // instruction memory data
+
+    // connection to ram controller
+    input[31:0] dataToCpu,
+    input dataReceived,
+    output[31:0] dataFromCpu,
+    output[31:0] ramAddress,
+    output[2:0] aguInstructionOut
 );
+
+    wire    [31:0]  imAddr;
+    wire    [31:0]  imData;
+    sm_rom reset_rom(imAddr, imData);
+
     //control wires
     wire        aluZero;
     wire        pcSrc;
@@ -29,7 +39,7 @@ module sr_cpu
     wire  [1:0] wdSrc;
     wire  [2:0] aluControl;
     wire  [2:0] aguControl;
-    wire        nextInstr;
+    wire        cpuPause_n;
 
     //instruction decode wires
     wire [ 6:0] cmdOp;
@@ -47,7 +57,7 @@ module sr_cpu
     wire [31:0] pc;
     wire [31:0] pcBranch = pc + immB;
     wire [31:0] pcPlus4  = pc + 4;
-    wire [31:0] pcNext   = nextInstr ? (pcSrc ? pcBranch : pcPlus4) : pc;
+    wire [31:0] pcNext   = cpuPause_n ? (pcSrc ? pcBranch : pcPlus4) : pc;
     sm_register r_pc(clk ,rst_n, pcNext, pc);
 
     //program memory access
@@ -55,10 +65,6 @@ module sr_cpu
     wire [31:0] instr = imData;
 
     //data memory access
-    wire[31:0] dataFromCpu;
-    wire[31:0] dataToCpu;
-    wire[31:0] ramAddress;
-    wire dataAcknowledged;
 
     //instruction decode
     sr_decode id (
@@ -100,7 +106,6 @@ module sr_cpu
     //alu
     wire [31:0] srcB = aluSrc ? immI : rd2;
     wire [31:0] aluResult;
-    wire [2:0]  aguInstruction;
 
     sr_alu alu (
         .srcA       ( rd1          ),
@@ -118,19 +123,9 @@ module sr_cpu
         .oper       ( aguControl   ),
         .memData    ( dataFromCpu   ),
         .memAddress ( ramAddress ),
-        .memInstr   ( aguInstruction ),
-        .nextInstr  ( nextInstr ),
-        .dataArrived( dataAcknowledged )
-    );
-
-    sr_mem_ctrl mc (
-        .clk(clk),
-        .rst_n(rst_n),
-        .memData    ( dataFromCpu   ),
-        .memAddress ( ramAddress ),
-        .memInstr   ( aguInstruction ),
-        .dataToCpu  ( dataToCpu ),
-        .dataSent   ( dataAcknowledged )
+        .memInstr   ( aguInstructionOut ),
+        .cpuPause_n  ( cpuPause_n ),
+        .dataArrived( dataReceived )
     );
 
     always @(*) begin
@@ -288,13 +283,11 @@ module sr_agu (
     output reg [31:0] memData,
     output reg [31:0] memAddress,
     output reg [2:0] memInstr,
-    output reg nextInstr,
+    output reg cpuPause_n,
     input dataArrived
-);    
+);
 
-
-    reg busy_addresses[1024*2 + 9*7 - 1:0];
-    integer load_requests;
+    reg counter;
 
     integer i;
 
@@ -304,18 +297,18 @@ module sr_agu (
                 memAddress = 32'hFFFFFFFF;
                 memInstr = 0;
                 memData = 32'hFFFFFFFF;
-                nextInstr = 1;
+                cpuPause_n = 1;
             end
             `AGU_LOAD: begin
                 memAddress = srcR1 + srcI;
                 memInstr = oper;
-                nextInstr = dataArrived;
+                cpuPause_n = dataArrived;
             end
             `AGU_STORE: begin
                 memAddress = srcR1 + srcS;
                 memInstr = oper;
                 memData = srcD;
-                nextInstr = 1;
+                cpuPause_n = 1;
             end
         endcase
     end

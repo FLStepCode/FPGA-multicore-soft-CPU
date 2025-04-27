@@ -9,8 +9,8 @@
  */ 
 
 //hardware top level module
-`include "src/sm_rom.v"
-`include "src/sr_cpu.v"
+`include "cores/src/sm_rom.v"
+`include "cores/src/sr_cpu.v"
 
 
 module sm_top

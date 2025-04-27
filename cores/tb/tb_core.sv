@@ -1,5 +1,5 @@
 `timescale 1ps/1ps
-`include "src/sm_top.v"
+`include "cores/src/sm_top.v"
 
 
 module tb;
