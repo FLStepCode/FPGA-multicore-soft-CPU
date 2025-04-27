@@ -30,9 +30,12 @@ module sm_rom
             rom[4] = 32'hfe000ae3;
         end
         else begin
-            rom[0] = 32'h00000063;
+            rom[0] = 32'h00500293;
+            rom[1] = 32'h00528293;
+            rom[2] = 32'h1e51afa3;
+            rom[3] = 32'h1ff1a303;
+            rom[4] = 32'hfe000ae3;
         end
 
     end
-
 endmodule

@@ -60,13 +60,12 @@ module packet_collector #(
     $display("collector out: valid = %b node_start = %b node_finish = %b packet = %b packet_id = %d", valid_bit, node_start, node_dest, data_byte, packet_id);
     `endif
             for (i = 0; i < BUFFER_SIZE; i++) begin
-                $display($time, i, !valid_out, buffer[i].valid, &buffer[i].received_mask);
                 if (!valid_out && buffer[i].valid && (&buffer[i].received_mask))
                 begin
                     valid_out <= 1;
                     packet_out <= {buffer[i].data[0], buffer[i].data[1],
                                     buffer[i].data[2], buffer[i].data[3]};
-                    node_start_out <= node_start;
+                    node_start_out <= buffer[i].node_start;
                     node_dest_out  <= buffer[i].node_dest;
                     packet_id_out  <= packet_id;
                     buffer[i].valid <= 0;
