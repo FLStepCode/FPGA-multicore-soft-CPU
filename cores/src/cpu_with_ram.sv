@@ -37,7 +37,7 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
     wire [71:0] packetIn;
     wire [$clog2(NODE_COUNT)-1:0] nodeStart;
 
-    sr_cpu core (
+    sr_cpu #(.NODE_ID(NODE_ID)) core (
         .clk(clk), .rst_n(rst_n),
         .dataToCpu(dataToCpu),
         .dataReceived(dataReceived),

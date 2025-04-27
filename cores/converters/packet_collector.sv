@@ -33,7 +33,7 @@ module packet_collector #(
     // Распаковка флита
     wire valid_bit = input_data[1 + 2*$clog2(NODE_COUNT) + PACKET_ID_WIDTH + 17 - 1 + 2];
     wire [NODE_W-1:0] node_dest  = input_data[2 * $clog2(NODE_COUNT) + PACKET_ID_WIDTH + 17 - 1 + 2: $clog2(NODE_COUNT) + PACKET_ID_WIDTH + 2 + 17];
-    wire [3:0]        byte_index = input_data[3 : 0];
+    wire [1:0]        byte_index = input_data[1 : 0];
     wire [16:0]        data_byte  = input_data[17 + PACKET_ID_WIDTH - 1 + $clog2(NODE_COUNT) + 2 : PACKET_ID_WIDTH+ $clog2(NODE_COUNT) + 2];
     wire [ID_W-1:0]   packet_id  = input_data[$clog2(NODE_COUNT)  + PACKET_ID_WIDTH - 1 + 2 : 2 + $clog2(NODE_COUNT) ];
     wire [NODE_W-1:0] node_start = input_data[$clog2(NODE_COUNT)  + 2 - 1 :  2];

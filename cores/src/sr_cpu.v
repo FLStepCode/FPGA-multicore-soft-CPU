@@ -12,8 +12,9 @@
 `include "cores/src/sm_register.v"
 `include "cores/src/sm_rom.v"
 
-module sr_cpu
-(
+module sr_cpu #(
+    parameter NODE_ID = 0
+) (
     input           clk,        // clock
     input           rst_n,      // reset
     input   [ 4:0]  regAddr,    // debug access reg address
@@ -29,7 +30,7 @@ module sr_cpu
 
     wire    [31:0]  imAddr;
     wire    [31:0]  imData;
-    sm_rom reset_rom(imAddr, imData);
+    sm_rom #(.NODE_ID(NODE_ID)) reset_rom(imAddr, imData);
 
     //control wires
     wire        aluZero;
@@ -62,7 +63,7 @@ module sr_cpu
 
     //program memory access
     assign imAddr = pc >> 2;
-    wire [31:0] instr = imData;
+    wire [31:0] instr = rst_n ? imData : 0;
 
     //data memory access
 

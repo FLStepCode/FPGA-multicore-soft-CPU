@@ -22,7 +22,7 @@ module toplevel (
 
                 assign core_availability_signals_out[i][j] = 1; 
 
-                if (i == j && i == 0)
+                if (i == 0 && (j == 0 || j == 1))
                 begin
                     cpu_with_ram #(
                         .NODE_ID(i * `Y + j)
