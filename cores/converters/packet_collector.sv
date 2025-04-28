@@ -11,7 +11,8 @@ module packet_collector #(
     output logic [67:0] packet_out,
     output logic [$clog2(NODE_COUNT)-1:0] node_start_out,
     output logic [$clog2(NODE_COUNT)-1:0] node_dest_out,
-    output logic [PACKET_ID_WIDTH-1:0]    packet_id_out
+    output logic [PACKET_ID_WIDTH-1:0]    packet_id_out,
+    input  logic send_signal
 );
 
     localparam int NODE_W = $clog2(NODE_COUNT);
@@ -39,7 +40,7 @@ module packet_collector #(
     wire [NODE_W-1:0] node_start = input_data[$clog2(NODE_COUNT)  + 2 - 1 :  2];
    
     
-    integer i;
+    integer i, j;
     logic [2:0] match_index, replace_index;
     logic match_found, free_found;
     logic [2:0] min_count;
@@ -59,16 +60,21 @@ module packet_collector #(
     `ifdef TEST_OUT
     $display("collector out: valid = %b node_start = %b node_finish = %b packet = %b packet_id = %d", valid_bit, node_start, node_dest, data_byte, packet_id);
     `endif
-            for (i = 0; i < BUFFER_SIZE; i++) begin
-                if (!valid_out && buffer[i].valid && (&buffer[i].received_mask))
-                begin
-                    valid_out <= 1;
-                    packet_out <= {buffer[i].data[0], buffer[i].data[1],
-                                    buffer[i].data[2], buffer[i].data[3]};
-                    node_start_out <= buffer[i].node_start;
-                    node_dest_out  <= buffer[i].node_dest;
-                    packet_id_out  <= packet_id;
-                    buffer[i].valid <= 0;
+            if (send_signal) begin
+                for (i = 0; i < BUFFER_SIZE; i++) begin
+                    if (!valid_out && buffer[i].valid && (&buffer[i].received_mask))
+                    begin
+                        valid_out <= 1;
+                        packet_out <= {buffer[i].data[0], buffer[i].data[1],
+                                        buffer[i].data[2], buffer[i].data[3]};
+                        node_start_out <= buffer[i].node_start;
+                        node_dest_out  <= buffer[i].node_dest;
+                        packet_id_out  <= packet_id;
+                        for (j = 0; j < i; j = j + 1) begin
+                            buffer[j].valid <= buffer[j].valid;
+                        end
+                        buffer[i].valid <= 0;
+                    end
                 end
             end
             if (valid_bit) begin

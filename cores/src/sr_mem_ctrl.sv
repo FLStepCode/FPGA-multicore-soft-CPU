@@ -23,6 +23,7 @@ module sr_mem_ctrl #(
     input [67:0] packetIn, // | unused[67] | data[66:35] | address[34:3] | instr[2:0] |
     input [$clog2(NODE_COUNT) - 1:0] nodeStart,
     input validIn,
+    output readyToReceive,
 
     output reg [67:0] packetOut, // | unused[71:67] | data[66:35] | address[34:3] | instr[2:0] |
     output reg [$clog2(NODE_COUNT) - 1:0] nodeDest,
@@ -34,6 +35,8 @@ module sr_mem_ctrl #(
     reg [71:0] packetInReg; // | unused[71:67] | data[66:35] | address[34:3] | instr[2:0] |
     reg load_flag;
 
+    assign readyToReceive = (counter == 0) ? 1 : 0;
+
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             counter <= 0;
@@ -42,6 +45,7 @@ module sr_mem_ctrl #(
             validOut <= 0;
             packetId <= 0;
             load_flag <= 0;
+            dataSent <= 0;
         end
         else begin
 

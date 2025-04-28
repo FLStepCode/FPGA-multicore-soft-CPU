@@ -59,7 +59,7 @@ module sr_cpu #(
     wire [31:0] pcBranch = pc + immB;
     wire [31:0] pcPlus4  = pc + 4;
     wire [31:0] pcNext   = cpuPause_n ? (pcSrc ? pcBranch : pcPlus4) : pc;
-    sm_register r_pc(clk ,rst_n, pcNext, pc);
+    sm_register r_pc(clk, rst_n, pcNext, pc);
 
     //program memory access
     assign imAddr = pc >> 2;

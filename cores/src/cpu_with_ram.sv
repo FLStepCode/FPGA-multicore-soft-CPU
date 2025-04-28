@@ -34,6 +34,7 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
 
     // Controller-Collector
     wire validCollectorRam;
+    wire readFromCollector;
     wire [71:0] packetIn;
     wire [$clog2(NODE_COUNT)-1:0] nodeStart;
 
@@ -68,6 +69,7 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
         .packetIn(packetIn),
         .nodeStart(nodeStart),
         .validIn(validCollectorRam),
+        .readyToReceive(readFromCollector),
 
         .packetOut(packetOut), 
         .nodeDest(nodeDest),
@@ -106,7 +108,8 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
         .packet_out(packetIn),
         .node_start_out(nodeStart),
         .node_dest_out(),
-        .packet_id_out()
+        .packet_id_out(),
+        .send_signal(readFromCollector)
     );
     
 endmodule

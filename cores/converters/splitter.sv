@@ -1,6 +1,6 @@
 module splitter #(parameter int NODE_ID = 0, NODE_COUNT = 8, QUEUE_DEPTH = 8, parameter int PACKET_ID_WIDTH = 5) (
     input  logic clk, ce, rst_n,
-    input  logic [71 : 0] packet_in,
+    input  logic [67 : 0] packet_in,
     input  logic [$clog2(NODE_COUNT) - 1 : 0] node_dest,
     input  logic valid_in,
     input  logic [PACKET_ID_WIDTH - 1 : 0] packet_id,
@@ -77,7 +77,12 @@ always_ff @(posedge clk or negedge rst_n) begin
                             $display("valid = %b node_start = %b node_finish = %b packet = %b packet_id = %d", 1'b1, node_in, node_queue[head], queue[head][7:0], id_queue[head]);
                     `endif
                     head <= (head + 1) % QUEUE_DEPTH; 
-                    count <= count - 1;
+                    if (valid_in && count < QUEUE_DEPTH) begin
+                        count <= count;
+                    end
+                    else begin
+                        count <= count - 1;
+                    end
                 end
             endcase
 
