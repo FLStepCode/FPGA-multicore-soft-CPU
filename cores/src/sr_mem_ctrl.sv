@@ -12,6 +12,7 @@ module sr_mem_ctrl #(
     input [2:0] memInstr,
     output reg[31:0] dataToCpu,
     output reg dataSent,
+    output instrTaken,
 
     // RAM
     input [31:0] rdData,
@@ -25,14 +26,17 @@ module sr_mem_ctrl #(
     input validIn,
     output readyToReceive,
 
-    output reg [67:0] packetOut, // | unused[71:67] | data[66:35] | address[34:3] | instr[2:0] |
+    output reg [67:0] packetOut, // | unused[67] | data[66:35] | address[34:3] | instr[2:0] |
     output reg [$clog2(NODE_COUNT) - 1:0] nodeDest,
     output reg [PACKET_ID_WIDTH - 1:0] packetId,
     output reg validOut
 );
 
     reg [1:0] counter;
-    reg [71:0] packetInReg; // | unused[71:67] | data[66:35] | address[34:3] | instr[2:0] |
+
+    assign instrTaken = (counter == 0) ? 1 : 0;
+
+    reg [67:0] packetInReg; // | unused[67] | data[66:35] | address[34:3] | instr[2:0] |
     reg load_flag;
 
     assign readyToReceive = (counter == 0) ? 1 : 0;
@@ -64,7 +68,7 @@ module sr_mem_ctrl #(
                 end
                 if (memInstr != `AGU_IDLE) begin
                     nodeDest <= memAddress / RAM_CHUNK_SIZE;
-                    packetOut <= {5'd0, memData, memAddress % RAM_CHUNK_SIZE, memInstr};
+                    packetOut <= {1'd0, memData, memAddress % RAM_CHUNK_SIZE, memInstr};
                     if (memInstr == `AGU_LOAD && ~load_flag) begin
                         packetId <= packetId + 1;
                         validOut <= 1;
@@ -86,6 +90,9 @@ module sr_mem_ctrl #(
                         if (counter == 1) begin
                             counter <= counter + 1;
                             ramAddress <= packetInReg[34:3];
+                        end
+                        else if (counter == 2) begin
+                            counter <= counter + 1;
                         end
                         else begin
                             counter <= 0;

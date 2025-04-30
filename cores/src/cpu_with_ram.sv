@@ -19,6 +19,7 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
     wire[31:0] logicalRamAddress;
     wire[2:0] instr;
     wire dataReceived;
+    wire instrTaken;
 
     // Controller-RAM
     wire[31:0] rdData;
@@ -42,6 +43,7 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
         .clk(clk), .rst_n(rst_n),
         .dataToCpu(dataToCpu),
         .dataReceived(dataReceived),
+        .instrTaken(instrTaken),
         .dataFromCpu(dataFromCpu),
         .ramAddress(logicalRamAddress),
         .aguInstructionOut(instr)
@@ -58,6 +60,7 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
         .memInstr(instr),
         .dataToCpu(dataToCpu),
         .dataSent(dataReceived),
+        .instrTaken(instrTaken),
 
         // RAM
         .rdData(rdData),
@@ -77,7 +80,9 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
         .validOut(validControllerSplitter)
     );
 
-    ram ram (
+    ram #(
+        .RAM_SIZE(1024), .NODE_ID(NODE_ID)
+    ) ram (
         .clk(clk), .rst_n(rst_n),
         .ramAddress(physicalRamAddress),
         .wrData(wrData),

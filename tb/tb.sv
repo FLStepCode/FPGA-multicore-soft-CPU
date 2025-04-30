@@ -16,7 +16,7 @@ toplevel dut (
 initial begin
     #20;
     rst_n = 1;
-    #10000;
+    #3000000;
     $stop;
 end
     

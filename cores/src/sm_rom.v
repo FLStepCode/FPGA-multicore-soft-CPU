@@ -8,12 +8,11 @@
  *                        Aleksandr Romanov 
  */ 
 
-`define TEST
-`define SIMULTANEOUS_READ // testing mode
+`define TEST_CONV_SINGLE
 
 module sm_rom
 #(
-    parameter SIZE = 64,
+    parameter SIZE = 128,
     NODE_ID = 0
 )
 (
@@ -24,7 +23,6 @@ module sm_rom
     assign rd = rom [a];
 
     initial begin
-        //$readmemh ("src/add_mul_testing.hex", rom);
 
         `ifdef TEST
 
@@ -93,6 +91,38 @@ module sm_rom
                 end
 
             `endif
+
+        `elsif TEST_CONV_SINGLE
+            if (NODE_ID == 0) begin
+                $readmemh("D:/noc_with_cores/modelsim/instr_node_0.hex", rom);
+            end
+            else if (NODE_ID == 1) begin
+                $readmemh("D:/noc_with_cores/modelsim/instr_node_1.hex", rom);
+            end
+            else if (NODE_ID == 2) begin
+                $readmemh("D:/noc_with_cores/modelsim/instr_node_2.hex", rom);
+            end
+            else if (NODE_ID == 3) begin
+                $readmemh("D:/noc_with_cores/modelsim/instr_node_3.hex", rom);
+            end
+            else if (NODE_ID == 4) begin
+                $readmemh("D:/noc_with_cores/modelsim/instr_node_4.hex", rom);
+            end
+            else if (NODE_ID == 5) begin
+                $readmemh("D:/noc_with_cores/modelsim/instr_node_5.hex", rom);
+            end
+            else if (NODE_ID == 6) begin
+                $readmemh("D:/noc_with_cores/modelsim/instr_node_6.hex", rom);
+            end
+            else if (NODE_ID == 7) begin
+                $readmemh("D:/noc_with_cores/modelsim/instr_node_7.hex", rom);
+            end
+            else if (NODE_ID == 8) begin
+                $readmemh("D:/noc_with_cores/modelsim/instr_node_8.hex", rom);
+            end
+            else begin
+                rom[0] = 32'h00000063;
+            end
 
         `endif
 
