@@ -33,7 +33,7 @@ module toplevel (
                 if (i == j)
                 begin
                     generator_splitter #(.NODE_ID(j + i * `X), .NODE_COUNT(9)) core (
-                        .clk(clk), .ce(1'b1), .rst(~rst_n),
+                        .clk(clk), .ce(1'b1), .rst_n(rst_n),
                         .network_busy(~core_availability_signals_out[i][j]),
                         .output_data(core_outputs[i][j]), .packet_in(packet_in),
                         .lfsr1_in(lfsr1_in + i * 3), .lfsr2_in(lfsr2_in - j * 2), .lfsr3_in(lfsr3_in- i), .lfsr4_in(lfsr4_in + j)
@@ -45,10 +45,11 @@ module toplevel (
                 end
 					 
 					packet_collector #(.NODE_COUNT(9)) receiver (
-                    .clk(clk), .ce(1'b1), .rst(~rst_n),
+                    .clk(clk), .ce(1'b1), .rst_n(rst_n),
                     .valid_in(1'b1), .input_data(core_inputs[i][j]),
                     .packet_out(assembler_packets[i][j]),
-                    .node_start_out(node_start_out[i][j]), .node_dest_out(node_dest_out[i][j]), .packet_id_out(assembler_ids[i][j])
+                    .node_start_out(node_start_out[i][j]), .node_dest_out(node_dest_out[i][j]), .packet_id_out(assembler_ids[i][j]),
+                    .send_signal(1'b1)
                 );
 
             end
@@ -71,7 +72,7 @@ module generator_splitter #(
     parameter int NODE_ID = 0, NODE_COUNT = 8, QUEUE_DEPTH = 8,
     parameter int PACKET_ID_WIDTH = 5
 ) (
-    input  logic clk, ce, rst,
+    input  logic clk, ce, rst_n,
     input  logic network_busy,
     input  logic [31:0] packet_in,
     input  logic [31:0] lfsr1_in, lfsr2_in, lfsr3_in, lfsr4_in,
@@ -87,21 +88,21 @@ module generator_splitter #(
 
     `ifdef SEQUENTIAL
     sequential_traffic_generator #(.NODE_ID(NODE_ID), .NODE_COUNT(NODE_COUNT), .PACKET_ID_WIDTH(PACKET_ID_WIDTH)) generator (
-        .clk(clk), .rst(rst), .network_busy(network_busy),
+        .clk(clk), .rst_n(rst_n), .network_busy(network_busy),
         .valid(valid), .packet(packet), .node_dest(node_dest), .packet_id(packet_id), .packet_in(packet_in)
     );
     `endif
 
     `ifdef GAUSSIAN
     gaussian_traffic_generator #(.NODE_ID(NODE_ID), .NODE_COUNT(NODE_COUNT), .PACKET_ID_WIDTH(PACKET_ID_WIDTH)) generator (
-        .clk(clk), .rst(rst), .valid(valid), 
+        .clk(clk), .rst_n(rst_n), .valid(valid), 
         .packet(packet), .node_dest(node_dest), .packet_id(packet_id),
         .lfsr1_in(lfsr1_in), .lfsr2_in(lfsr2_in), .lfsr3_in(lfsr3_in), .lfsr4_in(lfsr4_in)
     );
     `endif
 
     splitter #(.NODE_ID(NODE_ID), .NODE_COUNT(NODE_COUNT), .QUEUE_DEPTH(QUEUE_DEPTH), .PACKET_ID_WIDTH(PACKET_ID_WIDTH)) splitter (
-        .clk(clk), .ce(~network_busy), .rst(rst),
+        .clk(clk), .ce(~network_busy), .rst_n(rst_n),
         .packet_in(packet), .node_dest(node_dest), .valid_in(valid), .packet_id(packet_id),
         .output_data(output_data), .valid_out(valid_out)
     );

@@ -1,6 +1,6 @@
 module sequential_traffic_generator #(parameter int NODE_ID, NODE_COUNT, PACKET_ID_WIDTH) (
     input  logic clk,
-    input  logic rst,
+    input  logic rst_n,
     input  logic network_busy,
     input  logic [31:0] packet_in,
     output logic valid,
@@ -12,8 +12,8 @@ module sequential_traffic_generator #(parameter int NODE_ID, NODE_COUNT, PACKET_
     logic [2:0] cycle_counter;
     logic [PACKET_ID_WIDTH-1:0] id;
     
-    always_ff @(posedge clk or posedge rst) begin
-        if (rst) begin
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
             valid <= 0;
             //packet <= 32'hDEADBEEF;
             packet <= packet_in;
@@ -47,7 +47,7 @@ endmodule
 
 module gaussian_traffic_generator #(parameter int NODE_ID, NODE_COUNT, PACKET_ID_WIDTH, parameter int LN2_PERIOD = 4) (
     input  logic clk,
-    input  logic rst,
+    input  logic rst_n,
     output logic valid,
     output logic [31:0] packet,
     output logic [$clog2(NODE_COUNT)-1:0] node_dest,
@@ -61,8 +61,8 @@ module gaussian_traffic_generator #(parameter int NODE_ID, NODE_COUNT, PACKET_ID
     logic [PACKET_ID_WIDTH-1:0] id;
     parameter MASK = {LN2_PERIOD{1'b0}};
 
-    always_ff @(posedge clk or posedge rst) begin
-        if (rst) begin
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
             valid       <= 0;
             packet      <= 0;
             node_dest   <= 0;

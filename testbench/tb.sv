@@ -32,7 +32,7 @@ initial begin
     #200;
     KEY[0] = 1;
     #10000;
-    $finish;
+    $stop;
 end
 
 endmodule
