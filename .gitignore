@@ -1,1 +1,7 @@
 modelsim/*
+!modelsim/instr*
+!modelsim/image*
+!modelsim/modelsim_script.tcl
+!modelsim/modelsim_run.bat
+
+quartus/*

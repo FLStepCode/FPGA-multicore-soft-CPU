@@ -249,6 +249,8 @@ module sr_control
 
             { `RVF7_ANY,  `RVF3_BEQ,  `RVOP_BEQ  } : begin; branch = 1'b1; condZero = 1'b1; aluControl = `ALU_SUB; end
             { `RVF7_ANY,  `RVF3_BNE,  `RVOP_BNE  } : begin branch = 1'b1; aluControl = `ALU_SUB; end
+            default: begin
+            end
         endcase
     end
 endmodule
@@ -306,6 +308,7 @@ module sr_agu (
             `AGU_LOAD: begin
                 memAddress = srcR1 + srcI;
                 memInstr = oper;
+                memData = 32'hFFFFFFFF;
                 cpuPause_n = dataArrived;
             end
             `AGU_STORE: begin

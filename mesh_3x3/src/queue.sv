@@ -11,7 +11,7 @@ module queue (
 
     integer i;
 
-    reg[0:`PL-1] queue_buffers[0:`EN-1] /* synthesis ramstyle = "logic" */;
+    reg[0:`PL-1] queue_buffers[0:`EN-1];
     reg[`EN_B:0] ptr_write = 0;
     reg[`EN_B:0] ptr_read = 0;
     reg empty_flag = 1;

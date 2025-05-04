@@ -8,10 +8,11 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
     input  logic clk, rst_n,
 
     input logic [1 + 2*$clog2(NODE_COUNT) + 17 + PACKET_ID_WIDTH - 1 + 2 : 0] flitIn,
-    output logic readFromNoc,
 
     output logic [1 + 2*$clog2(NODE_COUNT) + 17 + PACKET_ID_WIDTH - 1 + 2 : 0] flitOut,
-    input logic writeToNoc
+
+    input logic [31:0] peekAddress,
+    output logic [31:0] peekData
 );
     // CPU-Controller
     wire[31:0] dataToCpu;
@@ -36,7 +37,7 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
     // Controller-Collector
     wire validCollectorRam;
     wire readFromCollector;
-    wire [71:0] packetIn;
+    wire [67:0] packetIn;
     wire [$clog2(NODE_COUNT)-1:0] nodeStart;
 
     sr_cpu #(.NODE_ID(NODE_ID)) core (
@@ -87,7 +88,10 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
         .ramAddress(physicalRamAddress),
         .wrData(wrData),
         .we(we),
-        .rdData(rdData)
+        .rdData(rdData),
+
+        .peekAddress(peekAddress),
+        .peekData(peekData)
     );
 
     splitter #(
