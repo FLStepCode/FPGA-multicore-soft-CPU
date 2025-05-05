@@ -3,9 +3,7 @@ vlog ../tb/tb.sv +incdir+../
 
 vsim work.tb
 
-add wave tb/clk
-add wave tb/rst_n
-add wave -unsigned tb/peek*
+add wave tb/*
 
 run -all
 

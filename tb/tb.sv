@@ -1,43 +1,61 @@
 `timescale 1ps/1ps
 
-`include "cpu/noc_with_cores.sv"
+`include "boards/toplevel.sv"
 
 module tb;
 
 reg clk = 0;
 reg rst_n = 0;
 
-reg [31:0] peekAddress;
-reg [$clog2(9) - 1:0] peekId;
-wire [31:0] peekData;
+reg rx = 1;
+wire tx;
+
+wire clkRx, clkTx;
 
 always #10 clk = ~clk;
 
-noc_with_cores dut (
+toplevel dut (
     .clk(clk), .rst_n(rst_n),
-    .peekAddress(peekAddress), .peekId(peekId), .peekData(peekData)
+    .rx(rx), .tx(tx),
+    .clkRx(clkRx), .clkTx(clkTx)
 );
 
-always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) begin
-        peekAddress <= 0;
-        peekId <= 0;
-    end
-    else begin
-        if (peekAddress < 1023) begin
-            peekAddress <= peekAddress + 1;
+task giveDestination (
+    input logic [7:0] peekID,
+    input logic [31:0] peekAddress
+);
+
+    integer i, j;
+
+    logic [39:0] data;
+    data = {peekID, peekAddress};
+
+    for (i = 0; i < 5; i = i + 1) begin
+        @(posedge clkTx) begin
+            rx = 1'b0;
         end
-        else begin
-            peekAddress <= 0;
-            if (peekId < `RN) begin
-                peekId <= peekId + 1;
+        for (j = 0; j < 8; j = j + 1) begin
+            @(posedge clkTx) begin
+                rx = data[i*8 + j];
             end
-            else begin
-                peekId <= 0;
-            end
+        end 
+        @(posedge clkTx) begin
+            rx = 1'b1;
         end
     end
+    
+endtask
+
+always begin
+
+    integer i;
+    for (i = 572; i < 617; i = i + 1) begin
+        giveDestination(8'd3, i);
+        #500_000;
+    end
+    
 end
+
 
 initial begin
     #20;

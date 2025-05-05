@@ -4,14 +4,17 @@ module uart #(
     input logic clk,
     input logic rst_n,
     input logic rx,
-    output logic tx,
     output logic [7:0] dataFromRX,
     output logic validOut,
+    output logic tx,
     input logic [7:0] dataToTX,
-    input logic validIn
-);
+    input logic validIn,
+    output logic txReady,
 
-    logic clkRx, clkTx;
+    // For debugging
+    output logic clkRx,
+    output logic clkTx
+);
 
     uartClockGen #(.BAUD_RATE(BAUD_RATE), .CLK_FREQ(CLK_FREQ)) u_uartClockGen (
         .clk(clk),
@@ -33,7 +36,8 @@ module uart #(
         .rst_n(rst_n),
         .dataToTX(dataToTX),
         .validIn(validIn),
-        .tx(tx)
+        .tx(tx),
+        .txReady(txReady)
     );
 
 endmodule
@@ -48,7 +52,7 @@ module uartRx (
 );
 
     logic [2:0] countData;
-    logic [2:0] countClock;
+    logic [3:0] countClock;
 
     parameter [1:0] IDLE = 2'b00, DATA = 2'b01, STOP = 2'b10;
     logic [1:0] state;
@@ -135,7 +139,8 @@ module uartTx (
     input logic rst_n,
     input logic [7:0] dataToTX,
     input logic validIn,
-    output logic tx
+    output logic tx,
+    output logic txReady
 );
 
     logic [2:0] countData;
@@ -148,6 +153,7 @@ module uartTx (
         if (!rst_n) begin
             countData <= 0;
             tx <= 1;
+            txReady <= 1;
             state <= IDLE;
         end
         else begin
@@ -156,11 +162,13 @@ module uartTx (
 
                 IDLE: begin
                     tx <= 1;
+                    txReady <= 1;
                     countData <= 0;
 
                     if (validIn) begin
                         dataToTXReg <= dataToTX;
                         state <= START;
+                        txReady <= 0;
                     end
                 end
 
@@ -201,8 +209,8 @@ module uartClockGen #(
     output logic clkTx
 );
 
-    parameter int DIVIDER_RX = CLK_FREQ / (2 * BAUD_RATE * 16);
-    parameter int DIVIDER_TX = CLK_FREQ / (2 * BAUD_RATE);
+    localparam int DIVIDER_RX = CLK_FREQ / (2 * BAUD_RATE * 16);
+    localparam int DIVIDER_TX = CLK_FREQ / (2 * BAUD_RATE);
 
     integer counterRx;
     integer counterTx;

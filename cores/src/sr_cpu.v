@@ -279,7 +279,6 @@ module sr_alu
 endmodule
 
 module sr_agu (
-    input clk, rst_n,
     input [31:0] srcR1,
     input [31:0] srcI,
     input [31:0] srcS,

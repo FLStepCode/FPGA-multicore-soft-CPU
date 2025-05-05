@@ -1,4 +1,10 @@
-`define TEST
+// `define SIM
+
+`ifdef SIM
+    `define PATH ""
+`else
+    `define PATH "./modelsim/"
+`endif
 
 module ram #( 
     parameter int RAM_SIZE = 1024, NODE_ID = 0
@@ -30,10 +36,10 @@ module ram #(
 
     initial begin
         if (NODE_ID == 0) begin
-            $readmemh("image_chunk_1.hex", ram);
+            $readmemh({`PATH, "image_chunk_1.hex"}, ram);
         end
         else if (NODE_ID == 1) begin
-            $readmemh("image_chunk_2.hex", ram);
+            $readmemh({`PATH, "image_chunk_2.hex"}, ram);
         end
         else if (NODE_ID == 2) begin
             ram[0] = 1;
@@ -45,23 +51,26 @@ module ram #(
             ram[6] = 1;
             ram[7] = 1;
             ram[8] = 1;
+            for (i = 9; i < RAM_SIZE; i = i + 1) begin
+                ram[i] = 0;
+            end
         end
         else if (NODE_ID == 3) begin
             for (i = 0; i < RAM_SIZE; i = i + 1) begin
                 ram[i] = 0;
             end
-            `ifdef TEST
+            `ifdef SIM
                 #2000000;
-                $writememh("D:/noc_with_cores/modelsim/output_image_chunk_1.hex", ram);
+                $writememh("output_image_chunk_1.hex", ram);
             `endif
         end
         else if (NODE_ID == 4) begin
             for (i = 0; i < RAM_SIZE; i = i + 1) begin
                 ram[i] = 0;
             end
-            `ifdef TEST
+            `ifdef SIM
                 #2000000;
-                $writememh("D:/noc_with_cores/modelsim/output_image_chunk_2.hex", ram);
+                $writememh("output_image_chunk_2.hex", ram);
             `endif
         end
         else begin
