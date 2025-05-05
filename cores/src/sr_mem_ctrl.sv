@@ -29,7 +29,8 @@ module sr_mem_ctrl #(
     output reg [67:0] packetOut, // | unused[67] | data[66:35] | address[34:3] | instr[2:0] |
     output reg [$clog2(NODE_COUNT) - 1:0] nodeDest,
     output reg [PACKET_ID_WIDTH - 1:0] packetId,
-    output reg validOut
+    output reg validOut,
+    input splitterReady
 );
 
     reg [1:0] counter;
@@ -85,38 +86,42 @@ module sr_mem_ctrl #(
             end
             else begin
                 validOut <= 0;
-                case (packetInReg[2:0])
-                    `LOAD_REQUESTED: begin
-                        if (counter == 1) begin
-                            counter <= counter + 1;
-                            ramAddress <= packetInReg[34:3];
+                if (splitterReady) begin
+
+                    case (packetInReg[2:0])
+                        `LOAD_REQUESTED: begin
+                            if (counter == 1) begin
+                                counter <= counter + 1;
+                                ramAddress <= packetInReg[34:3];
+                            end
+                            else if (counter == 2) begin
+                                counter <= counter + 1;
+                            end
+                            else begin
+                                counter <= 0;
+                                nodeDest <= nodeStart;
+                                packetOut <= {1'b0, rdData, 32'hFFFFFFFF, `LOAD_SATISFIED};
+                                packetId <= packetId + 1;
+                                validOut <= 1;
+                                packetInReg <= 0;
+                            end
                         end
-                        else if (counter == 2) begin
-                            counter <= counter + 1;
-                        end
-                        else begin
+                        `LOAD_SATISFIED: begin
                             counter <= 0;
-                            nodeDest <= nodeStart;
-                            packetOut <= {1'b0, rdData, 32'hFFFFFFFF, `LOAD_SATISFIED};
-                            packetId <= packetId + 1;
-                            validOut <= 1;
+                            dataToCpu <= packetInReg[66:35];
+                            dataSent <= 1;
                             packetInReg <= 0;
                         end
-                    end
-                    `LOAD_SATISFIED: begin
-                        counter <= 0;
-                        dataToCpu <= packetInReg[66:35];
-                        dataSent <= 1;
-                        packetInReg <= 0;
-                    end
-                    `STORE_TO_RAM: begin
-                        counter <= 0;
-                        ramAddress <= packetInReg[34:3];
-                        wrData <= packetInReg[66:35];
-                        we <= 1;
-                        packetInReg <= 0;
-                    end
-                endcase
+                        `STORE_TO_RAM: begin
+                            counter <= 0;
+                            ramAddress <= packetInReg[34:3];
+                            wrData <= packetInReg[66:35];
+                            we <= 1;
+                            packetInReg <= 0;
+                        end
+                    endcase
+
+                end
             end
         end
     end

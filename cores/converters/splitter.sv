@@ -4,6 +4,9 @@ module splitter #(parameter int NODE_ID = 0, NODE_COUNT = 8, QUEUE_DEPTH = 8, pa
     input  logic [$clog2(NODE_COUNT) - 1 : 0] node_dest,
     input  logic valid_in,
     input  logic [PACKET_ID_WIDTH - 1 : 0] packet_id,
+    output logic splitter_ready,
+
+    input logic network_ready,
     output logic [1 + 2*$clog2(NODE_COUNT) + 17 + PACKET_ID_WIDTH - 1 + 2 : 0] output_data,
     output logic valid_out
 );
@@ -42,6 +45,7 @@ always_ff @(posedge clk or negedge rst_n) begin
         byte_counter <= 0;
         valid_out <= 0;
         output_data <= 0;
+        splitter_ready <= 1;
     end else if (ce) begin
         if (valid_in && count < QUEUE_DEPTH) begin
             queue[tail] <= packet_in;
@@ -49,46 +53,55 @@ always_ff @(posedge clk or negedge rst_n) begin
             id_queue[tail]   <= packet_id;   
             tail <= (tail + 1) % QUEUE_DEPTH;
             count <= count + 1;
+            splitter_ready <= (count != QUEUE_DEPTH);
         end
 
         if (count > 0) begin
-            case (byte_counter)
-                4'b0000:  begin
-                    output_data <= {1'b1, node_queue[head], queue[head][67:51], id_queue[head], node_in, byte_counter[1:0]};
-                    `ifdef TEST_OUT
-                        $display("valid = %b node_start = %b node_finish = %b packet = %b packet_id = %d", 1'b1, node_in, node_queue[head], queue[head][31:24], id_queue[head]);
-                    `endif
-                    end
-                4'b0001: begin
-                    output_data <= {1'b1, node_queue[head], queue[head][50:34], id_queue[head], node_in, byte_counter[1:0]};
-                    `ifdef TEST_OUT
-                        $display("valid = %b node_start = %b node_finish = %b packet = %b packet_id = %d",  1'b1, node_in, node_queue[head], queue[head][23:16], id_queue[head]);
-                    `endif
-                end
-                4'b0010: begin
-                    output_data <= {1'b1, node_queue[head], queue[head][33:17], id_queue[head], node_in, byte_counter[1:0]};
-                    `ifdef TEST_OUT
-                        $display("valid = %b node_start = %b node_finish = %b packet = %b packet_id = %d",  1'b1, node_in, node_queue[head], queue[head][15:8], id_queue[head]);
-                    `endif
-                    end 
-                4'b0011: begin
-                    output_data <= {1'b1, node_queue[head], queue[head][16:0], id_queue[head], node_in, byte_counter[1:0]};
-                    `ifdef TEST_OUT
-                            $display("valid = %b node_start = %b node_finish = %b packet = %b packet_id = %d", 1'b1, node_in, node_queue[head], queue[head][7:0], id_queue[head]);
-                    `endif
-                    head <= (head + 1) % QUEUE_DEPTH; 
-                    if (valid_in && count < QUEUE_DEPTH) begin
-                        count <= count;
-                    end
-                    else begin
-                        count <= count - 1;
-                    end
-                end
-            endcase
+            if (network_ready) begin
 
+                valid_out <= 1;
+                case (byte_counter)
+                    4'b0000:  begin
+                        output_data <= {1'b1, node_queue[head], queue[head][67:51], id_queue[head], node_in, byte_counter[1:0]};
+                        `ifdef TEST_OUT
+                            $display("valid = %b node_start = %b node_finish = %b packet = %b packet_id = %d", 1'b1, node_in, node_queue[head], queue[head][31:24], id_queue[head]);
+                        `endif
+                        end
+                    4'b0001: begin
+                        output_data <= {1'b1, node_queue[head], queue[head][50:34], id_queue[head], node_in, byte_counter[1:0]};
+                        `ifdef TEST_OUT
+                            $display("valid = %b node_start = %b node_finish = %b packet = %b packet_id = %d",  1'b1, node_in, node_queue[head], queue[head][23:16], id_queue[head]);
+                        `endif
+                    end
+                    4'b0010: begin
+                        output_data <= {1'b1, node_queue[head], queue[head][33:17], id_queue[head], node_in, byte_counter[1:0]};
+                        `ifdef TEST_OUT
+                            $display("valid = %b node_start = %b node_finish = %b packet = %b packet_id = %d",  1'b1, node_in, node_queue[head], queue[head][15:8], id_queue[head]);
+                        `endif
+                        end 
+                    4'b0011: begin
+                        output_data <= {1'b1, node_queue[head], queue[head][16:0], id_queue[head], node_in, byte_counter[1:0]};
+                        `ifdef TEST_OUT
+                                $display("valid = %b node_start = %b node_finish = %b packet = %b packet_id = %d", 1'b1, node_in, node_queue[head], queue[head][7:0], id_queue[head]);
+                        `endif
+                        head <= (head + 1) % QUEUE_DEPTH; 
+                        if (valid_in && count < QUEUE_DEPTH) begin
+                            count <= count;
+                        end
+                        else begin
+                            count <= count - 1;
+                        end
+                    end
+                endcase
+                
+                byte_counter <= (byte_counter == 4'b0011) ? 0 : byte_counter + 1;
+            end
+
+        end
+        else if (!network_ready && output_data[1 + 2*$clog2(NODE_COUNT) + 17 + PACKET_ID_WIDTH - 1 + 2]) begin
             valid_out <= 1;
-            byte_counter <= (byte_counter == 4'b0011) ? 0 : byte_counter + 1;
-        end else begin
+        end
+        else begin
             valid_out <= 0;
             output_data <= 0;
         end

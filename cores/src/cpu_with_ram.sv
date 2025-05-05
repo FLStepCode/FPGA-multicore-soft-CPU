@@ -7,8 +7,10 @@
 module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH = 8, COLLECTOR_DEPTH = 8, parameter int PACKET_ID_WIDTH = 5) (
     input  logic clk, rst_n,
 
+    output logic collectorReady,
     input logic [1 + 2*$clog2(NODE_COUNT) + 17 + PACKET_ID_WIDTH - 1 + 2 : 0] flitIn,
 
+    input logic networkReady,
     output logic [1 + 2*$clog2(NODE_COUNT) + 17 + PACKET_ID_WIDTH - 1 + 2 : 0] flitOut,
 
     input logic [31:0] peekAddress,
@@ -33,6 +35,7 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
     wire[$clog2(NODE_COUNT) - 1 : 0] nodeDest;
     wire[PACKET_ID_WIDTH-1:0] packetId;
     wire validControllerSplitter;
+    wire splitterReady;
 
     // Controller-Collector
     wire validCollectorRam;
@@ -78,7 +81,8 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
         .packetOut(packetOut), 
         .nodeDest(nodeDest),
         .packetId(packetId),
-        .validOut(validControllerSplitter)
+        .validOut(validControllerSplitter),
+        .splitterReady(splitterReady)
     );
 
     ram #(
@@ -102,6 +106,9 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
         .node_dest(nodeDest),
         .valid_in(validControllerSplitter),
         .packet_id(packetId),
+        .splitter_ready(splitterReady),
+
+        .network_ready(networkReady),
         .output_data(flitOut),
         .valid_out()
     );
@@ -111,7 +118,7 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
     ) pc (
         .clk(clk), .rst_n(rst_n), .ce(1'b1),
         .input_data(flitIn),
-        .valid_in(1'b1),
+        .collector_ready(collectorReady),
 
         .valid_out(validCollectorRam),
         .packet_out(packetIn),

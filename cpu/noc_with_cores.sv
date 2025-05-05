@@ -11,7 +11,9 @@ module noc_with_cores (
     output [31:0] peekData
 );
 
-    wire core_availability_signals_out[0:`Y-1][0:`X-1];
+    wire cores_ready[0:`Y-1][0:`X-1];
+    wire network_ready[0:`Y-1][0:`X-1];
+
     wire[0:`PL-1] core_inputs[0:`Y-1][0:`X-1];
     wire[0:`PL-1] core_outputs[0:`Y-1][0:`X-1];
 
@@ -44,15 +46,17 @@ module noc_with_cores (
             for (j = 0; j < `X; j = j + 1)
             begin : columns
 
-                assign core_availability_signals_out[i][j] = 1; 
-
                 if (1)
                 begin
                     cpu_with_ram #(
                         .NODE_ID(i * `Y + j)
                     ) core (
                         .clk(clk), .rst_n(rst_n),
+
+                        .collectorReady(cores_ready[i][j]),
                         .flitIn(core_inputs[i][j]),
+
+                        .networkReady(network_ready[i][j]),
                         .flitOut(core_outputs[i][j]),
 
                         .peekAddress(peekAddress),
@@ -74,7 +78,8 @@ module noc_with_cores (
         .clk(clk), .rst_n(rst_n),
         .core_inputs(core_inputs),
         .core_outputs(core_outputs),
-        .core_availability_signals_out(core_availability_signals_out)
+        .cores_ready(cores_ready),
+        .network_ready(network_ready)
     );
     
 endmodule

@@ -7,8 +7,8 @@ module noc(
     input rst_n,
     output[0:`PL-1] core_inputs[0:`Y-1][0:`X-1],
     input[0:`PL-1] core_outputs[0:`Y-1][0:`X-1],
-	input core_availability_signals_out[0:`Y-1][0:`X-1],
-	output core_availability_signals_in[0:`Y-1][0:`X-1]
+	input cores_ready[0:`Y-1][0:`X-1],
+	output network_ready[0:`Y-1][0:`X-1]
 );
 
 wire [0:`PL-1] inputs[0:`Y + 1][0:`X + 1][0:`REN-1];
@@ -58,7 +58,7 @@ generate
         for (router_X_iterator = 1; router_X_iterator <= `X; router_X_iterator = router_X_iterator + 1)
         begin  : routers_X
 
-            assign core_availability_signals_in[router_Y_iterator-1][router_X_iterator-1] = availability_signals[router_Y_iterator][router_X_iterator][0];
+            assign network_ready[router_Y_iterator-1][router_X_iterator-1] = availability_signals[router_Y_iterator][router_X_iterator][0];
 
             localparam lower = router_Y_iterator + 1;
             localparam right = router_X_iterator + 1;
@@ -73,7 +73,7 @@ generate
             assign inputs[router_Y_iterator][left][2] = outputs[4];
 
             wire signals_in[0:`REN-1];
-            assign signals_in[0] = core_availability_signals_out[router_Y_iterator-1][router_X_iterator-1];
+            assign signals_in[0] = cores_ready[router_Y_iterator-1][router_X_iterator-1];
             assign signals_in[1] = availability_signals[upper][router_X_iterator][3];
             assign signals_in[2] = availability_signals[router_Y_iterator][right][4];
             assign signals_in[3] = availability_signals[lower][router_X_iterator][1];

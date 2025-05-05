@@ -59,6 +59,11 @@ module queue (
                     ptr_write <= (ptr_write + 1) % `EN;
                     empty_flag <= 0;
                 end
+                4'b1010 : begin
+                    ptr_read <= (ptr_read + 1) % `EN;
+                    availability_signal <= 1;
+                    empty_flag <= ptr_write == ((ptr_read + 1) % `EN);
+                end
                 4'b0?10 : begin
                     ptr_read <= (ptr_read + 1) % `EN;
                     availability_signal <= 1;
