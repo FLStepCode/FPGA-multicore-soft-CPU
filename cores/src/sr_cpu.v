@@ -22,8 +22,7 @@ module sr_cpu #(
 
     // connection to ram controller
     input[31:0] dataToCpu,
-    input dataReceived,
-    input instrTaken,
+    input instrSuccess,
     output[31:0] dataFromCpu,
     output[31:0] ramAddress,
     output[2:0] aguInstructionOut
@@ -127,8 +126,7 @@ module sr_cpu #(
         .memAddress ( ramAddress ),
         .memInstr   ( aguInstructionOut ),
         .cpuPause_n  ( cpuPause_n ),
-        .dataArrived( dataReceived ),
-        .instrTaken ( instrTaken   )
+        .instrSuccess( instrSuccess )
     );
 
     always @(*) begin
@@ -288,8 +286,7 @@ module sr_agu (
     output reg [31:0] memAddress,
     output reg [2:0] memInstr,
     output reg cpuPause_n,
-    input dataArrived,
-    input instrTaken
+    input instrSuccess
 );
 
     reg counter;
@@ -308,13 +305,13 @@ module sr_agu (
                 memAddress = srcR1 + srcI;
                 memInstr = oper;
                 memData = 32'hFFFFFFFF;
-                cpuPause_n = dataArrived;
+                cpuPause_n = instrSuccess;
             end
             `AGU_STORE: begin
                 memAddress = srcR1 + srcS;
                 memInstr = oper;
                 memData = srcD;
-                cpuPause_n = instrTaken;
+                cpuPause_n = instrSuccess;
             end
         endcase
     end

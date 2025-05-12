@@ -1,3 +1,4 @@
 `define LOAD_REQUESTED  3'b001
 `define LOAD_SATISFIED  3'b101
-`define STORE_TO_RAM    3'b010
+`define STORE_REQUESTED 3'b010
+`define STORE_SATISFIED 3'b110

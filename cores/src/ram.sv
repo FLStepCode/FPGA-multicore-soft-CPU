@@ -60,7 +60,7 @@ module ram #(
                 ram[i] = 0;
             end
             `ifdef SIM
-                #2000000;
+                #3000000;
                 $writememh("output_image_chunk_1.hex", ram);
             `endif
         end
@@ -69,7 +69,7 @@ module ram #(
                 ram[i] = 0;
             end
             `ifdef SIM
-                #2000000;
+                #3000000;
                 $writememh("output_image_chunk_2.hex", ram);
             `endif
         end

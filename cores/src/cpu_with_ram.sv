@@ -4,7 +4,7 @@
 `include "cores/converters/splitter.sv"
 `include "cores/converters/packet_collector.sv"
 
-module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH = 1, COLLECTOR_DEPTH = 8, parameter int PACKET_ID_WIDTH = 5) (
+module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH = 1, COLLECTOR_DEPTH = 4, parameter int PACKET_ID_WIDTH = 5) (
     input  logic clk, rst_n,
 
     output logic collectorReady,
@@ -21,8 +21,7 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
     wire[31:0] dataFromCpu;
     wire[31:0] logicalRamAddress;
     wire[2:0] instr;
-    wire dataReceived;
-    wire instrTaken;
+    wire instrSuccess;
 
     // Controller-RAM
     wire[31:0] rdData;
@@ -41,15 +40,14 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
     // Controller-Collector
     wire validCollectorRam;
     wire readFromCollector;
-    wire [67:0] packetIn;
+    wire [63:0] packetIn;
     wire [2:0] instrIn;
     wire [$clog2(NODE_COUNT)-1:0] nodeStart;
 
     sr_cpu #(.NODE_ID(NODE_ID)) core (
         .clk(clk), .rst_n(rst_n),
         .dataToCpu(dataToCpu),
-        .dataReceived(dataReceived),
-        .instrTaken(instrTaken),
+        .instrSuccess(instrSuccess),
         .dataFromCpu(dataFromCpu),
         .ramAddress(logicalRamAddress),
         .aguInstructionOut(instr)
@@ -65,8 +63,7 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH 
         .memAddress(logicalRamAddress),
         .memInstr(instr),
         .dataToCpu(dataToCpu),
-        .dataSent(dataReceived),
-        .instrTaken(instrTaken),
+        .instrSuccess(instrSuccess),
 
         // RAM
         .rdData(rdData),

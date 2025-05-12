@@ -2,7 +2,7 @@
 `include "cores/src/sr_mem_ctrl.svh"
 
 module sr_mem_ctrl #(
-    parameter int NODE_ID = 0, NODE_COUNT = 8, RAM_CHUNK_SIZE = 1024, PACKET_ID_WIDTH = 5
+    parameter int NODE_ID = 0, NODE_COUNT = 8, RAM_CHUNK_SIZE = 1024, PACKET_ID_WIDTH = 5, TTL = 2048
 ) (
     input clk, rst_n,
 
@@ -11,8 +11,7 @@ module sr_mem_ctrl #(
     input [31:0] memAddress,
     input [2:0] memInstr,
     output reg[31:0] dataToCpu,
-    output reg dataSent,
-    output instrTaken,
+    output reg instrSuccess,
 
     // RAM
     input [31:0] rdData,
@@ -37,11 +36,11 @@ module sr_mem_ctrl #(
 
     reg [1:0] counter;
 
-    assign instrTaken = ((counter == 0) && splitterReady) ? 1 : 0;
-
     reg [63:0] packetInReg; // | data[63:32] | address[31:0] |
     reg [2:0] instrInReg; // | data[63:32] | address[31:0] |
-    reg load_flag;
+    reg busy;
+
+    integer localtimer;
 
     assign readyToReceive = (counter == 0) ? 1 : 0;
 
@@ -54,17 +53,18 @@ module sr_mem_ctrl #(
             instrOut <= 3'd0;
             validOut <= 0;
             packetId <= 0;
-            load_flag <= 0;
-            dataSent <= 0;
+            busy <= 0;
+            instrSuccess <= 0;
+            localtimer <= 0;
         end
         else begin
 
             validOut <= 0;
-            dataSent <= 0;
+            instrSuccess <= 0;
             we <= 0;
 
-            if (dataSent) begin
-                load_flag <= 0;
+            if (instrSuccess) begin
+                busy <= 0;
             end
 
             if (counter == 0) begin
@@ -78,14 +78,20 @@ module sr_mem_ctrl #(
                         nodeDest <= memAddress / RAM_CHUNK_SIZE;
                         packetOut <= {memData, memAddress % RAM_CHUNK_SIZE};
                         instrOut <= memInstr;
-                        if (memInstr == `AGU_LOAD && ~load_flag) begin
+                        if (~busy) begin
                             packetId <= packetId + 1;
                             validOut <= 1;
-                            load_flag <= 1;
+                            busy <= 1;
+                            localtimer <= 0;
                         end
-                        else if (memInstr != `AGU_LOAD) begin
-                            packetId <= packetId + 1;
-                            validOut <= 1;
+                        else begin
+                            if (localtimer < TTL) begin
+                                localtimer <= localtimer + 1;
+                            end
+                            else begin
+                                localtimer <= 0;
+                                validOut <= 1;
+                            end
                         end
                     end
                 end
@@ -94,7 +100,7 @@ module sr_mem_ctrl #(
                 end
             end
             else begin
-                case (instrInReg[2:0])
+                case (instrInReg)
                     `LOAD_REQUESTED: begin
                         if (splitterReady) begin
                             if (counter == 1) begin
@@ -121,14 +127,27 @@ module sr_mem_ctrl #(
                     `LOAD_SATISFIED: begin
                         counter <= 0;
                         dataToCpu <= packetInReg[63:32];
-                        dataSent <= 1;
+                        instrSuccess <= 1;
                         packetInReg <= 0;
                     end
-                    `STORE_TO_RAM: begin
+                    `STORE_REQUESTED: begin
+                        if (splitterReady) begin
+                            counter <= 0;
+                            nodeDest <= nodeStart;
+                            packetOut <= {32'hFFFFFFFF, 32'hFFFFFFFF};
+                            instrOut <= `STORE_SATISFIED;
+                            packetId <= packetId + 1;
+                            validOut <= 1;
+                            packetInReg <= 0;
+
+                            ramAddress <= packetInReg[31:0];
+                            wrData <= packetInReg[63:32];
+                            we <= 1;
+                        end
+                    end
+                    `STORE_SATISFIED: begin
                         counter <= 0;
-                        ramAddress <= packetInReg[31:0];
-                        wrData <= packetInReg[63:32];
-                        we <= 1;
+                        instrSuccess <= 1;
                         packetInReg <= 0;
                     end
                 endcase
