@@ -9,7 +9,7 @@
  */ 
 
 // `define TEST
-`define SIM
+// `define SIM
 
 `ifdef SIM
     `define PATH ""

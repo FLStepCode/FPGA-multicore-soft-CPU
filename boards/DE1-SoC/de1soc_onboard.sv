@@ -16,7 +16,7 @@ module de1soc_onboard (
     wire[31:0] peekData;
 
     cnt_div cd (
-        .clk(CLOCK_50), .rst_n(rst_n),
+        .clk(CLOCK_50), .rst_n(KEY_N[3]),
         .clk_out(clk)
     );
 
