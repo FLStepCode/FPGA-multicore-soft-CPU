@@ -25,7 +25,7 @@ module ram #(
     always @(posedge clk)
     begin
         if (we)
-            ram[ramAddress] <= wrData;
+            ram[ramAddress] = wrData;
         rdData <= ram[ramAddress];
     end
 

@@ -46,7 +46,7 @@ initial begin
 
     KEY_N = 4'b1111;
 
-    #30000000 $stop;
+    #200000000 $stop;
 
 
 end

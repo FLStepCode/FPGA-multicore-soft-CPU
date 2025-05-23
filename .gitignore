@@ -5,3 +5,8 @@ modelsim/*
 !modelsim/modelsim_run.bat
 
 quartus/*
+
+boards/*
+boards/*.sv
+!boards/*/*.sv
+!boards/*/*.tcl
