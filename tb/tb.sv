@@ -60,7 +60,7 @@ end
 initial begin
     #20;
     rst_n = 1;
-    #3000000;
+    #5000000;
     $stop;
 end
     

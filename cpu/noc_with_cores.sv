@@ -28,13 +28,19 @@ module noc_with_cores (
             0: peekIdEncoded = 4'b0000;
             1: peekIdEncoded = 4'b0100;
             2: peekIdEncoded = 4'b1000;
-            3: peekIdEncoded = 4'b0001;
-            4: peekIdEncoded = 4'b0101;
-            5: peekIdEncoded = 4'b1001;
-            6: peekIdEncoded = 4'b0010;
-            7: peekIdEncoded = 4'b0110;
-            8: peekIdEncoded = 4'b1010;
-            default: peekIdEncoded = 4'b1111;
+            3: peekIdEncoded = 4'b1100;
+            4: peekIdEncoded = 4'b0001;
+            5: peekIdEncoded = 4'b0101;
+            6: peekIdEncoded = 4'b1001;
+            7: peekIdEncoded = 4'b1101;
+            8: peekIdEncoded = 4'b0010;
+            9: peekIdEncoded = 4'b0110;
+            10: peekIdEncoded = 4'b1010;
+            11: peekIdEncoded = 4'b1110;
+            12: peekIdEncoded = 4'b0011;
+            13: peekIdEncoded = 4'b0111;
+            14: peekIdEncoded = 4'b1011;
+            15: peekIdEncoded = 4'b1111;
         endcase
     end
 

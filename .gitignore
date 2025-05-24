@@ -1,6 +1,6 @@
 modelsim/*
-!modelsim/instr*
-!modelsim/image*
+!modelsim/instr_node*
+!modelsim/ram_image*
 !modelsim/modelsim_script.tcl
 !modelsim/modelsim_run.bat
 

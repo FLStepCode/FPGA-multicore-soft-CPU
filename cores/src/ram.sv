@@ -1,4 +1,4 @@
-// `define SIM
+`define SIM
 
 `ifdef SIM
     `define PATH ""
@@ -36,41 +36,66 @@ module ram #(
 
     initial begin
         if (NODE_ID == 0) begin
-            $readmemh({`PATH, "image_chunk_1.hex"}, ram);
+            $readmemh({`PATH, "ram_image_0.hex"}, ram);
         end
         else if (NODE_ID == 1) begin
-            $readmemh({`PATH, "image_chunk_2.hex"}, ram);
+            $readmemh({`PATH, "ram_image_1.hex"}, ram);
         end
         else if (NODE_ID == 2) begin
-            ram[0] = 1;
-            ram[1] = 1;
-            ram[2] = 1;
-            ram[3] = 1;
-            ram[4] = 2;
-            ram[5] = 1;
-            ram[6] = 1;
-            ram[7] = 1;
-            ram[8] = 1;
-            for (i = 9; i < RAM_SIZE; i = i + 1) begin
-                ram[i] = 0;
-            end
+            $readmemh({`PATH, "ram_image_2.hex"}, ram);
         end
         else if (NODE_ID == 3) begin
+            $readmemh({`PATH, "ram_image_3.hex"}, ram);
+        end
+        else if (NODE_ID == 4) begin
+            $readmemh({`PATH, "ram_image_4.hex"}, ram);
+        end
+        else if (NODE_ID == 5) begin
+            $readmemh({`PATH, "ram_image_5.hex"}, ram);
+        end
+        else if (NODE_ID == 6) begin
             for (i = 0; i < RAM_SIZE; i = i + 1) begin
                 ram[i] = 0;
             end
             `ifdef SIM
-                #3000000;
+                #5000000;
+                $writememh("output_image_chunk_0.hex", ram);
+            `endif
+        end
+        else if (NODE_ID == 7) begin
+            for (i = 0; i < RAM_SIZE; i = i + 1) begin
+                ram[i] = 0;
+            end
+            `ifdef SIM
+                #5000000;
                 $writememh("output_image_chunk_1.hex", ram);
             `endif
         end
-        else if (NODE_ID == 4) begin
+        else if (NODE_ID == 8) begin
             for (i = 0; i < RAM_SIZE; i = i + 1) begin
                 ram[i] = 0;
             end
             `ifdef SIM
-                #3000000;
+                #5000000;
                 $writememh("output_image_chunk_2.hex", ram);
+            `endif
+        end
+        else if (NODE_ID == 9) begin
+            for (i = 0; i < RAM_SIZE; i = i + 1) begin
+                ram[i] = 0;
+            end
+            `ifdef SIM
+                #5000000;
+                $writememh("output_image_chunk_3.hex", ram);
+            `endif
+        end
+        else if (NODE_ID == 10) begin
+            for (i = 0; i < RAM_SIZE; i = i + 1) begin
+                ram[i] = 0;
+            end
+            `ifdef SIM
+                #5000000;
+                $writememh("output_image_chunk_4.hex", ram);
             `endif
         end
         else begin

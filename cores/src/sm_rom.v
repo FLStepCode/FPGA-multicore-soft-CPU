@@ -9,7 +9,7 @@
  */ 
 
 // `define TEST
-// `define SIM
+`define SIM
 
 `ifdef SIM
     `define PATH ""
@@ -126,6 +126,27 @@ module sm_rom
             end
             else if (NODE_ID == 8) begin
                 $readmemh({`PATH, "instr_node_8.hex"}, rom);
+            end
+            else if (NODE_ID == 9) begin
+                $readmemh({`PATH, "instr_node_9.hex"}, rom);
+            end
+            else if (NODE_ID == 10) begin
+                $readmemh({`PATH, "instr_node_10.hex"}, rom);
+            end
+            else if (NODE_ID == 11) begin
+                $readmemh({`PATH, "instr_node_11.hex"}, rom);
+            end
+            else if (NODE_ID == 12) begin
+                $readmemh({`PATH, "instr_node_12.hex"}, rom);
+            end
+            else if (NODE_ID == 13) begin
+                $readmemh({`PATH, "instr_node_13.hex"}, rom);
+            end
+            else if (NODE_ID == 14) begin
+                $readmemh({`PATH, "instr_node_14.hex"}, rom);
+            end
+            else if (NODE_ID == 15) begin
+                $readmemh({`PATH, "instr_node_15.hex"}, rom);
             end
 
         `endif

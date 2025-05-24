@@ -30,13 +30,19 @@ begin
         0: node_dest_encoded = 4'b0000;
         1: node_dest_encoded = 4'b0100;
         2: node_dest_encoded = 4'b1000;
-        3: node_dest_encoded = 4'b0001;
-        4: node_dest_encoded = 4'b0101;
-        5: node_dest_encoded = 4'b1001;
-        6: node_dest_encoded = 4'b0010;
-        7: node_dest_encoded = 4'b0110;
-        8: node_dest_encoded = 4'b1010;
-        default: node_dest_encoded = 4'b1111;
+        3: node_dest_encoded = 4'b1100;
+        4: node_dest_encoded = 4'b0001;
+        5: node_dest_encoded = 4'b0101;
+        6: node_dest_encoded = 4'b1001;
+        7: node_dest_encoded = 4'b1101;
+        8: node_dest_encoded = 4'b0010;
+        9: node_dest_encoded = 4'b0110;
+        10: node_dest_encoded = 4'b1010;
+        11: node_dest_encoded = 4'b1110;
+        12: node_dest_encoded = 4'b0011;
+        13: node_dest_encoded = 4'b0111;
+        14: node_dest_encoded = 4'b1011;
+        15: node_dest_encoded = 4'b1111;
     endcase
 end
 

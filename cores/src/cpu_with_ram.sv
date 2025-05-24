@@ -4,7 +4,7 @@
 `include "cores/converters/splitter.sv"
 `include "cores/converters/packet_collector.sv"
 
-module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 9, SPLITTER_DEPTH = 1, COLLECTOR_DEPTH = 4, parameter int PACKET_ID_WIDTH = 5) (
+module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 16, SPLITTER_DEPTH = 1, COLLECTOR_DEPTH = 4, parameter int PACKET_ID_WIDTH = 5) (
     input  logic clk, rst_n,
 
     output logic collectorReady,
