@@ -1,5 +1,7 @@
 `timescale 1ps/1ps
 
+`define SIM
+
 `include "boards/toplevel.sv"
 
 module tb;

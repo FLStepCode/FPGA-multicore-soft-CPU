@@ -1,36 +1,36 @@
 `include "boards/toplevel_onboard.sv"
 
-module de1soc_onboard (
+module de10standard_onboard (
     input CLOCK_50,
     input [9:0] SW,
-    input [3:0] KEY_N,
-    output [6:0] HEX0_N,
-    output [6:0] HEX1_N,
-    output [6:0] HEX2_N,
-    output [6:0] HEX3_N,
-    output [6:0] HEX4_N,
-    output [6:0] HEX5_N
+    input [3:0] KEY,
+    output [6:0] HEX0,
+    output [6:0] HEX1,
+    output [6:0] HEX2,
+    output [6:0] HEX3,
+    output [6:0] HEX4,
+    output [6:0] HEX5
 );
 
     wire clk;
     wire[31:0] peekData;
 
     cnt_div cd (
-        .clk(CLOCK_50), .rst_n(KEY_N[3]),
+        .clk(CLOCK_50), .rst_n(KEY[3]),
         .clk_out(clk)
     );
 
     toplevel_onboard to (
-        .clk(clk), .rst_n(KEY_N[3]),
-        .peekAddress({22'd0, SW}), .peekId({1'b0, ~KEY_N[2:0]}), .peekData(peekData)
+        .clk(clk), .rst_n(KEY[3]),
+        .peekAddress({22'd0, SW}), .peekId({1'b0, ~KEY[2:0]}), .peekData(peekData)
     );
 
-    hex_to_seven hts0 (peekData[3:0], HEX0_N);
-    hex_to_seven hts1 (peekData[7:4], HEX1_N);
-    hex_to_seven hts2 (peekData[11:8], HEX2_N);
-    hex_to_seven hts3 (peekData[15:12], HEX3_N);
-    hex_to_seven hts4 (peekData[19:16], HEX4_N);
-    hex_to_seven hts5 (peekData[23:20], HEX5_N);
+    hex_to_seven hts0 (peekData[3:0], HEX0);
+    hex_to_seven hts1 (peekData[7:4], HEX1);
+    hex_to_seven hts2 (peekData[11:8], HEX2);
+    hex_to_seven hts3 (peekData[15:12], HEX3);
+    hex_to_seven hts4 (peekData[19:16], HEX4);
+    hex_to_seven hts5 (peekData[23:20], HEX5);
     
 endmodule
 

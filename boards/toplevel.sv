@@ -1,6 +1,6 @@
 `include "cpu/noc_with_cores.sv"
 `include "cpu/uart.sv"
-`include "mesh_3x3/inc/noc_XY.svh"
+`include "mesh_4x4/inc/noc_XY.svh"
 
 module toplevel (
     input logic clk, rst_n,

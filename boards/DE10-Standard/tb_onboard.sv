@@ -1,4 +1,7 @@
 `timescale 1ps/1ps
+
+`define SIM
+
 `include "boards/DE1-SoC/de1soc_onboard.sv"
 
 module tb_onboard;

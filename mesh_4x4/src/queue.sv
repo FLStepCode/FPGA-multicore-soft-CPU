@@ -1,4 +1,4 @@
-`include "mesh_3x3/inc/queue.svh"
+`include "mesh_4x4/inc/queue.svh"
 
 module queue (
     input clk, rst_n,

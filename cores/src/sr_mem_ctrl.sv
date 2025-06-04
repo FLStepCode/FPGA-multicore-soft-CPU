@@ -40,6 +40,17 @@ module sr_mem_ctrl #(
     reg [2:0] instrInReg; // | data[63:32] | address[31:0] |
     reg busy;
 
+    `ifdef SIM
+        integer latency = 0;
+        string filename;
+        integer fd;
+
+        initial begin
+            $sformat(filename, "latency_log_%0d.csv", NODE_ID);
+        end
+
+    `endif
+
     integer localtimer;
 
     assign readyToReceive = (counter == 0) ? 1 : 0;
@@ -65,6 +76,11 @@ module sr_mem_ctrl #(
 
             if (instrSuccess) begin
                 busy <= 0;
+                `ifdef SIM
+                    fd = $fopen(filename, "a");
+                    $fwrite(fd, "%0d, %0d\n", $time, latency);
+                    $fclose(fd);
+                `endif
             end
 
             if (counter == 0) begin
@@ -83,9 +99,17 @@ module sr_mem_ctrl #(
                             validOut <= 1;
                             busy <= 1;
                             localtimer <= 0;
+                  
+                            `ifdef SIM
+                                latency <= 0;
+                            `endif
+
                         end
                         else begin
                             if (localtimer < TTL) begin
+                                `ifdef SIM
+                                    latency <= latency + 1;
+                                `endif
                                 localtimer <= localtimer + 1;
                             end
                             else begin

@@ -1,7 +1,7 @@
-`include "mesh_3x3/inc/router.svh"
-`include "mesh_3x3/src/queue.sv"
-`include "mesh_3x3/src/arbiter.sv"
-`include "mesh_3x3/src/algorithm.sv"
+`include "mesh_4x4/inc/router.svh"
+`include "mesh_4x4/src/queue.sv"
+`include "mesh_4x4/src/arbiter.sv"
+`include "mesh_4x4/src/algorithm.sv"
 
 module router (
     input clk, rst_n,

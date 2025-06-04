@@ -1,4 +1,4 @@
-`include "mesh_3x3/inc/noc.svh"
+`include "mesh_4x4/inc/noc.svh"
 `include "cpu/noc_with_cores.sv"
 
 module toplevel_onboard (

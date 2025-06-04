@@ -1,6 +1,6 @@
-`include "mesh_3x3/inc/noc.svh"
-`include "mesh_3x3/inc/noc_XY.svh"
-`include "mesh_3x3/noc/noc.sv"
+`include "mesh_4x4/inc/noc.svh"
+`include "mesh_4x4/inc/noc_XY.svh"
+`include "mesh_4x4/noc/noc.sv"
 `include "cores/src/cpu_with_ram.sv"
 
 module noc_with_cores (

@@ -1,4 +1,4 @@
-`include "mesh_3x3/inc/router.svh"
+`include "mesh_4x4/inc/router.svh"
 
 module arbiter (
 

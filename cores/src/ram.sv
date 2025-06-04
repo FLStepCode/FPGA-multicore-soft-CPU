@@ -1,5 +1,3 @@
-`define SIM
-
 `ifdef SIM
     `define PATH ""
 `else

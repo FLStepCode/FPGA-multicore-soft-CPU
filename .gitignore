@@ -7,6 +7,9 @@ modelsim/*
 quartus/*
 
 boards/*
-boards/*.sv
-!boards/*/*.sv
-!boards/*/*.tcl
+!boards/*.sv
+!boards/DE10-Standard/
+
+boards/DE10-Standard/*
+!boards/DE10-Standard/*.sv
+!boards/DE10-Standard/*.tcl
