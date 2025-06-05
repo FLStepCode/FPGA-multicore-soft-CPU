@@ -26,33 +26,33 @@ An open-source and free to use NoC description using SystemVerilog. Includes a 4
 | └ toplevel\_onboard.sv | a common toplevel module to be used in board-specific modules for self-contained |
 | cores | HDL files for schoolRISCV soft core and supporting modules |
 | ├ converters | HDL files for converters between memory controller (MC) packets and NoC packets |
-| <p>├ packet\_collector.sv | converter from NoC to MC |
-| <p>└ splitter.sv | converter from MC to NoC |
+| <p>├ packet\_collector.sv</p> | converter from NoC to MC |
+| <p>└ splitter.sv</p> | converter from MC to NoC |
 | └ src | HDL files for the schoolRISCV soft core |
-| <p>├ cpu\_with\_ram.sv | module that connects CPU and RAM to the MC |
-| <p>├ ram.sv | a two-port RAM |
-| <p>├ sm\_register.v | a DFF for an instruction counter |
-| <p>├ sm\_rom.v | preloaded instructions |
-| <p>├ sr\_cpu.v | a CPU module with a counter, decoder, register file, ALU, AGU and a control unit |
-| <p>├ sr\_cpu.vh | `define macros for RISCV opcodes and ALU/AGU oper codes |
-| <p>├ sr\_mem\_ctrl.sv | a memory controller (MC) connecting CPU to RAM through the NoC |
-| <p>└ sr\_mem\_ctrl.svh | `define macros for MC instructions |
+| <p>├ cpu\_with\_ram.sv</p> | module that connects CPU and RAM to the MC |
+| <p>├ ram.sv</p> | a two-port RAM |
+| <p>├ sm\_register.v</p> | a DFF for an instruction counter |
+| <p>├ sm\_rom.v</p> | preloaded instructions |
+| <p>├ sr\_cpu.v</p> | a CPU module with a counter, decoder, register file, ALU, AGU and a control unit |
+| <p>├ sr\_cpu.vh</p> | `define macros for RISCV opcodes and ALU/AGU oper codes |
+| <p>├ sr\_mem\_ctrl.sv</p> | a memory controller (MC) connecting CPU to RAM through the NoC |
+| <p>└ sr\_mem\_ctrl.svh</p> | `define macros for MC instructions |
 | cpu | HDL files for the 16-core CPU on a NoC |
 | ├ noc\_with\_cores.sv | connects 16 CPU cores to the mesh 4x4 NoC |
 | └ uart.sv | hooks up the 16-core CPU to the UART to monitor RAM data at a given address |
 | mesh\_4x4 | HDL files for the 4x4 mesh NoC |
 | ├ inc | `define macros for NoC configuration |
-| <p>├ noc.svh | macros for general NoC parameters |
-| <p>├ noc\_XY.svh | macros for topology-specific (mesh) parameters |
-| <p>├ queue.svh | macros for queue parameters |
-| <p>└ router.svh | macros for router parameters |
+| <p>├ noc.svh</p> | macros for general NoC parameters |
+| <p>├ noc\_XY.svh</p> | macros for topology-specific (mesh) parameters |
+| <p>├ queue.svh</p> | macros for queue parameters |
+| <p>└ router.svh</p> | macros for router parameters |
 | ├ noc | |
-| <p>└ noc.sv | module that connects 16 routers into a NoC |
+| <p>└ noc.sv</p> | module that connects 16 routers into a NoC |
 | └ src | HDL files for router components |
-| <p>├ algorithm.sv | an XY algorithm for packet switching |
-| <p>├ arbiter.sv | a module that chooses a packet to be switched |
-| <p>├ queue.sv | FIFOs for collecting incoming packets |
-| <p>└ router.sv | a module that creates a router from its components |
+| <p>├ algorithm.sv</p> | an XY algorithm for packet switching |
+| <p>├ arbiter.sv</p> | a module that chooses a packet to be switched |
+| <p>├ queue.sv</p> | FIFOs for collecting incoming packets |
+| <p>└ router.sv</p> | a module that creates a router from its components |
 | modelsim | |
 | ├ ram\_image\_0..5.hex | RAM images that contain a picture |
 | ├ instr\_node\_0..15.hex | RAM images that contain RISCV codes for each core|
