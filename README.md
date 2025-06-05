@@ -62,7 +62,27 @@ An open-source and free to use NoC description using SystemVerilog. Includes a 4
 | └ tb.sv | a testbench files that tests the CPU, dumping RAM contents at the end |
 
 ### network-with-generators
-// coming soon
+
+This is a secondary branch of this project, which contains an HDL description of the NoC connection subsystem
+itself at ./mesh_3x3 and the "core substitute" at ./generators. A complete description contains a single 3x3 mesh
+with 3 "core substitutes", one for each router on the main diagonal. Core substitute consists of 2 modules
+for generating pseudo-random 32-bit data packet and splitting it up into transferrable data flits and
+1 module for receiving data flits and assembling back them into valid 32-bit packets.
+
+Along with the SystemVerilog code there are tcl-scripts for simulation in ModelSim 
+(./modelsim/modelsim_script.tcl) and compilation in Quartus Prime Lite 17.1 for a DE10-Lite board
+(./board/de10lite/quartus_project.tcl). These scripts have been tested for Quartus Prime Lite 17.1 and for a
+ModelSim version, that comes bundled with it, and there is no guarantee that they will work for any other
+configuration.
+
+As long as you have both ModelSim executable and Quartus executables folders in PATH, the usage for the scripts should be:
+```
+vsim -do .\modelsim_script.tcl          # Launches a ModelSim GUI with relevant signals in the wave window
+```
+```
+quartus_sh -t .\quartus_project.tcl     # compiles a quartus project fully in CLI
+```
+For more information regarding the NoC read the ```UserManual.pdf``` in the ```main``` branch
 
 ## Necessary software
 * Quartus Prime Lite (only verified version - 17.1)
