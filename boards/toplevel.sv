@@ -42,7 +42,7 @@ module toplevel (
         .clk(clk), .rst_n(rst_n),
         .peekAddress(peekAddress), .peekId(peekId[$clog2(`RN) - 1:0]), .peekData(peekData)
     );
-
+/*
     always_ff @(posedge clkRx or negedge rst_n) begin
         if (!rst_n) begin
             peekAddress <= 0;
@@ -84,38 +84,41 @@ module toplevel (
 
         end
     end
-
+*/
     always_ff @(posedge clkTx or negedge rst_n) begin
         if (!rst_n) begin
             counterTx <= 0;
             txActive <= 0;
+            peekId <= 0;
+            peekAddress <= 0;
         end
         else begin
 
             validIn <= 0;
-
-            if (rxActive) begin
-                txActive <= 0;
-            end
-            else begin
-                if (!txActive) begin
-                    peekDataReg <= peekData;
-                    txActive <= 1;
+            if (!txActive) begin
+                peekDataReg <= peekData;
+                if (peekAddress == 1023) begin
+                    peekAddress <= 0;
+                    peekId <= (peekId == 15) ? 0 : peekId + 1;
                 end
                 else begin
-                    if (txReady && !validIn) begin
-                        for (i = 0; i < 8; i = i + 1) begin
-                            dataToTX[i] <= peekDataReg[counterTx*8 + i];
-                        end
-                        validIn <= 1;
-                        if (counterTx < 4) begin
-                            counterTx <= counterTx + 1;
-                        end
-                        else begin
-                            validIn <= 0;
-                            counterTx <= 0;
-                            txActive <= 0;
-                        end
+                    peekAddress <= peekAddress + 1;
+                end
+                txActive <= 1;
+            end
+            else begin
+                if (txReady && !validIn) begin
+                    for (i = 0; i < 8; i = i + 1) begin
+                        dataToTX[i] <= peekDataReg[counterTx*8 + i];
+                    end
+                    validIn <= 1;
+                    if (counterTx < 4) begin
+                        counterTx <= counterTx + 1;
+                    end
+                    else begin
+                        validIn <= 0;
+                        counterTx <= 0;
+                        txActive <= 0;
                     end
                 end
             end

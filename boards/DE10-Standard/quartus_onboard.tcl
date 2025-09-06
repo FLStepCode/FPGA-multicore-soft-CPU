@@ -2,8 +2,8 @@ project_new de10standard_onboard -overwrite
 
 set_global_assignment -name FAMILY "Cyclone V"
 set_global_assignment -name DEVICE 5CSXFC6D6F31C6
-set_global_assignment -name TOP_LEVEL_ENTITY de10standard_onboard
-set_global_assignment -name SYSTEMVERILOG_FILE de10standard_onboard.sv
+set_global_assignment -name TOP_LEVEL_ENTITY de10standard
+set_global_assignment -name SYSTEMVERILOG_FILE de10standard.sv
 set_global_assignment -name SEARCH_PATH "../../"
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 
@@ -398,8 +398,8 @@ set_location_assignment PIN_W21 -to IRDA_TXD
 #============================================================
 # GPIO, GPIO connect to GPIO Default
 #============================================================
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO[0]
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO_in
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO_out
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO[2]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO[3]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO[4]
@@ -434,8 +434,8 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO[32]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO[33]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO[34]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO[35]
-set_location_assignment PIN_W15 -to GPIO[0]
-set_location_assignment PIN_AK2 -to GPIO[1]
+set_location_assignment PIN_W15 -to GPIO_in
+set_location_assignment PIN_AK2 -to GPIO_out
 set_location_assignment PIN_Y16 -to GPIO[2]
 set_location_assignment PIN_AK3 -to GPIO[3]
 set_location_assignment PIN_AJ1 -to GPIO[4]
