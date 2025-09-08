@@ -8,10 +8,6 @@
  *                        Aleksandr Romanov 
  */ 
 
-`include "cores/src/sr_cpu.vh"
-`include "cores/src/sm_register.v"
-`include "cores/src/sm_rom.v"
-
 module sr_cpu #(
     parameter NODE_ID = 0
 ) (

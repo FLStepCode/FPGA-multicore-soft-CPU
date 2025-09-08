@@ -1,8 +1,3 @@
-`include "mesh_4x4/inc/noc.svh"
-`include "mesh_4x4/inc/noc_XY.svh"
-`include "mesh_4x4/noc/noc.sv"
-`include "cores/src/cpu_with_ram.sv"
-
 module noc_with_cores (
     input clk, rst_n,
 

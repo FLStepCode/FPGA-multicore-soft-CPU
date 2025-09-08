@@ -1,8 +1,3 @@
-`include "mesh_4x4/inc/router.svh"
-`include "mesh_4x4/src/queue.sv"
-`include "mesh_4x4/src/arbiter.sv"
-`include "mesh_4x4/src/algorithm.sv"
-
 module router (
     input clk, rst_n,
     input[0:`PL-1] inputs[0:`REN-1], output[0:`PL-1] outputs[0:`REN-1],

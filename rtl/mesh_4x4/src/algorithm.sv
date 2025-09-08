@@ -1,5 +1,3 @@
-`include "mesh_4x4/inc/router.svh"
-
 module algorithm
 (
     input[0:`PL-1] from_arbiter,

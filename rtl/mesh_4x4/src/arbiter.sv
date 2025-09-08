@@ -1,5 +1,3 @@
-`include "mesh_4x4/inc/router.svh"
-
 module arbiter (
 
     input clk, rst_n,

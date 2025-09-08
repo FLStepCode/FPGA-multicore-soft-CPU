@@ -2,8 +2,6 @@
 
 `define SIM
 
-`include "boards/toplevel.sv"
-
 module tb;
 
 reg clk = 0;

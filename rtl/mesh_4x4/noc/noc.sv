@@ -1,7 +1,3 @@
-`include "mesh_4x4/inc/noc.svh"
-`include "mesh_4x4/inc/noc_XY.svh"
-`include "mesh_4x4/src/router.sv"
-
 module noc(
     input clk,
     input rst_n,

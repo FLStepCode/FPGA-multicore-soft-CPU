@@ -1,15 +1,11 @@
-modelsim/*
-!modelsim/instr_node*
-!modelsim/ram_image*
-!modelsim/modelsim_script.tcl
-!modelsim/modelsim_run.bat
+build_system/modelsim/*
+!build_system/modelsim/modelsim_script.tcl
+!build_system/modelsim/modelsim_run.bat
 
-quartus/*
+rtl/boards/*
+!rtl/boards/*.sv
+!rtl/boards/DE10-Standard/
 
-boards/*
-!boards/*.sv
-!boards/DE10-Standard/
-
-boards/DE10-Standard/*
-!boards/DE10-Standard/*.sv
-!boards/DE10-Standard/*.tcl
+rtl/boards/DE10-Standard/*
+!rtl/boards/DE10-Standard/*.sv
+!rtl/boards/DE10-Standard/*.tcl

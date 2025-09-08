@@ -1,6 +1,3 @@
-`include "cores/src/sr_cpu.vh"
-`include "cores/src/sr_mem_ctrl.svh"
-
 module sr_mem_ctrl #(
     parameter int NODE_ID = 0, NODE_COUNT = 8, RAM_CHUNK_SIZE = 1024, PACKET_ID_WIDTH = 5, TTL = 2048
 ) (

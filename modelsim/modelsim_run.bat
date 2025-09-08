@@ -1,1 +1,0 @@
-vsim -do modelsim_script.tcl
