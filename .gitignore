@@ -1,6 +1,6 @@
 build_system/modelsim/*
 !build_system/modelsim/modelsim_script.tcl
-!build_system/modelsim/modelsim_run.bat
+!build_system/modelsim/makefile
 
 rtl/boards/*
 !rtl/boards/*.sv
