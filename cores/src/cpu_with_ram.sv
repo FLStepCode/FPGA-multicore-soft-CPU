@@ -4,8 +4,8 @@
 `include "cores/converters/splitter.sv"
 `include "cores/converters/packet_collector.sv"
 
-module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 16, SPLITTER_DEPTH = 1, COLLECTOR_DEPTH = 4, parameter int PACKET_ID_WIDTH = 5) (
-    input  logic clk, rst_n,
+module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 16, SPLITTER_DEPTH = 1, COLLECTOR_DEPTH = 1, parameter int PACKET_ID_WIDTH = 5) (
+    input  logic clk_25mhz, clk, rst_n,
 
     output logic collectorReady,
     input logic [1 + 2*$clog2(NODE_COUNT) + 16 + 3 + PACKET_ID_WIDTH + 2 - 1 : 0] flitIn,
@@ -89,7 +89,7 @@ module cpu_with_ram #(parameter int NODE_ID = 0, NODE_COUNT = 16, SPLITTER_DEPTH
     ram #(
         .RAM_SIZE(1024), .NODE_ID(NODE_ID)
     ) ram (
-        .clk(clk), .rst_n(rst_n),
+        .clk_25mhz(clk_25mhz), .clk(clk), .rst_n(rst_n),
         .ramAddress(physicalRamAddress),
         .wrData(wrData),
         .we(we),

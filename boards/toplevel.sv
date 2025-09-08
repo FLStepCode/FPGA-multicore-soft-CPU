@@ -1,23 +1,13 @@
 `include "cpu/noc_with_cores.sv"
 `include "cpu/uart.sv"
 `include "mesh_4x4/inc/noc_XY.svh"
+`include "boards/vga_driver.sv"
 
 module toplevel (
-    input logic clk, rst_n,
-    input logic rx,
-    output logic tx,
-    output logic clkRx, clkTx
+    input logic clk, clk_25mhz, rst_n,
+    output logic vs, hs,
+    output logic [7:0] r, g, b
 );
-    integer i;
-
-    integer counterRx, counterTx;
-    logic [3:0] oversampleCount;
-
-    logic [7:0] dataFromRX;
-    logic validOut;
-    logic [7:0] dataToTX;
-    logic validIn;
-    logic txReady;
 
 
     logic [7:0] peekId;
@@ -26,8 +16,11 @@ module toplevel (
     logic [31:0] peekData;
     logic [31:0] peekDataReg;
 
-    logic rxActive, txActive;
+    logic [10:0] x_coord, y_coord;
+    logic canDisplay;
 
+    integer pixel_num;
+/*
     uart uart(
         .clk(clk), .rst_n(rst_n),
         .rx(rx), .tx(tx),
@@ -37,10 +30,39 @@ module toplevel (
 
         .clkRx(clkRx), .clkTx(clkTx)
     );
+*/
 
     noc_with_cores nwc(
-        .clk(clk), .rst_n(rst_n),
+        .clk_25mhz(clk_25mhz), .clk(clk), .rst_n(rst_n),
         .peekAddress(peekAddress), .peekId(peekId[$clog2(`RN) - 1:0]), .peekData(peekData)
+    );
+
+    logic [7:0] peekData_div;
+    assign peekData_div = peekData / 10;
+
+    always_comb begin
+        if (x_coord < 48 && y_coord < 88 && canDisplay) begin
+            pixel_num = x_coord + y_coord * 48;
+            peekId = 6 + pixel_num / 1024;
+            peekAddress = pixel_num % 1024;
+        end
+        else begin
+            pixel_num = 0;
+            peekId = 15;
+            peekAddress = 0;
+        end
+    end
+
+    assign {r, g, b} = canDisplay ? {peekData_div[7:0], peekData_div[7:0], peekData_div[7:0]} : 0;
+
+    vga_driver vd(
+        .clk_25mhz(clk_25mhz),
+        .rst_n(rst_n),
+        .vs(vs),
+        .hs(hs),
+        .x_coord(x_coord),
+        .y_coord(y_coord),
+        .canDisplay(canDisplay)
     );
 /*
     always_ff @(posedge clkRx or negedge rst_n) begin
@@ -85,6 +107,7 @@ module toplevel (
         end
     end
 */
+/*
     always_ff @(posedge clkTx or negedge rst_n) begin
         if (!rst_n) begin
             counterTx <= 0;
@@ -125,6 +148,6 @@ module toplevel (
 
         end
     end
-
+*/
     
 endmodule

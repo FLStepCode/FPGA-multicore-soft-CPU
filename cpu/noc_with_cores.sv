@@ -4,7 +4,7 @@
 `include "cores/src/cpu_with_ram.sv"
 
 module noc_with_cores (
-    input clk, rst_n,
+    input clk_25mhz, clk, rst_n,
 
     input [31:0] peekAddress,
     input [$clog2(`RN) - 1:0] peekId,
@@ -57,7 +57,7 @@ module noc_with_cores (
                     cpu_with_ram #(
                         .NODE_ID(i * `Y + j)
                     ) core (
-                        .clk(clk), .rst_n(rst_n),
+                        .clk_25mhz(clk_25mhz), .clk(clk), .rst_n(rst_n),
 
                         .collectorReady(cores_ready[i][j]),
                         .flitIn(core_inputs[i][j]),

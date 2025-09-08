@@ -9,7 +9,7 @@ module toplevel_onboard (
 );
 
     noc_with_cores nwc(
-        .clk(clk), .rst_n(rst_n),
+        .clk_25mhz(clk), .rst_n(rst_n),
         .peekAddress(peekAddress), .peekId(peekId[$clog2(`RN) - 1:0]), .peekData(peekData)
     );
     

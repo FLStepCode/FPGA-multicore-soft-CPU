@@ -2,27 +2,35 @@
 
 module de10standard (
     input CLOCK_50,
-    input [9:0] SW,
-    input [3:0] KEY,
-    output [6:0] HEX0,
-    output [6:0] HEX1,
-    output [6:0] HEX2,
-    output [6:0] HEX3,
-    output [6:0] HEX4,
-    output [6:0] HEX5,
-    input GPIO_in,
-    output GPIO_out
+    input logic[3:0] KEY,
+    output logic[7:0] VGA_R,
+    output logic[7:0] VGA_G,
+    output logic[7:0] VGA_B,
+    output logic VGA_HS, VGA_VS,
+    output logic VGA_CLK
 );
 
-    wire clk;
-    wire[31:0] peekData;
+    wire clk, clk_25mhz;
 
-    cnt_div cd (
+    cnt_div #(
+      .DIV_CNT(500),
+      .CLOCKS_HIGH(250)
+    ) cd (
         .clk(CLOCK_50), .rst_n(KEY[3]),
         .clk_out(clk)
     );
 
-    toplevel to(.clk(clk), .rst_n(KEY[3]), .rx(GPIO_in), .tx(GPIO_out));
+    cnt_div #(
+      .DIV_CNT(2),
+      .CLOCKS_HIGH(1)
+    ) cd2 (
+        .clk(CLOCK_50), .rst_n(KEY[3]),
+        .clk_out(clk_25mhz)
+    );
+
+    assign VGA_CLK = clk_25mhz;
+
+    toplevel to(.clk_25mhz(clk_25mhz), .clk(clk), .rst_n(KEY[3]), .vs(VGA_VS), .hs(VGA_HS), .r(VGA_R), .g(VGA_G), .b(VGA_B));
     
 endmodule
 

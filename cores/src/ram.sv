@@ -7,7 +7,7 @@
 module ram #( 
     parameter int RAM_SIZE = 1024, NODE_ID = 0
 ) (
-    input clk, rst_n,
+    input clk_25mhz, clk, rst_n,
     input [31:0] ramAddress,
     input [31:0] wrData,
     input we,
@@ -27,7 +27,7 @@ module ram #(
         rdData <= ram[ramAddress];
     end
 
-    always @(posedge clk)
+    always @(posedge clk_25mhz)
     begin
         peekData <= ram[peekAddress];
     end
@@ -56,7 +56,7 @@ module ram #(
                 ram[i] = 0;
             end
             `ifdef SIM
-                #5000000;
+                #45000000;
                 $writememh("output_image_chunk_0.hex", ram);
             `endif
         end
@@ -65,7 +65,7 @@ module ram #(
                 ram[i] = 0;
             end
             `ifdef SIM
-                #5000000;
+                #45000000;
                 $writememh("output_image_chunk_1.hex", ram);
             `endif
         end
@@ -74,7 +74,7 @@ module ram #(
                 ram[i] = 0;
             end
             `ifdef SIM
-                #5000000;
+                #45000000;
                 $writememh("output_image_chunk_2.hex", ram);
             `endif
         end
@@ -83,7 +83,7 @@ module ram #(
                 ram[i] = 0;
             end
             `ifdef SIM
-                #5000000;
+                #45000000;
                 $writememh("output_image_chunk_3.hex", ram);
             `endif
         end
@@ -92,7 +92,7 @@ module ram #(
                 ram[i] = 0;
             end
             `ifdef SIM
-                #5000000;
+                #45000000;
                 $writememh("output_image_chunk_4.hex", ram);
             `endif
         end
