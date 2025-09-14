@@ -3,17 +3,15 @@ mesh_4x4/inc/noc.svh
 mesh_4x4/inc/queue.svh
 mesh_4x4/inc/router.svh
 cores/src/sr_cpu.vh
-cores/src/sr_mem_ctrl.svh
 tb/tb.sv
+tb/tb_axi.sv
+tb/tb_arbiter.sv
 boards/toplevel.sv
-cores/converters/packet_collector.sv
-cores/converters/splitter.sv
 cores/src/cpu_with_ram.sv
 cores/src/ram.sv
 cores/src/sm_register.v
 cores/src/sm_rom.v
 cores/src/sr_cpu.sv
-cores/src/sr_mem_ctrl.sv
 cpu/noc_with_cores.sv
 cpu/uart.sv
 mesh_4x4/noc/noc.sv
@@ -21,3 +19,7 @@ mesh_4x4/src/algorithm.sv
 mesh_4x4/src/arbiter.sv
 mesh_4x4/src/queue.sv
 mesh_4x4/src/router.sv
+axi/axi_if.sv
+axi/axi_demux.sv
+axi/stream_fifo.sv
+axi/stream_arbiter.sv

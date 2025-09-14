@@ -4,11 +4,16 @@ set fp [open $FILES_HEX_PATH r]
 set file_data [read $fp]
 close $fp
 
+if { [file isdirectory $SIM_PATH] != 1} {
+    file mkdir $SIM_PATH
+}
+cd $SIM_PATH
+
 set FILES_HEX_LIST [split $file_data "\n"]
 foreach hex $FILES_HEX_LIST {
     set hexfile_path [file tail $hex]
     if { [file exists $hexfile_path] != 1} {
-        file link $hexfile_path ../../rtl/$hex
+        file link $hexfile_path ../../../rtl/$hex
     }
 }
 
@@ -18,7 +23,7 @@ close $fp
 
 set FILES_RTL_LIST [split $file_data "\n"]
 for {set i 0} {$i < [llength $FILES_RTL_LIST]} {incr i} {
-    set appended ../../rtl/[lindex $FILES_RTL_LIST $i]
+    set appended ../../../rtl/[lindex $FILES_RTL_LIST $i]
     lset FILES_RTL_LIST $i $appended
 }
 
@@ -29,10 +34,9 @@ foreach rtl $FILES_RTL_LIST {
 close $fp
 
 vlib work
-
 vlog -mfcu -f files_rtl.lst
 
-vsim work.tb
+vsim work.$TOPLEVEL
 log -r /*
 run -all
 
