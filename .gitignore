@@ -9,3 +9,5 @@ rtl/boards/*
 rtl/boards/DE10-Standard/*
 !rtl/boards/DE10-Standard/*.sv
 !rtl/boards/DE10-Standard/*.tcl
+
+*.bak
