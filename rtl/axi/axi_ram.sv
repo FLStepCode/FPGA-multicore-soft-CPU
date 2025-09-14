@@ -1,5 +1,5 @@
 module axi_ram
-#(parameter RDATA_WIDTH=8, parameter RADDR_WIDTH=6, parameter CONTROL_WIDTH=2)
+#(parameter RDATA_WIDTH=8, parameter RADDR_WIDTH=32)
 (
 	input clk, rst_n,
 
