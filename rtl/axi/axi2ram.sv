@@ -2,7 +2,7 @@ module axi2ram
 #(
     parameter ID_W_WIDTH = 4,
     parameter ID_R_WIDTH = 4,
-    parameter ADDR_WIDTH = 32,
+    parameter ADDR_WIDTH = 16,
     
     parameter DATA_WIDTH = 32
 )

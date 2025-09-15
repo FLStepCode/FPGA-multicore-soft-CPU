@@ -6,8 +6,7 @@ module ram #(
     ram_if.s ports
 );
 
-localparam longint RAM_END = 2**ADDR_WIDTH;
-logic [BYTE_WIDTH-1:0] ram [RAM_END-1:0];
+logic [BYTE_WIDTH-1:0] ram [2**ADDR_WIDTH-1:0];
 
 always_ff @( posedge clk_a ) begin : mem_a
     begin

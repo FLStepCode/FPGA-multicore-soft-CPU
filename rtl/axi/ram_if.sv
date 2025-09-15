@@ -1,5 +1,5 @@
 interface ram_if #(
-    parameter ADDR_WIDTH = 32,
+    parameter ADDR_WIDTH = 16,
     
     parameter BYTE_WIDTH = 8
 ) ();
