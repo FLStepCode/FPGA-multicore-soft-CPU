@@ -1,192 +1,206 @@
 module axi_ram
-#(parameter RDATA_WIDTH=8, parameter RADDR_WIDTH=32)
+#(
+    parameter ID_W_WIDTH = 4,
+    parameter ID_R_WIDTH = 4,
+    parameter ADDR_WIDTH = 32,
+    
+    parameter DATA_WIDTH = 32
+)
 (
 	input clk, rst_n,
-
-    axi_if.s
+    ram_if_m ram_ports,
+    axi_if.s axi_s
 
 );
 
-	// Объявление памяти
-	logic [RDATA_WIDTH-1:0] ram[2**RADDR_WIDTH-1:0];
+    enum { READING_ADDRESS, REQUESTING_DATA }
+    r_state, r_state_next;
+    enum { READING_ADDRESS, REQUESTING_DATA, RESPONDING }
+    w_state,  w_state_next;
 
-    enum { READY, OCCUPIED }
-    ar_state, ar_state_next,
-    r_state,  r_state_next,
-    aw_state, aw_state_next,
-    w_state,  w_state_next,
-    b_state,  b_state_next;
+    localparam bytewise_width = DATA_WIDTH/8;
+    logic [7:0] bytewise_RDATA [2:0];
+    logic [7:0] bytewise_WDATA [2:0];
 
-    // AW channel 
-    logic [ID_W_WIDTH-1:0] AWID;
-    logic [ADDR_WIDTH-1:0] AWADDR;
-    logic [7:0] AWLEN;
-    logic [2:0] AWSIZE;
-    logic [1:0] AWBURST;
+    generate
+        genvar gen_i, gen_j;
+        for (gen_i = 0; gen_i < bytewise_width; gen_i++) begin
+            for (gen_j = 0; gen_j < 8; gen_j++) begin
+                assign axi_s.RDATA[gen_i*8 + gen_j] = bytewise_RDATA[gen_i][gen_j];
+                assign bytewise_WDATA[gen_i][gen_j] = axi_s.WDATA[gen_i*8 + gen_j];
+            end
+        end
+    endgenerate
 
     // AR channel 
     logic [ID_W_WIDTH-1:0] ARID;
     logic [ADDR_WIDTH-1:0] ARADDR;
     logic [7:0] ARLEN;
     logic [2:0] ARSIZE;
+    logic [2:0] ARSIZE_CUR;
     logic [1:0] ARBURST;
+
+    // AW channel 
+    logic [ID_W_WIDTH-1:0] AWID;
+    logic [ADDR_WIDTH-1:0] AWADDR;
+    logic [7:0] AWLEN;
+    logic [2:0] AWSIZE;
+    logic [2:0] AWSIZE_CUR;
+    logic [1:0] AWBURST;
 
     always_ff @( posedge clk or negedge rst_n ) begin : StateSwitchBlock
         if(!rst_n) begin            
-            ar_state <= READY;
-            ar_state_next <= READY;
-
-            r_state <= READY;
-            r_state_next <= READY;
- 
-            aw_state <= READY;
-            aw_state_next <= READY;
-
-            w_state <= READY;
-            w_state_next <= READY;
-
-            b_state <= READY;
-            b_state_next <= READY;
+            r_state <= READING_ADDRESS;
+            w_state <= READING_ADDRESS;
         end else begin
-            ar_state <= ar_state_next;
             r_state <= r_state_next;
-            aw_state <= aw_state_next;
             w_state <= w_state_next;
-            b_state <= b_state_next;
         end
     end : StateSwitchBlock
 
     always_comb begin : FSMOutputBlock
-        case (aw_state)
-            OCCUPIED:
-                axi_if.s.AWREADY = 1'b0;
-            default:
-                axi_if.s.AWREADY = 1'b1;
-        endcase : aw_state
 
-        case (w_state)
-            OCCUPIED:
-                axi_if.s.WREADY = 1'b0;
-            default:
-                axi_if.s.WREADY = 1'b1;
-        endcase : w_state
-
-        case (b_state)
-            OCCUPIED:
-                axi_if.s.BVALID = 1'b1;
-            default:
-                axi_if.s.BVALID = 1'b0;
-        endcase : b_state
-
-        case (ar_state)
-            OCCUPIED:
-                axi_if.s.ARREADY = 1'b0;
-            default:
-                axi_if.s.ARREADY = 1'b1;
-        endcase : ar_state
+        axi_s.ARREADY = 1'b0;
+        axi_s.RVALID = 1'b0;
+        r_state_next = READING_ADDRESS;
+        ram_ports.addr_a = '0;
+        axi_s.RDATA = '0;
+        axi_s.RLAST = 1'b0;
 
         case (r_state)
-            OCCUPIED:
-                axi_if.s.RVALID = 1'b1;
+            READING_ADDRESS: begin
+                axi_s.ARREADY = 1'b1;
+                if(axi_s.ARVALID)
+                    r_state_next = REQUESTING_DATA;
+            end
+            REQUESTING_DATA: begin
+                ram_ports.addr_a = ARADDR;
+                r_state_next = READING_DATA;
+                axi_s.RVALID = 1'b1;
+                if (ARLEN == 8'b0) begin
+                    axi_s.RLAST = 1'b1;
+                    if(ARSIZE_CUR == ARSIZE - 1'b1 || ARLEN == 8'b0) begin
+                        r_state_next = READING_ADDRESS;
+                    end
+                end
+            end
             default:
-                axi_if.s.RVALID = 1'b0;
-        endcase : r_state
+        endcase
+        
+        axi_s.WRREADY = 1'b0;
+        axi_s.WREADY = 1'b0;
+        w_state_next = READING_ADDRESS;
+        ram_ports.write_en_b = 1'b0;
+        ram_ports.addr_b = '0;
+        ram_ports.write_b = '0;
+
+        case (w_state)
+            READING_ADDRESS: begin
+                axi_s.WREADY = 1'b1;
+                if(axi_s.WRVALID)
+                    w_state_next = REQUESTING_DATA;
+            end
+            REQUESTING_DATA: begin
+            end
+            default:
+        endcase
+
     end : FSMOutputBlock
 
     always_ff @( posedge clk or negedge rst_n ) begin : LogicBlock
-        begin
-            case (ar_state)
-                READY:
-                if(axi_if.s.ARVALID) begin
-                    ar_state_next <= OCCUPIED;
-                    r_state_next  <= OCCUPIED;
-                    ARID <= axi.s.ARID;
-                    ARADDR <= axi.s.ARADDR;
-                    ARLEN <= axi.s.ARLEN;
-                    ARSIZE <= axi.s.ARSIZE;
-                    ARBURST <= axi.s.ARBURST;
-                end 
-                default: // OCCUPIED
-            endcase : ar_state
-            case (r_state)
-                OCCUPIED: 
-                begin
-                    // Read logic
-                    axi_if.s.RDATA <= ram[ARADDR];
-                    if(axi_if.s.RREADY) begin
-                        if((ARLEN & 8'hFE) == 8'h00) begin
-                            r_state_next <= READY;
-                            ar_state_next <= READY;
-                            axi_f.s.RLAST <= 1'b1;
-                        end
-                        // Address shift logic
-                        case (ARBURST)
-                            2'b01: ARADDR <= ARADDR + ARSIZE;
-                            2'b10: begin
-                                if(ARADDR + ARSIZE > 2**ADDR_WIDTH-1)
-                                    ARADDR <= ARSIZE + ARADDR - 2*ADDR_WIDTH-1;
-                                else
-                                    ARADDR <= ARADDR + ARSIZE;
-                            end
-                            default: 
-                        endcase
-                    end
+    if(!rst_n) begin
+        ARID <= '0;
+        ARADDR <= '0;
+        ARLEN <= '0;
+        ARSIZE <= '0;
+        ARSIZE_CUR <= '0;
+        ARBURST <= '0;
+
+        AWID <= '0;
+        AWADDR <= '0;
+        AWLEN <= '0;
+        AWSIZE <= '0;
+        AWSIZE_CUR <= '0;
+        AWBURST <= '0;
+
+    end else begin
+        case (r_state)
+            READING_ADDRESS: begin
+                ARID <= axi_s.ARID;
+                ARADDR <= axi_s.ARADDR;
+                ARLEN <= axi_s.ARLEN;
+                ARSIZE <= axi_s.ARSIZE;
+                ARBURST <= axi_s.ARBURST;
+            end
+            REQUESTING_DATA: begin
+                axi_s.RDATA = ram_ports.data_a;
+                ARSIZE_CUR <= ARSIZE_CUR + 1'b1;
+                if(ARSIZE_CUR == ARSIZE - 1'b1) begin
+                    ARSIZE_CUR <= '0;
+                    ARLEN <= ARLEN - 1'b1;
                 end
-                default: begin // READY
-                    axi_if.s.RDATA <= '0;
-                    axi_f.s.RLAST <= 1'b0;
-                end
-            endcase : r_state
-            case (aw_state)
-                READY:
-                if(axi_if.s.AWVALID) begin
-                    aw_state_next <= OCCUPIED;
-                    AWID <= axi.s.AWID;
-                    AWADDR <= axi.s.AWADDR;
-                    AWLEN <= axi.s.AWLEN;
-                    AWSIZE <= axi.s.AWSIZE;
-                    AWBURST <= axi.s.AWBURST;
-                end 
-                default: // OCCUPIED
-            endcase : aw_state
-            case (w_state)
-                READY:
-                if(aw_state == OCCUPIED && axi.s.WVALID) begin
-                    if((AWLEN & 8'hFE) == 8'h00 || axi_f.s.WLAST) begin
-                        w_state_next <= OCCUPIED;
-                        b_state_next <= OCCUPIED;
+                // Address shift logic
+                case (ARBURST)
+                    2'b01: ARADDR <= ARADDR + ARSIZE;
+                    2'b10: begin
+                        if(ARADDR + ARSIZE > 2**ADDR_WIDTH-1)
+                            ARADDR <= ARSIZE + ARADDR - 2*ADDR_WIDTH-1;
+                        else
+                            ARADDR <= ARADDR + ARSIZE;
                     end
-                    // Write logic
-                    for (localparam i = 0; i < AWSIZE; i = i + 1) begin
-                        if(WSTRB[i])
-                            ram[AWADDR + i] <= axi.s.WDATA[8*(i+1)-1:8*i];
+                endcase
+                if(axi_s.s.RREADY) begin
+                    ARSIZE_CUR <= ARSIZE_CUR + 1'b1;
+                    if(ARSIZE_CUR == ARSIZE - 1'b1) begin
+                        ARSIZE_CUR <= '0;
+                        ARLEN <= ARLEN - 1'b1;
                     end
                     // Address shift logic
-                    case (AWBURST)
-                        2'b01: AWADDR <= AWADDR + AWSIZE;
+                    case (ARBURST)
+                        2'b01: ARADDR <= ARADDR + ARSIZE;
                         2'b10: begin
-                            if(AWADDR + AWSIZE > 2**ADDR_WIDTH-1)
-                                AWADDR <= AWSIZE + AWADDR - 2*ADDR_WIDTH-1;
+                            if(ARADDR + ARSIZE > 2**ADDR_WIDTH-1)
+                                ARADDR <= ARSIZE + ARADDR - 2*ADDR_WIDTH-1;
                             else
-                                AWADDR <= AWADDR + AWSIZE;
+                                ARADDR <= ARADDR + ARSIZE;
                         end
-                        default: 
                     endcase
                 end
-                default: // OCCUPIED
-            endcase : w_state
-            case (b_state)
-                OCCUPIED: begin
-                    if(axi_if.s.BREADY) begin
-                        b_state_next <= READY;
-                        aw_state_next <= READY;
+            end
+            default: 
+        endcase
+
+        case (w_state)
+            READING_ADDRESS: begin
+                AWID <= axi_s.AWID;
+                AWADDR <= axi_s.AWADDR;
+                AWLEN <= axi_s.AWLEN;
+                AWSIZE <= axi_s.AWSIZE;
+                AWBURST <= axi_s.AWBURST;
+            end
+            REQUESTING_DATA: begin
+                if(axi_s.s.RREADY) begin
+                    ARSIZE_CUR <= ARSIZE_CUR + 1'b1;
+                    if(ARSIZE_CUR == ARSIZE - 1'b1) begin
+                        ARSIZE_CUR <= '0;
+                        ARLEN <= ARLEN - 1'b1;
                     end
-                    axi_if.s.BID <= AWID;
+                    // Address shift logic
+                    case (ARBURST)
+                        2'b01: ARADDR <= ARADDR + ARSIZE;
+                        2'b10: begin
+                            if(ARADDR + ARSIZE > 2**ADDR_WIDTH-1)
+                                ARADDR <= ARSIZE + ARADDR - 2*ADDR_WIDTH-1;
+                            else
+                                ARADDR <= ARADDR + ARSIZE;
+                        end
+                    endcase
                 end
-                default: // READY
-                    axi_if.s.BID <= '0;
-            endcase : b_state
-        end
+            end
+            default: 
+        endcase
+
+    end
     end : LogicBlock
 
 endmodule : axi_ram
