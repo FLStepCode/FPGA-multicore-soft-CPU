@@ -23,3 +23,7 @@ axi/axi_if.sv
 axi/axi_demux.sv
 axi/stream_fifo.sv
 axi/stream_arbiter.sv
+axi/ram_if.sv
+axi/ram.sv
+axi/axi2ram.sv
+axi/axi_ram.sv
