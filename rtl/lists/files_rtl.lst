@@ -6,6 +6,7 @@ cores/src/sr_cpu.vh
 tb/tb.sv
 tb/tb_axi.sv
 tb/tb_arbiter.sv
+tb/tb_axi_memory.sv
 boards/toplevel.sv
 cores/src/cpu_with_ram.sv
 cores/src/ram.sv

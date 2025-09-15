@@ -45,7 +45,6 @@ module axi2ram
     logic [7:0] AWLEN;
     logic [bytewise_width-1:0] AWSIZE;
     logic [bytewise_width-1:0] AWSIZE_CUR;
-    logic [(DATA_WIDTH/8)-1:0] WSTRB;
     logic [1:0] AWBURST;
 
     always_ff @( posedge clk or negedge rst_n ) begin : StateSwitchBlock
@@ -116,13 +115,12 @@ module axi2ram
             REQUESTING_DATA: begin
                 w_state_next = REQUESTING_DATA;
                 if(axi_s.WVALID) begin
-                    ram_ports.write_en_b = WSTRB[AWSIZE_CUR];
+                    ram_ports.write_en_b = axi_s.WSTRB[AWSIZE_CUR];
                     if(AWSIZE_CUR == AWSIZE-1'b1) begin
                         if(AWLEN == 1'b0 || axi_s.WLAST) begin
                             w_state_next = RESPONDING;
-                        end else begin
-                            axi_s.WREADY = 1'b1;
                         end
+                        axi_s.WREADY = 1'b1;
                     end
                 end
             end
@@ -195,11 +193,10 @@ module axi2ram
                 AWADDR <= axi_s.AWADDR;
                 AWLEN <= axi_s.AWLEN;
                 AWSIZE <= 1'b1 << axi_s.AWSIZE;
-                WSTRB <= axi_s.WSTRB;
                 AWBURST <= axi_s.AWBURST;
             end
             REQUESTING_DATA: begin
-                if(axi_s.RVALID) begin
+                if(axi_s.WVALID) begin
                     AWSIZE_CUR <= AWSIZE_CUR + 1'b1;
                     if(AWSIZE_CUR == AWSIZE - 1'b1) begin
                         AWSIZE_CUR <= '0;
@@ -207,12 +204,12 @@ module axi2ram
                     end
                     // Address shift logic
                     case (AWBURST)
-                        2'b01: AWADDR <= AWADDR + AWSIZE;
+                        2'b01: AWADDR <= AWADDR + 1'b1;
                         2'b10: begin
-                            if(AWADDR + AWSIZE > 2**ADDR_WIDTH-1)
-                                AWADDR <= AWSIZE + AWADDR - 2*ADDR_WIDTH-1;
+                            if(AWADDR + 1'b1 > 2**ADDR_WIDTH-1)
+                                AWADDR <= '0;
                             else
-                                AWADDR <= AWADDR + AWSIZE;
+                                AWADDR <= AWADDR + 1'b1;
                         end
                     endcase
                 end
