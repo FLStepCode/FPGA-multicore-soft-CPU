@@ -3,8 +3,8 @@ module axi2ram
     parameter ID_W_WIDTH = 4,
     parameter ID_R_WIDTH = 4,
     parameter ADDR_WIDTH = 16,
-    
-    parameter DATA_WIDTH = 32
+    parameter DATA_WIDTH = 32,
+    parameter BYTE_WIDTH = 8
 )
 (
 	input clk, rst_n,
@@ -45,6 +45,7 @@ module axi2ram
     logic [7:0] AWLEN;
     logic [bytewise_width-1:0] AWSIZE;
     logic [bytewise_width-1:0] AWSIZE_CUR;
+    logic [(DATA_WIDTH/8)-1:0] WSTRB;
     logic [1:0] AWBURST;
 
     always_ff @( posedge clk or negedge rst_n ) begin : StateSwitchBlock
@@ -101,7 +102,7 @@ module axi2ram
         w_state_next = READING_ADDRESS;
         ram_ports.write_en_b = 1'b0;
         ram_ports.addr_b = AWADDR;
-        ram_ports.write_b = bytewise_WDATA[ARSIZE_CUR];
+        ram_ports.write_b = bytewise_WDATA[AWSIZE_CUR];
         axi_s.BID = AWID;
         axi_s.BVALID = 1'b0;
 
@@ -109,13 +110,13 @@ module axi2ram
             READING_ADDRESS: begin
                 w_state_next = READING_ADDRESS;
                 axi_s.AWREADY = 1'b1;
-                if(axi_s.WVALID)
+                if(axi_s.AWVALID)
                     w_state_next = REQUESTING_DATA;
             end
             REQUESTING_DATA: begin
                 w_state_next = REQUESTING_DATA;
-                if(axi_s.RVALID) begin
-                    ram_ports.write_en_b = 1'b1;
+                if(axi_s.WVALID) begin
+                    ram_ports.write_en_b = WSTRB[AWSIZE_CUR];
                     if(AWSIZE_CUR == AWSIZE-1'b1) begin
                         if(AWLEN == 1'b0 || axi_s.WLAST) begin
                             w_state_next = RESPONDING;
@@ -194,6 +195,7 @@ module axi2ram
                 AWADDR <= axi_s.AWADDR;
                 AWLEN <= axi_s.AWLEN;
                 AWSIZE <= 1'b1 << axi_s.AWSIZE;
+                WSTRB <= axi_s.WSTRB;
                 AWBURST <= axi_s.AWBURST;
             end
             REQUESTING_DATA: begin
