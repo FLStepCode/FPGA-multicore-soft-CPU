@@ -1,6 +1,5 @@
+`timescale 1ps/1ps
 module tb_axi_memory;
-
-    `timescale 1ps/1ps
 
     parameter ID_W_WIDTH = 4;
     parameter ID_R_WIDTH = 4;

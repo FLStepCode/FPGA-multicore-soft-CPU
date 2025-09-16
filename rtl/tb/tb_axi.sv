@@ -136,6 +136,10 @@ module tb_axi;
     end
 
     initial begin
+
+        $dumfile("tb_axi.vcd");
+        $dumpvars;
+
         ACLK = 1;
         ARESETn = 0;
 
@@ -168,19 +172,19 @@ module tb_axi;
             
             for (int i = 0; i < 6; i++) begin
                 w_send(
-                    .length(2),
-                    .wdata('{1, 2}),
-                    .wstrb('{4'hF, 4'hF})
+                    2,
+                    '{1, 2},
+                    '{4'hF, 4'hF}
                 );
             end
 
             aw_send(
-                .number(6),
-                .id('{0, 1, 2, 3, 4, 5}),
-                .addr('{0, 4, 8, 12, 16, 20}),
-                .length('{1, 1, 1, 1, 1, 1}),
-                .size('{32, 32, 32, 32, 32, 32}),
-                .burst('{1, 1, 1, 1, 1, 1})
+                6,
+                '{0, 1, 2, 3, 4, 5},
+                '{0, 4, 8, 12, 16, 20},
+                '{1, 1, 1, 1, 1, 1},
+                '{32, 32, 32, 32, 32, 32},
+                '{1, 1, 1, 1, 1, 1}
             );
 
             begin

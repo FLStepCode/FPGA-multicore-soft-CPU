@@ -4,11 +4,6 @@ set fp [open $FILES_HEX_PATH r]
 set file_data [read $fp]
 close $fp
 
-if { [file isdirectory $SIM_PATH] != 1} {
-    file mkdir $SIM_PATH
-}
-cd $SIM_PATH
-
 set FILES_HEX_LIST [split $file_data "\n"]
 foreach hex $FILES_HEX_LIST {
     set hexfile_path [file tail $hex]
