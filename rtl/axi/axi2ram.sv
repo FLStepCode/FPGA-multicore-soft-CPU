@@ -36,7 +36,7 @@ module axi2ram
     logic [ADDR_WIDTH-1:0] ARADDR;
     logic [7:0] ARLEN;
     logic [bytewise_width-1:0] ARSIZE;
-    logic [bytewise_width-1:0] ARSIZE_CUR;
+    logic [bytewise_width  :0] ARSIZE_CUR;
     logic [1:0] ARBURST;
 
     // AW channel 
@@ -144,6 +144,9 @@ module axi2ram
         ARSIZE_CUR <= '0;
         ARBURST <= '0;
 
+        for(int i = 0; i < bytewise_width; i++)
+            bytewise_RDATA[i] <= '0;
+
         AWID <= '0;
         AWADDR <= '0;
         AWLEN <= '0;
@@ -161,21 +164,22 @@ module axi2ram
                 ARBURST <= axi_s.ARBURST;
             end
             REQUESTING_DATA: begin
-                if(ARSIZE_CUR != 1'b0)
+                if(ARSIZE_CUR != 0)
                     bytewise_RDATA[ARSIZE_CUR-1] <= ram_ports.data_a;
                 ARSIZE_CUR <= ARSIZE_CUR + 1'b1;
-                if(ARSIZE_CUR == ARSIZE) begin
+                if(ARSIZE_CUR == ARSIZE + 1'b1) begin
                     ARSIZE_CUR <= 1'b1;
                     ARLEN <= ARLEN - 1'b1;
                 end
                 // Address shift logic
+                if(ARSIZE_CUR != ARSIZE)
                 case (ARBURST)
-                    2'b01: ARADDR <= ARADDR + ARSIZE;
+                    2'b01: ARADDR <= ARADDR + 1'b1;
                     2'b10: begin
-                        if(ARADDR + ARSIZE > 2**ADDR_WIDTH-1)
-                            ARADDR <= ARSIZE + ARADDR - 2**ADDR_WIDTH-1;
+                        if(ARADDR + 1'b1 > 2**ADDR_WIDTH-1)
+                            ARADDR <= '0;
                         else
-                            ARADDR <= ARADDR + ARSIZE;
+                            ARADDR <= ARADDR + 1'b1;
                     end
                 endcase
                 RESPONDING: begin
