@@ -8,7 +8,6 @@ SIM_PATH ?= $(TOPLEVEL)
 SIM_PATH := $(QUESTA_PATH)/$(SIM_PATH)
 
 VARS_TCL_PATH := $(SIM_PATH)/vars.tcl
-WLF_PATH := $(SIM_PATH)/vsim.wlf
 
 run:
 	rm -rf $(SIM_PATH); \
@@ -23,4 +22,5 @@ run:
 	vsim -c -do ../questa_script.tcl
 
 wave:
-	vsim -view $(WLF_PATH)
+	cd $(SIM_PATH); \
+	vsim -view vsim.wlf
