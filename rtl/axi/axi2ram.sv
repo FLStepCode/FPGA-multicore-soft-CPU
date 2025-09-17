@@ -182,11 +182,11 @@ module axi2ram
                             ARADDR <= ARADDR + 1'b1;
                     end
                 endcase
-                RESPONDING: begin
-                    if(axi_s.RREADY)
-                        for(int i = 0; i < bytewise_width; i++)
-                            bytewise_RDATA[i] <= '0;
-                end
+            end
+            RESPONDING: begin
+                if(axi_s.RREADY)
+                    for(int i = 0; i < bytewise_width; i++)
+                        bytewise_RDATA[i] <= '0;
             end
             default:;
         endcase

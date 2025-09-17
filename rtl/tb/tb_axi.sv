@@ -137,7 +137,7 @@ module tb_axi;
 
     initial begin
 
-        $dumfile("tb_axi.vcd");
+        $dumpfile("tb_axi.vcd");
         $dumpvars;
 
         ACLK = 1;

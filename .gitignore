@@ -12,3 +12,5 @@ rtl/boards/DE10-Standard/*
 
 *.bak
 transcript
+
+venv

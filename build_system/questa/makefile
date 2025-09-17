@@ -1,11 +1,11 @@
 FILES_RTL_PATH := $(CURDIR)/rtl/lists/files_rtl.lst
 FILES_HEX_PATH := $(CURDIR)/rtl/lists/files_hex.lst
 
-MODELSIM_PATH := $(CURDIR)/build_system/modelsim
+QUESTA_PATH := $(CURDIR)/build_system/questa
 TOPLEVEL ?= tb
 
 SIM_PATH ?= $(TOPLEVEL)
-SIM_PATH := $(MODELSIM_PATH)/$(SIM_PATH)
+SIM_PATH := $(QUESTA_PATH)/$(SIM_PATH)
 
 VARS_TCL_PATH := $(SIM_PATH)/vars.tcl
 WLF_PATH := $(SIM_PATH)/vsim.wlf
@@ -20,7 +20,7 @@ run:
 	@echo set SIM_PATH $(SIM_PATH) >> $(VARS_TCL_PATH)
 
 	cd $(SIM_PATH); \
-	vsim -c -do ../modelsim_script.tcl
+	vsim -c -do ../questa_script.tcl
 
 wave:
 	vsim -view $(WLF_PATH)
