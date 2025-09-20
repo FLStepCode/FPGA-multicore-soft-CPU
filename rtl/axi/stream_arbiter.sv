@@ -1,14 +1,14 @@
 module stream_arbiter #(
     parameter DATA_WIDTH = 32,
-    parameter OUTPUT_NUM = 2,
-    parameter ADDR_WIDTH = $clog2(OUTPUT_NUM)
+    parameter INPUT_NUM = 2,
+    parameter ADDR_WIDTH = $clog2(INPUT_NUM)
 ) (
     input logic ACLK,
     input logic ARESETn,
 
-    input logic [DATA_WIDTH-1:0] data_i [OUTPUT_NUM],
-    input logic [OUTPUT_NUM-1:0] valid_i,
-    output logic [OUTPUT_NUM-1:0] ready_o,
+    input logic [DATA_WIDTH-1:0] data_i [INPUT_NUM],
+    input logic [INPUT_NUM-1:0] valid_i,
+    output logic [INPUT_NUM-1:0] ready_o,
 
     output logic [DATA_WIDTH-1:0] data_o,
     output logic valid_o,
@@ -19,7 +19,7 @@ module stream_arbiter #(
     logic [ADDR_WIDTH-1:0] next_grant;
     logic [ADDR_WIDTH-1:0] increment;
 
-    logic [OUTPUT_NUM*2 - 1:0] shifted_valid_i;
+    logic [INPUT_NUM*2 - 1:0] shifted_valid_i;
 
     assign shifted_valid_i = {valid_i, valid_i} >> current_grant;
 
@@ -37,13 +37,13 @@ module stream_arbiter #(
     always_comb begin
         next_grant = current_grant;
         increment = 0;
-        for (int i = OUTPUT_NUM-1; i > 0; i--) begin
+        for (int i = INPUT_NUM-1; i > 0; i--) begin
             if (shifted_valid_i[i]) begin
                 increment = i;
             end
         end
 
-        next_grant = (next_grant + increment) >= OUTPUT_NUM ? (next_grant + increment - OUTPUT_NUM) : (next_grant + increment);
+        next_grant = (next_grant + increment) >= INPUT_NUM ? (next_grant + increment - INPUT_NUM) : (next_grant + increment);
     end
 
     always_comb begin

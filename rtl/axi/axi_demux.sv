@@ -1,6 +1,6 @@
 module axi_demux #(
     parameter OUTPUT_NUM = 3,
-    parameter integer ID_ROUTING [(OUTPUT_NUM-1) * 2] = '{0, 1, 2, 3},
+    parameter integer ID_ROUTING [(OUTPUT_NUM-1) * 2] = '{0, 0, 1, 1},
 
     parameter ID_W_WIDTH = 4,
     parameter ID_R_WIDTH = 4,
@@ -27,15 +27,10 @@ module axi_demux #(
     logic r_state, r_next_state;
 
     logic [$clog2(OUTPUT_NUM)-1:0] selected;
-    
-    // --- demux_outs --- //
-    // cfg
-    integer cfg_BASE_ADDR [OUTPUT_NUM];
-    integer cfg_BLOCK_SIZE [OUTPUT_NUM];
 
     // AW channel 
-    logic AWVALID [OUTPUT_NUM];
-    logic AWREADY [OUTPUT_NUM];
+    logic [OUTPUT_NUM-1:0] AWVALID;
+    logic [OUTPUT_NUM-1:0] AWREADY;
     logic [ID_W_WIDTH-1:0] AWID [OUTPUT_NUM];
     logic [ADDR_WIDTH-1:0] AWADDR [OUTPUT_NUM];
     logic [7:0] AWLEN [OUTPUT_NUM];
@@ -43,8 +38,8 @@ module axi_demux #(
     logic [1:0] AWBURST [OUTPUT_NUM];
 
     // W channel
-    logic WVALID [OUTPUT_NUM];
-    logic WREADY [OUTPUT_NUM];
+    logic [OUTPUT_NUM-1:0] WVALID;
+    logic [OUTPUT_NUM-1:0] WREADY;
     logic [DATA_WIDTH-1:0] WDATA [OUTPUT_NUM];
     logic [(DATA_WIDTH/8)-1:0] WSTRB [OUTPUT_NUM];
     logic WLAST [OUTPUT_NUM];
@@ -55,8 +50,8 @@ module axi_demux #(
     logic [ID_W_WIDTH-1:0] BID [OUTPUT_NUM];
 
     // AR channel 
-    logic ARVALID [OUTPUT_NUM];
-    logic ARREADY [OUTPUT_NUM];
+    logic [OUTPUT_NUM-1:0] ARVALID;
+    logic [OUTPUT_NUM-1:0] ARREADY;
     logic [ID_R_WIDTH-1:0] ARID [OUTPUT_NUM];
     logic [ADDR_WIDTH-1:0] ARADDR [OUTPUT_NUM];
     logic [7:0] ARLEN [OUTPUT_NUM];
@@ -301,7 +296,7 @@ module axi_demux #(
 
     stream_arbiter #(
         .DATA_WIDTH(ID_W_WIDTH),
-        .OUTPUT_NUM(OUTPUT_NUM)
+        .INPUT_NUM(OUTPUT_NUM)
     ) stream_arbiter_b (
         .ACLK(ACLK),
         .ARESETn(ARESETn),
@@ -351,29 +346,28 @@ module axi_demux #(
 
     // R channel arbiter
 
-    generate
-        logic [ID_R_WIDTH + DATA_WIDTH + 1 - 1:0] data_i [OUTPUT_NUM];
+    logic [ID_R_WIDTH + DATA_WIDTH + 1 - 1:0] data_i [OUTPUT_NUM];
 
-        for (genvar i = 0; i < OUTPUT_NUM; i++) begin
+    generate
+        for (i = 0; i < OUTPUT_NUM; i++) begin
             assign data_i[i] = {RID[i], RDATA[i], RLAST[i]};
         end
-
-        stream_arbiter #(
-            .DATA_WIDTH(ID_R_WIDTH + DATA_WIDTH + 1),
-            .OUTPUT_NUM(OUTPUT_NUM)
-        ) stream_arbiter_r (
-            .ACLK(ACLK),
-            .ARESETn(ARESETn),
-
-            .data_i(data_i),
-            .valid_i(RVALID),
-            .ready_o(RREADY),
-
-            .data_o({s_axi_in.RID, s_axi_in.RDATA, s_axi_in.RLAST}),
-            .valid_o(s_axi_in.RVALID),
-            .ready_i(s_axi_in.RREADY)
-        );
-
     endgenerate
+
+    stream_arbiter #(
+        .DATA_WIDTH(ID_R_WIDTH + DATA_WIDTH + 1),
+        .INPUT_NUM(OUTPUT_NUM)
+    ) stream_arbiter_r (
+        .ACLK(ACLK),
+        .ARESETn(ARESETn),
+
+        .data_i(data_i),
+        .valid_i(RVALID),
+        .ready_o(RREADY),
+
+        .data_o({s_axi_in.RID, s_axi_in.RDATA, s_axi_in.RLAST}),
+        .valid_o(s_axi_in.RVALID),
+        .ready_i(s_axi_in.RREADY)
+    );
 
 endmodule

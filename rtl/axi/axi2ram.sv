@@ -128,7 +128,7 @@ module axi2ram
                 w_state_next = RESPONDING;
                 axi_s.BVALID = 1'b1;
                 if(axi_s.BREADY)
-                    w_state_next = REQUESTING_DATA;
+                    w_state_next = READING_ADDRESS;
             end
             default:;
         endcase
@@ -184,6 +184,7 @@ module axi2ram
                 endcase
             end
             RESPONDING: begin
+                ARSIZE_CUR <= 0;
                 if(axi_s.RREADY)
                     for(int i = 0; i < bytewise_width; i++)
                         bytewise_RDATA[i] <= '0;

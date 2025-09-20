@@ -1,4 +1,4 @@
-module axi_unwrap (
+module tb_demux (
 
     input  logic ACLK,
     input  logic ARESETn,
@@ -73,9 +73,17 @@ module axi_unwrap (
         master.RREADY = RREADY;
     end
 
-    axi_ram ram (
+    axi_demux dut (
+        .ACLK(ACLK),
+        .ARESETn(ARESETn),
+
+        .s_axi_in(master),
+        .m_axi_out(slave)
+    );
+
+    axi_ram ram[3] (
         .clk(ACLK), .rst_n(ARESETn),
-        .axi_s(master)
+        .axi_s(slave)
     );
     
 endmodule

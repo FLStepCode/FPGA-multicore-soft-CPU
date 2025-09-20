@@ -3,8 +3,8 @@ from cocotb.triggers import RisingEdge
 from cocotb.clock import Clock
 from cocotbext.axi import AxiMaster, AxiBus
 
-@cocotb.test()
-async def axi_test(dut):
+@cocotb.test
+async def test_ram(dut):
     clock = Clock(dut.ACLK, 10, units="ns")
     cocotb.start_soon(clock.start())
 
