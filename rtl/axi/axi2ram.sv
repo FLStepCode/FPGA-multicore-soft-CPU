@@ -180,7 +180,7 @@ module axi2ram
                 endcase
             end
             RESPONDING: begin
-                ARSIZE_CUR <= 0;
+                ARSIZE_CUR <= '0;
                 if(axi_s.RREADY)
                     ARLEN <= ARLEN - 1'b1;
                     for(int i = 0; i < bytewise_width; i++)
