@@ -1,6 +1,10 @@
 build_system/questa/*
-!build_system/questa/modelsim_script.tcl
+!build_system/questa/questa_script.tcl
 !build_system/questa/makefile
+
+build_system/modelsim/*
+!build_system/modelsim/modelsim_script.tcl
+!build_system/modelsim/makefile
 
 build_system/icarus/*
 !build_system/icarus/makefile
