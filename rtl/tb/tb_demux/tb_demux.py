@@ -9,7 +9,11 @@ async def test_demux(dut):
     clock = Clock(dut.ACLK, 10, units="ns")
     cocotb.start_soon(clock.start())
 
-    axi_master = AxiMaster(AxiBus.from_prefix(dut, ""), dut.ACLK, reset=dut.ARESETn, reset_active_level=False)
+    axi_master = AxiMaster(
+        AxiBus.from_prefix(dut, ""),
+        dut.ACLK, reset=dut.ARESETn,
+        reset_active_level=False
+          )
 
     dut.WSTRB.value = 0xF
 
