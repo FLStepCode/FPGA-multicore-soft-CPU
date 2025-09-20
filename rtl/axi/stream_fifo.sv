@@ -1,6 +1,6 @@
 module stream_fifo #(
     parameter DATA_WIDTH = 32,
-    parameter FIFO_LEN = 4,
+    parameter FIFO_LEN = 16,
     parameter ADDR_WIDTH = $clog2(FIFO_LEN)
 ) (
     input logic ACLK,
@@ -22,8 +22,17 @@ module stream_fifo #(
     logic [ADDR_WIDTH:0] count;
 
     assign ready_o = (count < FIFO_LEN);
-    assign valid_o = (count > 0);
-    assign data_o = fifo_mem[read_ptr];
+
+    always @(posedge ACLK) begin
+        if (valid_i && ready_o) begin
+            fifo_mem[write_ptr] <= data_i;
+        end
+    end
+
+    always @(posedge ACLK) begin
+        data_o <= fifo_mem[read_ptr];
+    end
+
 
     always_ff @(posedge ACLK or negedge ARESETn) begin
         if (!ARESETn) begin
@@ -32,7 +41,6 @@ module stream_fifo #(
         end
         else begin
             if (valid_i && ready_o) begin
-                fifo_mem[write_ptr] <= data_i;
                 write_ptr <= (write_ptr == (FIFO_LEN - 1)) ? 0 : write_ptr + 1;
             end
 
@@ -45,8 +53,11 @@ module stream_fifo #(
     always_ff @(posedge ACLK or negedge ARESETn) begin
         if (!ARESETn) begin
             count <= 0;
+			valid_o <= 0;
         end
         else begin
+		    valid_o <= (count > 0) ? 1 : 0;
+				
             if ((valid_i && ready_o) && !(valid_o && ready_i)) begin
                 count <= count + 1;
             end
