@@ -10,8 +10,6 @@ async def test_queue(dut):
     clock = Clock(dut.clk, 10, units="ns")
     cocotb.start_soon(clock.start())
 
-    dut.rst_n.value = 0
-
     axis_source = AxiStreamSource(
         AxiStreamBus.from_prefix(dut, "m"),
         dut.clk, reset=dut.rst_n,
@@ -23,6 +21,8 @@ async def test_queue(dut):
         dut.clk, reset=dut.rst_n,
         reset_active_level=False
         )
+
+    dut.rst_n.value = 0
     await RisingEdge(dut.clk)
     await RisingEdge(dut.clk)
     dut.rst_n.value = 1
@@ -35,4 +35,7 @@ async def test_queue(dut):
     await axis_source.send(frame)
     await frame.tx_complete.wait()
     print(frame.tx_complete.data.sim_time_start)
+
+    for _ in range(10):
+        await RisingEdge(dut.clk)
 
