@@ -24,13 +24,13 @@ async def test_mux(dut):
     await RisingEdge(dut.ACLK)
 
     await Combine(
-        cocotb.start_soon(axi_master_0.write(0x00000000, b'test', awid=0)),
-        cocotb.start_soon(axi_master_1.write(0x00000004, b'dead', awid=1)),
-        cocotb.start_soon(axi_master_2.write(0x00000008, b'beef', awid=2))
+        cocotb.start_soon(axi_master_0.write(0x00000000, b'testtest', awid=0)),
+        cocotb.start_soon(axi_master_1.write(0x00000008, b'deaddead', awid=1)),
+        cocotb.start_soon(axi_master_2.write(0x00000010, b'beefbeef', awid=2))
     )
 
     await Combine(
-        cocotb.start_soon(axi_master_0.read(0x00000000, 4, arid=0)),
-        cocotb.start_soon(axi_master_1.read(0x00000004, 4, arid=1)),
-        cocotb.start_soon(axi_master_2.read(0x00000008, 4, arid=2))
+        cocotb.start_soon(axi_master_0.read(0x00000000, 8, arid=0)),
+        cocotb.start_soon(axi_master_1.read(0x00000008, 8, arid=1)),
+        cocotb.start_soon(axi_master_2.read(0x00000010, 8, arid=2))
     )

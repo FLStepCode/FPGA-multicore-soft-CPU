@@ -167,10 +167,6 @@ module axi2ram
                 if(ARSIZE_CUR != 0)
                     bytewise_RDATA[ARSIZE_CUR-1] <= ram_ports.data_a;
                 ARSIZE_CUR <= ARSIZE_CUR + 1'b1;
-                if(ARSIZE_CUR == ARSIZE + 1'b1) begin
-                    ARSIZE_CUR <= 1'b1;
-                    ARLEN <= ARLEN - 1'b1;
-                end
                 // Address shift logic
                 if(ARSIZE_CUR != ARSIZE)
                 case (ARBURST)
@@ -186,6 +182,7 @@ module axi2ram
             RESPONDING: begin
                 ARSIZE_CUR <= 0;
                 if(axi_s.RREADY)
+                    ARLEN <= ARLEN - 1'b1;
                     for(int i = 0; i < bytewise_width; i++)
                         bytewise_RDATA[i] <= '0;
             end
