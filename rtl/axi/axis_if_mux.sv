@@ -10,8 +10,8 @@ module axis_if_mux #(
     `endif
 ) (
     axis_if.s in [CHANNEL_NUMBER],
-    input logic
-    [CHANNEL_NUMBER_WIDTH-1:0] ctrl,
+    input logic en,
+    input logic [CHANNEL_NUMBER_WIDTH-1:0] ctrl,
     axis_if.m out
 );
     // T channel 
@@ -52,23 +52,39 @@ module axis_if_mux #(
 
     always_comb begin
 
-        for(int i = 0; i < CHANNEL_NUMBER; i++)
-            TREADY[i] = '0;
-        
         // T channel 
-        out.TVALID = TVALID[ctrl];
-        out.TDATA  = TDATA[ctrl];
+        out.TVALID = '0;
+        out.TDATA  = '0;
         
         `ifndef USE_LIGHT_STREAM
-        out.TSTRB = TSTRB[ctrl];
-        out.TKEEP = TKEEP[ctrl];
-        out.TLAST = TLAST[ctrl];
-        out.TID =   TID[ctrl];
-        out.TDEST = TDEST[ctrl];
-        out.TUSER = TUSER[ctrl];
+        out.TSTRB = '0;
+        out.TKEEP = '0;
+        out.TLAST = '0;
+        out.TID =   '0;
+        out.TDEST = '0;
+        out.TUSER = '0;
         `endif
 
-        TREADY[ctrl] = out.TREADY;
+        for(int i = 0; i < CHANNEL_NUMBER; i++)
+            TREADY[i] = '0;
+
+        if(en) begin
+            
+            // T channel 
+            out.TVALID = TVALID[ctrl];
+            out.TDATA  = TDATA[ctrl];
+            
+            `ifndef USE_LIGHT_STREAM
+            out.TSTRB = TSTRB[ctrl];
+            out.TKEEP = TKEEP[ctrl];
+            out.TLAST = TLAST[ctrl];
+            out.TID =   TID[ctrl];
+            out.TDEST = TDEST[ctrl];
+            out.TUSER = TUSER[ctrl];
+            `endif
+
+            TREADY[ctrl] = out.TREADY;
+        end
 
     end
 

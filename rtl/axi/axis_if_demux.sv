@@ -10,8 +10,8 @@ module axis_if_demux #(
     `endif
 ) (
     axis_if.s in,
-    input logic
-    [CHANNEL_NUMBER_WIDTH-1:0] ctrl,
+    input logic en,
+    input logic [CHANNEL_NUMBER_WIDTH-1:0] ctrl,
     axis_if.m out [CHANNEL_NUMBER]
 );
     // T channel 
@@ -52,7 +52,7 @@ module axis_if_demux #(
 
     always_comb begin
 
-        in.TREADY = TREADY[ctrl];
+        in.TREADY = '0;
 
         for(int i = 0; i < CHANNEL_NUMBER; i++) begin
             TVALID[i] = '0;
@@ -68,19 +68,25 @@ module axis_if_demux #(
             `endif
 
         end
-        
-        // T channel 
-        TVALID[ctrl] = in.TVALID;
-        TDATA[ctrl]  = in.TDATA;
-        
-        `ifndef USE_LIGHT_STREAM
-        TSTRB[ctrl] = in.TSTRB;
-        TKEEP[ctrl] = in.TKEEP;
-        TLAST[ctrl] = in.TLAST;
-        TID[ctrl] =   in.TID;
-        TDEST[ctrl] = in.TDEST;
-        TUSER[ctrl] = in.TUSER;
-        `endif
+
+        if(en) begin
+
+            in.TREADY = TREADY[ctrl];
+            
+            // T channel 
+            TVALID[ctrl] = in.TVALID;
+            TDATA[ctrl]  = in.TDATA;
+            
+            `ifndef USE_LIGHT_STREAM
+            TSTRB[ctrl] = in.TSTRB;
+            TKEEP[ctrl] = in.TKEEP;
+            TLAST[ctrl] = in.TLAST;
+            TID[ctrl] =   in.TID;
+            TDEST[ctrl] = in.TDEST;
+            TUSER[ctrl] = in.TUSER;
+            `endif
+				
+        end
 
     end
 

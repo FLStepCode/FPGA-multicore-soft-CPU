@@ -1,60 +1,80 @@
 module algorithm #(
-    parameter REN = 5,
-    parameter COORDINATE_WIDTH = 2,
-    parameter MAX_PACKAGES = 4,
-    parameter router_X = 0,
-    parameter router_Y = 0
+    parameter DATA_WIDTH = 32
+    `ifndef USE_LIGHT_STREAM
+    ,
+    parameter ID_WIDTH = 4,
+    parameter DEST_WIDTH = 4,
+    parameter USER_WIDTH = 4,
+    `endif 
+    parameter CHANNEL_NUMBER = 5,
+    parameter CHANNEL_NUMBER_WIDTH
+    = $clog2(CHANNEL_NUMBER),
+    parameter MAX_ROUTERS_X = 4,
+    parameter MAX_ROUTERS_X_WIDTH
+    = $clog2(MAX_ROUTERS_X),
+    parameter MAX_ROUTERS_Y = 4,
+    parameter MAX_ROUTERS_Y_WIDTH
+    = $clog2(MAX_ROUTERS_Y),
+    parameter ROUTER_X = 0,
+    parameter ROUTER_Y = 0
 ) (
-    input clk, rst_n,
-    axis_if.s in [0:`REN-1],
-    axis_if.m out
+    axis_if.s in,
+    axis_if.m out [CHANNEL_NUMBER],
+
+    input logic [MAX_ROUTERS_X_WIDTH-1:0] target_x,
+    input logic [MAX_ROUTERS_Y_WIDTH-1:0] target_y
 );
 
-    wire [COORDINATE_WIDTH-1:0] destination_X = from_arbiter[0:COORDINATE_WIDTH-1];
-    wire [COORDINATE_WIDTH-1:0] destination_Y = from_arbiter[COORDINATE_WIDTH:2*COORDINATE_WIDTH-1];
+    logic [CHANNEL_NUMBER_WIDTH-1:0] ctrl;
+    logic [CHANNEL_NUMBER-1:0] selector;
+    assign selector[0] =
+    ((target_x == ROUTER_X) && (target_y == ROUTER_Y)) && out[0].TREADY;
+    assign selector[1] = (target_y < ROUTER_Y) && out[1].TREADY;
+    assign selector[2] = (target_x > ROUTER_X) && out[2].TREADY;
+    assign selector[3] = (target_y > ROUTER_Y) && out[3].TREADY;
+    assign selector[4] = (target_x < ROUTER_X) && out[4].TREADY;
+    logic hit;
+    assign hit = selector[0]|selector[1]|selector[2]|selector[3]|selector[4];
 
-    logic [$clog2(MAX_PACKAGES):0] packages_left;
+    always_comb begin
+        
+        casez (selector)
+            5'b1????: begin
+                ctrl = 3'd0;
+            end
+            5'b0?1?0: begin
+                ctrl = 3'd2;
+            end
+            5'b0?0?1:begin
+                ctrl = 3'd4;
+            end
+            5'b01000:begin
+                ctrl = 3'd1;
+            end
+            5'b00010:begin
+                ctrl = 3'd3;
+            end
+            default: begin
+                ctrl = '0;
+            end
+        endcase
 
-    wire[0:4] selector;
-    assign selector[0] = ((destination_X == router_X) & (destination_Y == router_Y)) & availability_signals_in[0] & from_arbiter[0];
-    assign selector[1] = (destination_Y < router_Y) & availability_signals_in[1] & from_arbiter[0];
-    assign selector[2] = (destination_X > router_X) & availability_signals_in[2] & from_arbiter[0];
-    assign selector[3] = (destination_Y > router_Y) & availability_signals_in[3] & from_arbiter[0];
-    assign selector[4] = (destination_X < router_X) & availability_signals_in[4] & from_arbiter[0];
+    end
 
-    wire shift_required = selector[0] | selector[1] | selector[2] | selector[3] | selector[4];
-    
-    
-    assign shift_signals[0] = shift_required & (shift == 0);
-    assign shift_signals[1] = shift_required & (shift == 1);
-    assign shift_signals[2] = shift_required & (shift == 2);
-    assign shift_signals[3] = shift_required & (shift == 3);
-    assign shift_signals[4] = shift_required & (shift == 4);
-
-    wire[0:`PL-1] check_selector[0:`REN-1];
-
-    generate
-        genvar i, j;
-        for (i = 0; i < `PL; i = i + 1 ) begin : generate_outputs_bits_core
-            assign outputs[0][i] = from_arbiter[i] & selector[0];
-        end
-
-        for (i = 0; i < `PL; i = i + 1 ) begin : generate_outputs_bits_north
-            assign outputs[1][i] = from_arbiter[i] & selector[1];
-        end
-
-        for (i = 0; i < `PL; i = i + 1 ) begin : generate_outputs_bits_east
-            assign outputs[2][i] = from_arbiter[i] & selector[2] & !selector[1] & !selector[3];
-        end
-
-        for (i = 0; i < `PL; i = i + 1 ) begin : generate_outputs_bits_south
-            assign outputs[3][i] = from_arbiter[i] & selector[3];
-        end
-
-        for (i = 0; i < `PL; i = i + 1 ) begin : generate_outputs_bits_west
-            assign outputs[4][i] = from_arbiter[i] & selector[4] & !selector[1] & !selector[3];
-        end
-
-    endgenerate
+    axis_if_demux #(
+        .CHANNEL_NUMBER(CHANNEL_NUMBER),
+        .DATA_WIDTH(DATA_WIDTH)
+        `ifndef USE_LIGHT_STREAM
+        ,
+        .ID_WIDTH(ID_WIDTH),
+        .DEST_WIDTH(DEST_WIDTH),
+        .USER_WIDTH(USER_WIDTH)
+        `endif
+    ) demux (
+        in,
+        hit,
+        ctrl,
+        out
+    );
 
 endmodule

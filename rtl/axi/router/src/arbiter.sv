@@ -87,19 +87,20 @@ module arbiter #(
     end
 
     axis_if_mux #(
-    .CHANNEL_NUMBER(CHANNEL_NUMBER),
-    .DATA_WIDTH(DATA_WIDTH)
-    `ifndef USE_LIGHT_STREAM
-    ,
-    .ID_WIDTH(ID_WIDTH),
-    .DEST_WIDTH(DEST_WIDTH),
-    .USER_WIDTH(USER_WIDTH)
-    `endif
-) (
-    in,
-    current_grant,
-    out
-);
+        .CHANNEL_NUMBER(CHANNEL_NUMBER),
+        .DATA_WIDTH(DATA_WIDTH)
+        `ifndef USE_LIGHT_STREAM
+        ,
+        .ID_WIDTH(ID_WIDTH),
+        .DEST_WIDTH(DEST_WIDTH),
+        .USER_WIDTH(USER_WIDTH)
+        `endif
+    ) mux (
+        in,
+        1'b1,
+        current_grant,
+        out
+    );
 
     
 endmodule
