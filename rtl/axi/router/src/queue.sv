@@ -7,7 +7,7 @@ module queue #(
     axis_if.m out
 );
 
-    logic [DATA_WIDTH-1:0] queue_buffers [0:BUFFER_LENGTH-1];
+    logic [DATA_WIDTH-1:0] queue_buffers [BUFFER_LENGTH];
     logic [$clog2(BUFFER_LENGTH)-1:0] ptr_write;
     logic [$clog2(BUFFER_LENGTH)-1:0] ptr_read;
 
