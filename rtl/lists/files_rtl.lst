@@ -11,6 +11,7 @@ tb/tb_ram/tb_axi_ram.sv
 tb/tb_demux/tb_demux.sv 
 tb/tb_mux/tb_mux.sv 
 tb/router/tb_queue/tb_queue.sv
+tb/tb_bridgeless/tb_bridgeless.sv
 boards/toplevel.sv 
 cores/src/cpu_with_ram.sv 
 cores/src/sm_register.v 

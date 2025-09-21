@@ -181,10 +181,11 @@ module axi2ram
             end
             RESPONDING: begin
                 ARSIZE_CUR <= '0;
-                if(axi_s.RREADY)
+                if(axi_s.RREADY) begin
                     ARLEN <= ARLEN - 1'b1;
                     for(int i = 0; i < bytewise_width; i++)
                         bytewise_RDATA[i] <= '0;
+                end
             end
             default:;
         endcase

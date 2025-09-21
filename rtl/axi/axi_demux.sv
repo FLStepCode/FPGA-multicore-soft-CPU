@@ -197,7 +197,7 @@ module axi_demux #(
             AW_HANDSHAKE: begin
                 w_next_state = AW_HANDSHAKE;
 
-                if (AWVALID_fifo && AWREADY[OUTPUT_NUM-1]) begin
+                if (AWVALID_fifo && AWREADY[OUTPUT_NUM-1] && (AWID_fifo > ID_ROUTING[(OUTPUT_NUM-1) * 2 - 1])) begin
                     w_next_state = W_HANDSHAKE;
                 end
 
