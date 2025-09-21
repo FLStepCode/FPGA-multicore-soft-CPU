@@ -24,7 +24,6 @@ module queue #(
             ptr_write <= '0;
             ptr_read <= '0;
             in.TREADY <= 1'b1;
-            out.TVALID <= 1'b0;
             yes_data <= 0;
         end else begin
             if(in.TVALID && in.TREADY) begin

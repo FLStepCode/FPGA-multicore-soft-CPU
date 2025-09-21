@@ -67,6 +67,8 @@ module arbiter #(
                     MAX_ROUTERS_X_WIDTH+MAX_ROUTERS_Y_WIDTH-1:
                     MAX_ROUTERS_X_WIDTH
                 ];
+            end else begin
+                packages_left <= packages_left - out.TREADY; 
             end
         end
     end
