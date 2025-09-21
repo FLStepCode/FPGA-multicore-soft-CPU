@@ -1,7 +1,6 @@
-module algorithm (#
-    parameter DATA_WIDTH = 32,
+module algorithm #(
     parameter REN = 5,
-    parameter CS = 2,
+    parameter COORDINATE_WIDTH = 2,
     parameter MAX_PACKAGES = 4,
     parameter router_X = 0,
     parameter router_Y = 0
@@ -11,8 +10,8 @@ module algorithm (#
     axis_if.m out
 );
 
-    wire [CS-1:0] destination_X = from_arbiter[0:CS-1];
-    wire [CS-1:0] destination_Y = from_arbiter[CS:2*CS-1];
+    wire [COORDINATE_WIDTH-1:0] destination_X = from_arbiter[0:COORDINATE_WIDTH-1];
+    wire [COORDINATE_WIDTH-1:0] destination_Y = from_arbiter[COORDINATE_WIDTH:2*COORDINATE_WIDTH-1];
 
     logic [$clog2(MAX_PACKAGES):0] packages_left;
 

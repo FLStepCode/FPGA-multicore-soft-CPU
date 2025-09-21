@@ -1,61 +1,77 @@
-module arbiter (
-
+module arbiter #(
+    parameter CHANNEL_NUMBER = 5,
+    localparam CHANNEL_NUMBER_WIDTH
+    = $clog2(CHANNEL_NUMBER),
+    parameter MAX_ROUTERS_X = 4,
+    localparam MAX_ROUTERS_X_WIDTH
+    = $clog2(MAX_ROUTERS_X),
+    parameter MAX_ROUTERS_Y = 4,
+    localparam MAX_ROUTERS_Y_WIDTH
+    = $clog2(MAX_ROUTERS_Y),
+    parameter MAXIMUM_PACKAGES_NUMBER = 5,
+    localparam MAXIMUM_PACKAGES_NUMBER_WIDTH
+    = $clog2(MAXIMUM_PACKAGES_NUMBER - 1)
+) (
     input clk, rst_n,
 
-    axis_if.s in [0:`REN-1],
-    axis_if.m out
+    axis_if.s [CHANNEL_NUMBER] in,
+    axis_if.m out,
+
+    output [COORDINATE_WIDTH*2-1:0] target_coordinates
 );
-    wire[0:`REN-1] selector;
-    wire[0:2*`REN-1] shifted_selector;
-    wire[0:`REN-1] shifted_selector_sector;
+   
+    logic [CHANNEL_NUMBER_WIDTH-1:0] current_grant;
+    logic [CHANNEL_NUMBER_WIDTH-1:0] next_grant;
+    logic [CHANNEL_NUMBER_WIDTH-1:0] increment;
 
-    assign shifted_selector = {selector, selector} << shift;
-    assign shifted_selector_sector = shifted_selector[0:`REN-1];
+    logic [CHANNEL_NUMBER-1:0] valid_i;
+    logic [CHANNEL_NUMBER*2 - 1:0] shifted_valid_i;
+    logic [MAXIMUM_PACKAGES_NUMBER_WIDTH-1:0]
+    packages_read, packages_left;
+    
+    axis_if.s inter_in = in[current_grant];
+    axis_if_connector axis_if_connector(inter_in, out);
 
-    genvar i;
     generate
-        for (i = 0; i < `REN; i = i + 1)
-        begin : arbiter_selector_generator
-            assign selector[i] = input_[i][0];
+	    genvar i;
+        for (i = 0; i < CHANNEL_NUMBER; i++) begin : valid_gen
+            assign valid_i[i] = in[i].TVALID;
         end
     endgenerate
 
-    always @(posedge clk or negedge rst_n)
-    begin
-        if (!rst_n)
-        begin
-            shift <= 0;
+    assign shifted_valid_i = {valid_i, valid_i} >> current_grant;
+
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            current_grant <= 0;
         end
-        else
-        begin
-            casex (shifted_selector_sector)
-                5'b10000: 
-                begin
-                end
-                5'bx1xxx: 
-                begin
-                    shift <= (shift + 1 >= `REN) ? shift + 1 - `REN : shift + 1;
-                end
-                5'bx01xx: 
-                begin
-                    shift <= (shift + 2 >= `REN) ? shift + 2 - `REN : shift + 2;
-                end 
-                5'bx001x: 
-                begin
-                    shift <= (shift + 3 >= `REN) ? shift + 3 - `REN : shift + 3;
-                end
-                5'bx0001: 
-                begin
-                    shift <= (shift + 4 >= `REN) ? shift + 4 - `REN : shift + 4;
-                end
-                default:
-                begin
-                    shift <= 0;
-                end
-            endcase
+        else begin
+            if (out.TREADY) begin
+                current_grant <= next_grant;
+            end
         end
     end
 
-    assign output_data = input_[shift];
+    always_comb begin
+        next_grant = current_grant;
+        increment = 0;
+        for (int i = CHANNEL_NUMBER-1; i > 0; i--) begin
+            if (shifted_valid_i[i]) begin
+                increment = i;
+            end
+        end
+
+        next_grant = (next_grant + increment) >= CHANNEL_NUMBER ?
+        (next_grant + increment - CHANNEL_NUMBER):
+        (next_grant + increment);
+        
+        packages_read = in[0].TDATA[
+            2*COORDINATE_WIDTH+MAXIMUM_PACKAGES_NUMBER_WIDTH-1:
+            2*COORDINATE_WIDTH
+            ];
+
+
+    end
+
     
 endmodule

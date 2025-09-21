@@ -40,5 +40,4 @@ interface axis_if #(
         `endif
     );
     
-    
 endinterface

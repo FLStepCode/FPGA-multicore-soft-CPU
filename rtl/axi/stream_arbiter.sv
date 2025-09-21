@@ -1,7 +1,7 @@
 module stream_arbiter #(
     parameter DATA_WIDTH = 32,
     parameter INPUT_NUM = 2,
-    parameter ADDR_WIDTH = $clog2(INPUT_NUM)
+    localparam ADDR_WIDTH = $clog2(INPUT_NUM)
 ) (
     input logic ACLK,
     input logic ARESETn,
