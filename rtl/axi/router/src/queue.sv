@@ -36,8 +36,23 @@ module queue #(
 
     logic yes_data;
 
-    always_ff @(posedge clk) begin
+    always_comb begin
         stored_axis_r = queue_buffers[ptr_read];
+
+        stored_axis_w.TDATA = in.TDATA;
+
+        `ifndef USE_LIGHT_STREAM
+        stored_axis_w.TSTRB = in.TSTRB;
+        stored_axis_w.TKEEP = in.TKEEP;
+        stored_axis_w.TLAST = in.TLAST;
+        stored_axis_w.TID   = in.TID;
+        stored_axis_w.TDEST = in.TDEST;
+        stored_axis_w.TUSER = in.TUSER;
+        `endif
+
+    end
+
+    always_ff @(posedge clk) begin
         out.TDATA <= stored_axis_r.TDATA;
 
         `ifndef USE_LIGHT_STREAM 
@@ -61,19 +76,7 @@ module queue #(
             yes_data <= 0;
         end else begin
             if(in.TVALID && in.TREADY) begin
-                stored_axis_w.TDATA = in.TDATA;
-
-                `ifndef USE_LIGHT_STREAM
-                stored_axis_w.TSTRB = in.TSTRB;
-                stored_axis_w.TKEEP = in.TKEEP;
-                stored_axis_w.TLAST = in.TLAST;
-                stored_axis_w.TID   = in.TID;
-                stored_axis_w.TDEST = in.TDEST;
-                stored_axis_w.TUSER = in.TUSER;
-                `endif
-
                 queue_buffers[ptr_write] <= stored_axis_w;
-
                 ptr_write = (ptr_write + 1'b1) % BUFFER_LENGTH;
                 yes_data <= 1'b1;
             end
