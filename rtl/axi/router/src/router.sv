@@ -1,7 +1,6 @@
 module router #(
-    parameter DATA_WIDTH = 32
+    parameter DATA_WIDTH = 32,
     `ifndef USE_LIGHT_STREAM
-    ,
     parameter ID_WIDTH = 4,
     parameter DEST_WIDTH = 4,
     parameter USER_WIDTH = 4,
@@ -86,6 +85,11 @@ module router #(
         for(i = 0; i < CHANNEL_NUMBER; i++) begin : axis_if_gen
             queue #(
                 .DATA_WIDTH(DATA_WIDTH),
+                `ifndef USE_LIGHT_STREAM
+                .ID_WIDTH(ID_WIDTH),
+                .DEST_WIDTH(DEST_WIDTH),
+                .USER_WIDTH(USER_WIDTH),
+                `endif
                 .BUFFER_LENGTH(BUFFER_LENGTH)
             ) q (
                 clk, rst_n,

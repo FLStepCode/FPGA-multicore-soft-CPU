@@ -1,7 +1,6 @@
 module algorithm #(
-    parameter DATA_WIDTH = 32
+    parameter DATA_WIDTH = 32,
     `ifndef USE_LIGHT_STREAM
-    ,
     parameter ID_WIDTH = 4,
     parameter DEST_WIDTH = 4,
     parameter USER_WIDTH = 4,
