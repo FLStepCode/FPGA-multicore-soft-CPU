@@ -1,9 +1,15 @@
 interface axis_if #(
     parameter DATA_WIDTH = 32
-    `ifndef USE_LIGHT_STREAM
+    `ifdef TID_PRESENT
     ,
-    parameter ID_WIDTH = 4,
-    parameter DEST_WIDTH = 4,
+    parameter ID_WIDTH = 4
+    `endif
+    `ifdef TDEST_PRESENT
+    ,
+    parameter DEST_WIDTH = 4
+    `endif
+    `ifdef TUSER_PRESENT
+    ,
     parameter USER_WIDTH = 4
     `endif
 ) ();
@@ -13,30 +19,70 @@ interface axis_if #(
     logic TREADY;
     logic [DATA_WIDTH-1:0] TDATA;
     
-    `ifndef USE_LIGHT_STREAM
+    `ifdef TSTRB_PRESENT
     logic [(DATA_WIDTH/8)-1:0] TSTRB;
+    `endif
+    `ifdef TKEEP_PRESENT
     logic [(DATA_WIDTH/8)-1:0] TKEEP;
+    `endif
+    `ifdef TLAST_PRESENT
     logic TLAST;
+    `endif
+    `ifdef TID_PRESENT
     logic [ID_WIDTH-1:0] TID;
+    `endif
+    `ifdef TDEST_PRESENT
     logic [DEST_WIDTH-1:0] TDEST;
-    logic [DEST_WIDTH-1:0] TUSER;
+    `endif
+    `ifdef TUSER_PRESENT
+    logic [USER_WIDTH-1:0] TUSER;
     `endif
 
     modport m (
         input TREADY,
         output TVALID, TDATA
 
-        `ifndef USE_LIGHT_STREAM
-        , output TSTRB, TKEEP, TLAST, TID, TDEST, TUSER
+        `ifdef TSTRB_PRESENT
+        , TSTRB
+        `endif
+        `ifdef TKEEP_PRESENT
+        , TKEEP
+        `endif
+        `ifdef TLAST_PRESENT
+        , TLAST
+        `endif
+        `ifdef TID_PRESENT
+        , TID
+        `endif
+        `ifdef TDEST_PRESENT
+        , TDEST
+        `endif
+        `ifdef TUSER_PRESENT
+        , TUSER
         `endif
     );
 
     modport s (
-        input TVALID, TDATA,
-        output TREADY
+        output TREADY,
+        input TVALID, TDATA
 
-        `ifndef USE_LIGHT_STREAM
-        , input TSTRB, TKEEP, TLAST, TID, TDEST, TUSER
+        `ifdef TSTRB_PRESENT
+        , TSTRB
+        `endif
+        `ifdef TKEEP_PRESENT
+        , TKEEP
+        `endif
+        `ifdef TLAST_PRESENT
+        , TLAST
+        `endif
+        `ifdef TID_PRESENT
+        , TID
+        `endif
+        `ifdef TDEST_PRESENT
+        , TDEST
+        `endif
+        `ifdef TUSER_PRESENT
+        , TUSER
         `endif
     );
     

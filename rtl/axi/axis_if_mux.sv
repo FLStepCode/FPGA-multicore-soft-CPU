@@ -2,10 +2,16 @@ module axis_if_mux #(
     parameter CHANNEL_NUMBER = 5,
     parameter CHANNEL_NUMBER_WIDTH = $clog2(CHANNEL_NUMBER),
     parameter DATA_WIDTH = 32
-    `ifndef USE_LIGHT_STREAM
+    `ifdef TID_PRESENT
     ,
-    parameter ID_WIDTH = 4,
-    parameter DEST_WIDTH = 4,
+    parameter ID_WIDTH = 4
+    `endif
+    `ifdef TDEST_PRESENT
+    ,
+    parameter DEST_WIDTH = 4
+    `endif
+    `ifdef TUSER_PRESENT
+    ,
     parameter USER_WIDTH = 4
     `endif
 ) (
@@ -19,13 +25,23 @@ module axis_if_mux #(
     logic TREADY [CHANNEL_NUMBER];
     logic [DATA_WIDTH-1:0] TDATA [CHANNEL_NUMBER];
     
-    `ifndef USE_LIGHT_STREAM
+    `ifdef TSTRB_PRESENT
     logic [(DATA_WIDTH/8)-1:0] TSTRB [CHANNEL_NUMBER];
+    `endif
+    `ifdef TKEEP_PRESENT
     logic [(DATA_WIDTH/8)-1:0] TKEEP [CHANNEL_NUMBER];
+    `endif
+    `ifdef TLAST_PRESENT
     logic TLAST [CHANNEL_NUMBER];
+    `endif
+    `ifdef TID_PRESENT
     logic [ID_WIDTH-1:0] TID [CHANNEL_NUMBER];
+    `endif
+    `ifdef TDEST_PRESENT
     logic [DEST_WIDTH-1:0] TDEST [CHANNEL_NUMBER];
-    logic [DEST_WIDTH-1:0] TUSER [CHANNEL_NUMBER];
+    `endif
+    `ifdef TUSER_PRESENT
+    logic [USER_WIDTH-1:0] TUSER [CHANNEL_NUMBER];
     `endif
 
     generate
@@ -38,12 +54,22 @@ module axis_if_mux #(
             assign TVALID[i] = in[i].TVALID;
             assign TDATA [i] = in[i].TDATA;
             
-            `ifndef USE_LIGHT_STREAM
+            `ifdef TSTRB_PRESENT
             assign TSTRB[i] = in[i].TSTRB;
+            `endif
+            `ifdef TKEEP_PRESENT
             assign TKEEP[i] = in[i].TKEEP;
+            `endif
+            `ifdef TLAST_PRESENT
             assign TLAST[i] = in[i].TLAST;
+            `endif
+            `ifdef TID_PRESENT
             assign TID[i]   = in[i].TID;
+            `endif
+            `ifdef TDEST_PRESENT
             assign TDEST[i] = in[i].TDEST;
+            `endif
+            `ifdef TUSER_PRESENT
             assign TUSER[i] = in[i].TUSER;
             `endif
             
@@ -56,12 +82,22 @@ module axis_if_mux #(
         out.TVALID = '0;
         out.TDATA  = '0;
         
-        `ifndef USE_LIGHT_STREAM
+        `ifdef TSTRB_PRESENT
         out.TSTRB = '0;
+        `endif
+        `ifdef TKEEP_PRESENT
         out.TKEEP = '0;
+        `endif
+        `ifdef TLAST_PRESENT
         out.TLAST = '0;
+        `endif
+        `ifdef TID_PRESENT
         out.TID =   '0;
+        `endif
+        `ifdef TDEST_PRESENT
         out.TDEST = '0;
+        `endif
+        `ifdef TUSER_PRESENT
         out.TUSER = '0;
         `endif
 
@@ -74,12 +110,22 @@ module axis_if_mux #(
             out.TVALID = TVALID[ctrl];
             out.TDATA  = TDATA[ctrl];
             
-            `ifndef USE_LIGHT_STREAM
+            `ifdef TSTRB_PRESENT
             out.TSTRB = TSTRB[ctrl];
+            `endif
+            `ifdef TKEEP_PRESENT
             out.TKEEP = TKEEP[ctrl];
+            `endif
+            `ifdef TLAST_PRESENT
             out.TLAST = TLAST[ctrl];
+            `endif
+            `ifdef TID_PRESENT
             out.TID =   TID[ctrl];
+            `endif
+            `ifdef TDEST_PRESENT
             out.TDEST = TDEST[ctrl];
+            `endif
+            `ifdef TUSER_PRESENT
             out.TUSER = TUSER[ctrl];
             `endif
 

@@ -2,10 +2,16 @@ module axis_if_demux #(
     parameter CHANNEL_NUMBER = 5,
     parameter CHANNEL_NUMBER_WIDTH = $clog2(CHANNEL_NUMBER),
     parameter DATA_WIDTH = 32
-    `ifndef USE_LIGHT_STREAM
+    `ifdef TID_PRESENT
     ,
-    parameter ID_WIDTH = 4,
-    parameter DEST_WIDTH = 4,
+    parameter ID_WIDTH = 4
+    `endif
+    `ifdef TDEST_PRESENT
+    ,
+    parameter DEST_WIDTH = 4
+    `endif
+    `ifdef TUSER_PRESENT
+    ,
     parameter USER_WIDTH = 4
     `endif
 ) (
@@ -19,13 +25,23 @@ module axis_if_demux #(
     logic TREADY [CHANNEL_NUMBER];
     logic [DATA_WIDTH-1:0] TDATA [CHANNEL_NUMBER];
     
-    `ifndef USE_LIGHT_STREAM
+    `ifdef TSTRB_PRESENT
     logic [(DATA_WIDTH/8)-1:0] TSTRB [CHANNEL_NUMBER];
+    `endif
+    `ifdef TKEEP_PRESENT
     logic [(DATA_WIDTH/8)-1:0] TKEEP [CHANNEL_NUMBER];
+    `endif
+    `ifdef TLAST_PRESENT
     logic TLAST [CHANNEL_NUMBER];
+    `endif
+    `ifdef TID_PRESENT
     logic [ID_WIDTH-1:0] TID [CHANNEL_NUMBER];
+    `endif
+    `ifdef TDEST_PRESENT
     logic [DEST_WIDTH-1:0] TDEST [CHANNEL_NUMBER];
-    logic [DEST_WIDTH-1:0] TUSER [CHANNEL_NUMBER];
+    `endif
+    `ifdef TUSER_PRESENT
+    logic [USER_WIDTH-1:0] TUSER [CHANNEL_NUMBER];
     `endif
 
     generate
@@ -38,12 +54,22 @@ module axis_if_demux #(
             assign out[i].TVALID = TVALID[i];
             assign out[i].TDATA  = TDATA[i];
             
-            `ifndef USE_LIGHT_STREAM
+            `ifdef TSTRB_PRESENT
             assign out[i].TSTRB = TSTRB[i];
+            `endif
+            `ifdef TKEEP_PRESENT
             assign out[i].TKEEP = TKEEP[i];
+            `endif
+            `ifdef TLAST_PRESENT
             assign out[i].TLAST = TLAST[i];
+            `endif
+            `ifdef TID_PRESENT
             assign out[i].TID   = TID[i];
+            `endif
+            `ifdef TDEST_PRESENT
             assign out[i].TDEST = TDEST[i];
+            `endif
+            `ifdef TUSER_PRESENT
             assign out[i].TUSER = TUSER[i];
             `endif
             
@@ -58,12 +84,22 @@ module axis_if_demux #(
             TVALID[i] = '0;
             TDATA[i]  = '0;
         
-            `ifndef USE_LIGHT_STREAM
+            `ifdef TSTRB_PRESENT
             TSTRB[i] = '0;
+            `endif
+            `ifdef TKEEP_PRESENT
             TKEEP[i] = '0;
+            `endif
+            `ifdef TLAST_PRESENT
             TLAST[i] = '0;
+            `endif
+            `ifdef TID_PRESENT
             TID[i] =   '0;
+            `endif
+            `ifdef TDEST_PRESENT
             TDEST[i] = '0;
+            `endif
+            `ifdef TUSER_PRESENT
             TUSER[i] = '0;
             `endif
 
@@ -77,12 +113,22 @@ module axis_if_demux #(
             TVALID[ctrl] = in.TVALID;
             TDATA[ctrl]  = in.TDATA;
             
-            `ifndef USE_LIGHT_STREAM
+            `ifdef TSTRB_PRESENT
             TSTRB[ctrl] = in.TSTRB;
+            `endif
+            `ifdef TKEEP_PRESENT
             TKEEP[ctrl] = in.TKEEP;
+            `endif
+            `ifdef TLAST_PRESENT
             TLAST[ctrl] = in.TLAST;
+            `endif
+            `ifdef TID_PRESENT
             TID[ctrl] =   in.TID;
+            `endif
+            `ifdef TDEST_PRESENT
             TDEST[ctrl] = in.TDEST;
+            `endif
+            `ifdef TUSER_PRESENT
             TUSER[ctrl] = in.TUSER;
             `endif
 				

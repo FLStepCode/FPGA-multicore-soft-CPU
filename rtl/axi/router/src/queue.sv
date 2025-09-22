@@ -1,10 +1,18 @@
 module queue #(
-    parameter DATA_WIDTH = 32,
-    `ifndef USE_LIGHT_STREAM
-    parameter ID_WIDTH = 4,
-    parameter DEST_WIDTH = 4,
-    parameter USER_WIDTH = 4,
+    parameter DATA_WIDTH = 32
+    `ifdef TID_PRESENT
+    ,
+    parameter ID_WIDTH = 4
     `endif
+    `ifdef TDEST_PRESENT
+    ,
+    parameter DEST_WIDTH = 4
+    `endif
+    `ifdef TUSER_PRESENT
+    ,
+    parameter USER_WIDTH = 4
+    `endif
+    ,
     parameter BUFFER_LENGTH = 4
 ) (
     input clk, rst_n,
@@ -15,13 +23,23 @@ module queue #(
     typedef struct packed {
         logic [DATA_WIDTH-1:0] TDATA;
         
-        `ifndef USE_LIGHT_STREAM
+        `ifdef TSTRB_PRESENT
         logic [(DATA_WIDTH/8)-1:0] TSTRB;
+        `endif
+        `ifdef TKEEP_PRESENT
         logic [(DATA_WIDTH/8)-1:0] TKEEP;
+        `endif
+        `ifdef TLAST_PRESENT
         logic TLAST;
+        `endif
+        `ifdef TID_PRESENT
         logic [ID_WIDTH-1:0] TID;
+        `endif
+        `ifdef TDEST_PRESENT
         logic [DEST_WIDTH-1:0] TDEST;
-        logic [DEST_WIDTH-1:0] TUSER;
+        `endif
+        `ifdef TUSER_PRESENT
+        logic [USER_WIDTH-1:0] TUSER;
         `endif
 
     } stored_axis_t;
@@ -41,12 +59,22 @@ module queue #(
 
         stored_axis_w.TDATA = in.TDATA;
 
-        `ifndef USE_LIGHT_STREAM
+        `ifdef TSTRB_PRESENT
         stored_axis_w.TSTRB = in.TSTRB;
+        `endif
+        `ifdef TKEEP_PRESENT
         stored_axis_w.TKEEP = in.TKEEP;
+        `endif
+        `ifdef TLAST_PRESENT
         stored_axis_w.TLAST = in.TLAST;
+        `endif
+        `ifdef TID_PRESENT
         stored_axis_w.TID   = in.TID;
+        `endif
+        `ifdef TDEST_PRESENT
         stored_axis_w.TDEST = in.TDEST;
+        `endif
+        `ifdef TUSER_PRESENT
         stored_axis_w.TUSER = in.TUSER;
         `endif
 
@@ -55,12 +83,22 @@ module queue #(
     always_ff @(posedge clk) begin
         out.TDATA <= stored_axis_r.TDATA;
 
-        `ifndef USE_LIGHT_STREAM 
+        `ifdef TSTRB_PRESENT 
         out.TSTRB <= stored_axis_r.TSTRB;
+        `endif
+        `ifdef TKEEP_PRESENT
         out.TKEEP <= stored_axis_r.TKEEP;
+        `endif
+        `ifdef TLAST_PRESENT
         out.TLAST <= stored_axis_r.TLAST;
+        `endif
+        `ifdef TID_PRESENT
         out.TID   <= stored_axis_r.TID;
+        `endif
+        `ifdef TDEST_PRESENT
         out.TDEST <= stored_axis_r.TDEST;
+        `endif
+        `ifdef TUSER_PRESENT
         out.TUSER <= stored_axis_r.TUSER;
         `endif
 

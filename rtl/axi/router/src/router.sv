@@ -1,10 +1,18 @@
 module router #(
-    parameter DATA_WIDTH = 32,
-    `ifndef USE_LIGHT_STREAM
-    parameter ID_WIDTH = 4,
-    parameter DEST_WIDTH = 4,
-    parameter USER_WIDTH = 4,
+    parameter DATA_WIDTH = 32
+    `ifdef TID_PRESENT
+    ,
+    parameter ID_WIDTH = 4
     `endif
+    `ifdef TDEST_PRESENT
+    ,
+    parameter DEST_WIDTH = 4
+    `endif
+    `ifdef TUSER_PRESENT
+    ,
+    parameter USER_WIDTH = 4
+    `endif
+    ,
     parameter CHANNEL_NUMBER = 5,
     parameter BUFFER_LENGTH = 4,
     parameter MAX_ROUTERS_X = 4,
@@ -27,10 +35,16 @@ module router #(
 
     axis_if #(
         .DATA_WIDTH(DATA_WIDTH)
-        `ifndef USE_LIGHT_STREAM
+        `ifdef TID_PRESENT
         ,
-        .ID_WIDTH(ID_WIDTH),
-        .DEST_WIDTH(DEST_WIDTH),
+        .ID_WIDTH(ID_WIDTH)
+        `endif
+        `ifdef TDEST_PRESENT
+        ,
+        .DEST_WIDTH(DEST_WIDTH)
+        `endif
+        `ifdef TUSER_PRESENT
+        ,
         .USER_WIDTH(USER_WIDTH)
         `endif
     ) 
@@ -42,12 +56,19 @@ module router #(
 
     arbiter #(
         .DATA_WIDTH(DATA_WIDTH)
-        `ifndef USE_LIGHT_STREAM
+        `ifdef TID_PRESENT
         ,
-        .ID_WIDTH(ID_WIDTH),
-        .DEST_WIDTH(DEST_WIDTH),
-        .USER_WIDTH(USER_WIDTH),
+        .ID_WIDTH(ID_WIDTH)
         `endif
+        `ifdef TDEST_PRESENT
+        ,
+        .DEST_WIDTH(DEST_WIDTH)
+        `endif
+        `ifdef TUSER_PRESENT
+        ,
+        .USER_WIDTH(USER_WIDTH)
+        `endif
+        ,
         .CHANNEL_NUMBER(CHANNEL_NUMBER),
         .MAX_ROUTERS_X(MAX_ROUTERS_X),
         .MAX_ROUTERS_Y(MAX_ROUTERS_Y),
@@ -62,12 +83,19 @@ module router #(
 
     algorithm #(
         .DATA_WIDTH(DATA_WIDTH)
-        `ifndef USE_LIGHT_STREAM
+        `ifdef TID_PRESENT
         ,
-        .ID_WIDTH(ID_WIDTH),
-        .DEST_WIDTH(DEST_WIDTH),
-        .USER_WIDTH(USER_WIDTH),
+        .ID_WIDTH(ID_WIDTH)
         `endif
+        `ifdef TDEST_PRESENT
+        ,
+        .DEST_WIDTH(DEST_WIDTH)
+        `endif
+        `ifdef TUSER_PRESENT
+        ,
+        .USER_WIDTH(USER_WIDTH)
+        `endif
+        ,
         .CHANNEL_NUMBER(CHANNEL_NUMBER),
         .MAX_ROUTERS_X(MAX_ROUTERS_X),
         .MAX_ROUTERS_Y(MAX_ROUTERS_Y),
@@ -84,12 +112,20 @@ module router #(
         genvar i;
         for(i = 0; i < CHANNEL_NUMBER; i++) begin : axis_if_gen
             queue #(
-                .DATA_WIDTH(DATA_WIDTH),
-                `ifndef USE_LIGHT_STREAM
-                .ID_WIDTH(ID_WIDTH),
-                .DEST_WIDTH(DEST_WIDTH),
-                .USER_WIDTH(USER_WIDTH),
+                .DATA_WIDTH(DATA_WIDTH)
+                `ifdef TID_PRESENT
+                ,
+                .ID_WIDTH(ID_WIDTH)
                 `endif
+                `ifdef TDEST_PRESENT
+                ,
+                .DEST_WIDTH(DEST_WIDTH)
+                `endif
+                `ifdef TUSER_PRESENT
+                ,
+                .USER_WIDTH(USER_WIDTH)
+                `endif
+                ,
                 .BUFFER_LENGTH(BUFFER_LENGTH)
             ) q (
                 clk, rst_n,

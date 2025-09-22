@@ -1,10 +1,18 @@
 module algorithm #(
-    parameter DATA_WIDTH = 32,
-    `ifndef USE_LIGHT_STREAM
-    parameter ID_WIDTH = 4,
-    parameter DEST_WIDTH = 4,
-    parameter USER_WIDTH = 4,
-    `endif 
+    parameter DATA_WIDTH = 32
+    `ifdef TID_PRESENT
+    ,
+    parameter ID_WIDTH = 4
+    `endif
+    `ifdef TDEST_PRESENT
+    ,
+    parameter DEST_WIDTH = 4
+    `endif
+    `ifdef TUSER_PRESENT
+    ,
+    parameter USER_WIDTH = 4
+    `endif
+    ,
     parameter CHANNEL_NUMBER = 5,
     parameter CHANNEL_NUMBER_WIDTH
     = $clog2(CHANNEL_NUMBER),
@@ -47,10 +55,16 @@ module algorithm #(
     axis_if_demux #(
         .CHANNEL_NUMBER(CHANNEL_NUMBER),
         .DATA_WIDTH(DATA_WIDTH)
-        `ifndef USE_LIGHT_STREAM
+        `ifdef TID_PRESENT
         ,
-        .ID_WIDTH(ID_WIDTH),
-        .DEST_WIDTH(DEST_WIDTH),
+        .ID_WIDTH(ID_WIDTH)
+        `endif
+        `ifdef TDEST_PRESENT
+        ,
+        .DEST_WIDTH(DEST_WIDTH)
+        `endif
+        `ifdef TUSER_PRESENT
+        ,
         .USER_WIDTH(USER_WIDTH)
         `endif
     ) demux (
