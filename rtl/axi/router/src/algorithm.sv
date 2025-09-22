@@ -33,31 +33,15 @@ module algorithm #(
     assign selector[3] = (target_y > ROUTER_Y) && out[3].TREADY;
     assign selector[4] = (target_x < ROUTER_X) && out[4].TREADY;
     logic hit;
-    assign hit = selector[0]|selector[1]|selector[2]|selector[3]|selector[4];
+    assign hit = |selector;
 
     always_comb begin
-        
-        casez (selector)
-            5'b1????: begin
-                ctrl = 3'd0;
+        ctrl = '0;
+        for (int i = 0; i < CHANNEL_NUMBER; i++) begin
+            if(selector[CHANNEL_NUMBER - 1 - i]) begin
+                ctrl = i;
             end
-            5'b0?1?0: begin
-                ctrl = 3'd2;
-            end
-            5'b0?0?1:begin
-                ctrl = 3'd4;
-            end
-            5'b01000:begin
-                ctrl = 3'd1;
-            end
-            5'b00010:begin
-                ctrl = 3'd3;
-            end
-            default: begin
-                ctrl = '0;
-            end
-        endcase
-
+        end
     end
 
     axis_if_demux #(
