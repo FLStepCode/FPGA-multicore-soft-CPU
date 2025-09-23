@@ -13,7 +13,7 @@ module queue #(
     parameter USER_WIDTH = 4
     `endif
     ,
-    parameter BUFFER_LENGTH = 4
+    parameter BUFFER_LENGTH = 16
 ) (
     input clk, rst_n,
     axis_if.s in,
@@ -44,9 +44,7 @@ module queue #(
 
     } stored_axis_t;
 
-    localparam buffer_width = 2**$clog2($bits(stored_axis_t));
-
-    logic [buffer_width-1:0] queue_buffers [BUFFER_LENGTH];
+    stored_axis_t queue_buffers [BUFFER_LENGTH];
     stored_axis_t stored_axis_r, stored_axis_w;
 
     logic [$clog2(BUFFER_LENGTH)-1:0] ptr_write;
