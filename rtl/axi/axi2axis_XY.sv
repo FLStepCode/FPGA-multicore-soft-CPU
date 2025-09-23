@@ -26,53 +26,58 @@ module axi2axis_XY #(
 
     typedef struct packed {
         packet_type PACKET_TYPE;
-        logic [40 - (PACKET_TYPE_WIDTH + 8 + MAX_ROUTERS_X_WIDTH + MAX_ROUTERS_Y_WIDTH) - 1:0] RESERVED;
-        logic [8:0] PACKET_COUNT;
+        logic [40 - (PACKET_TYPE_WIDTH + MAX_ROUTERS_X_WIDTH + MAX_ROUTERS_Y_WIDTH) - 1:0] RESERVED;
         logic [MAX_ROUTERS_X_WIDTH-1:0] COORDINATE_X;
         logic [MAX_ROUTERS_Y_WIDTH-1:0] COORDINATE_Y;
     } routing_header;
 
     typedef struct packed {
         packet_type PACKET_TYPE;
-        logic [40 - (PACKET_TYPE_WIDTH + ID_W_WIDTH + ADDR_WIDTH + 3 + 2) - 1:0] RESERVED;
+        logic [40 - (PACKET_TYPE_WIDTH + ID_W_WIDTH + ADDR_WIDTH + 8 + 3 + 2) - 1:0] RESERVED;
         logic [ID_W_WIDTH-1:0] ID;
         logic [ADDR_WIDTH-1:0] ADDR;
+        logic [7:0] LEN;
         logic [2:0] SIZE;
         logic [1:0] BURST;
     } aw_subheader;
 
     typedef struct packed {
         packet_type PACKET_TYPE;
-        logic [40 - (PACKET_TYPE_WIDTH + + ID_W_WIDTH) - 1:0] RESERVED;
+        logic [40 - (PACKET_TYPE_WIDTH + ID_W_WIDTH) - 1:0] RESERVED;
         logic [ID_W_WIDTH-1:0] ID;
     } b_subheader;
 
     typedef struct packed {
         packet_type PACKET_TYPE;
-        logic [40 - (PACKET_TYPE_WIDTH + 31) - 1:0] RESERVED;
+        logic [40 - (PACKET_TYPE_WIDTH + 32) - 1:0] RESERVED;
         logic [31:0] DATA;
     } w_data;
 
     typedef struct packed {
         packet_type PACKET_TYPE;
-        logic [40 - (PACKET_TYPE_WIDTH + ID_R_WIDTH + ADDR_WIDTH + 3 + 2) - 1:0] RESERVED;
+        logic [40 - (PACKET_TYPE_WIDTH + ID_R_WIDTH + ADDR_WIDTH + 8 + 3 + 2) - 1:0] RESERVED;
         logic [ID_R_WIDTH-1:0] ID;
         logic [ADDR_WIDTH-1:0] ADDR;
+        logic [7:0] LEN;
         logic [2:0] SIZE;
         logic [1:0] BURST;
     } ar_subheader;
 
     typedef struct packed {
         packet_type PACKET_TYPE;
-        logic [40 - (PACKET_TYPE_WIDTH + ID_R_WIDTH + 31) - 1:0] RESERVED;
+        logic [40 - (PACKET_TYPE_WIDTH + ID_R_WIDTH + 32) - 1:0] RESERVED;
         logic [ID_R_WIDTH-1:0] ID;
         logic [31:0] DATA;
     } r_data;
 
     // AW channel
-    logic [ID_W_WIDTH + ADDR_WIDTH + 8 + 3 + 2 - 1:0] data_o_aw;
     logic AWVALID_fifo;
     logic AWREADY_fifo;
+    logic [ID_W_WIDTH-1:0] AWID_fifo;
+    logic [ADDR_WIDTH-1:0] AWADDR_fifo;
+    logic [7:0] AWLEN_fifo;
+    logic [2:0] AWSIZE_fifo;
+    logic [1:0] AWBURST_fifo;
 
     // W channel
     logic WVALID_fifo;
@@ -82,19 +87,13 @@ module axi2axis_XY #(
     logic WLAST_fifo;
 
     // AR channel 
-    logic [ID_R_WIDTH + ADDR_WIDTH + 8 + 3 + 2 - 1:0] data_o_ar;
     logic ARVALID_fifo;
     logic ARREADY_fifo;
-
-    // arbiter output
-    logic AxTYPE_arbiter;
-    logic AxVALID_arbiter;
-    logic AxREADY_arbiter;
-    logic [ID_W_WIDTH-1:0] AxID_arbiter;
-    logic [ADDR_WIDTH-1:0] AxADDR_arbiter;
-    logic [7:0] AxLEN_arbiter;
-    logic [2:0] AxSIZE_arbiter;
-    logic [1:0] AxBURST_arbiter;
+    logic [ID_R_WIDTH-1:0] ARID_fifo;
+    logic [ADDR_WIDTH-1:0] ARADDR_fifo;
+    logic [7:0] ARLEN_fifo;
+    logic [2:0] ARSIZE_fifo;
+    logic [1:0] ARBURST_fifo;
 
 
     stream_fifo #(
@@ -108,7 +107,7 @@ module axi2axis_XY #(
         .valid_i(s_axi_in.AWVALID),
         .ready_o(s_axi_in.AWREADY),
 
-        .data_o(data_o_aw),
+        .data_o({AWID_fifo, AWADDR_fifo, AWLEN_fifo, AWSIZE_fifo, AWBURST_fifo}),
         .valid_o(AWVALID_fifo),
         .ready_i(AWREADY_fifo)
     );
@@ -140,53 +139,61 @@ module axi2axis_XY #(
         .valid_i(s_axi_in.ARVALID),
         .ready_o(s_axi_in.ARREADY),
 
-        .data_o(data_o_ar),
+        .data_o({ARID_fifo, ARADDR_fifo, ARLEN_fifo, ARSIZE_fifo, ARBURST_fifo}),
         .valid_o(ARVALID_fifo),
         .ready_i(ARREADY_fifo)
     );
+    
+    
+    logic [3:0] VALID_arbiter_i;
 
-    logic [1 + MAX_ID_WIDTH + ADDR_WIDTH + 8 + 3 + 2 - 1:0] data_i_arbiter [2];
-    logic [1:0] valid_i_arbiter;
-    logic [1:0] ready_o_arbiter;
+    packet_type AW;
+    packet_type AR;
+    packet_type B;
+    packet_type R;
 
-    assign data_i_arbiter[0] = {1'b0, data_o_aw};
-    assign valid_i_arbiter[0] = AWVALID_fifo;
-    assign AWREADY_fifo = ready_o_arbiter[0];
+    logic [2:0] DATA_arbiter_i [4];
+    logic [2:0] DATA_arbiter_o;
+    logic VALID_arbiter_o;
+    logic READY_arbiter_i;
 
-    assign data_i_arbiter[1] = {1'b1, data_o_ar};
-    assign valid_i_arbiter[1] = ARVALID_fifo;
-    assign ARREADY_fifo = ready_o_arbiter[1];
+    always_comb begin
+        AW = AW_SUBHEADER;
+        AR = AR_SUBHEADER;
+        B = B_SUBHEADER;
+        R = R_DATA;
+
+        DATA_arbiter_i = '{AW, AR, B, R};
+        VALID_arbiter_i = {m_axi_out.RVALID, m_axi_out.BVALID, ARVALID_fifo, AWVALID_fifo};
+    end
 
     stream_arbiter #(
-        .DATA_WIDTH(1 + MAX_ID_WIDTH + ADDR_WIDTH + 8 + 3 + 2),
-        .INPUT_NUM(2)
-    ) stream_arbiter_ax (
+        .DATA_WIDTH(3),
+        .INPUT_NUM(4)
+    ) stream_arbiter (
         .ACLK(ACLK),
         .ARESETn(ARESETn),
 
-        .data_i(data_i_arbiter),
-        .valid_i(valid_i_arbiter),
-        .ready_o(ready_o_arbiter),
+        .data_i(DATA_arbiter_i),
+        .valid_i(VALID_arbiter_i),
+        // .ready_o(READY_arbiter_o),
 
-        .data_o({AxTYPE_arbiter, AxID_arbiter, AxADDR_arbiter, AxLEN_arbiter, AxSIZE_arbiter, AxBURST_arbiter}),
-        .valid_o(AxVALID_arbiter),
-        .ready_i(AxREADY_arbiter)
+        .data_o(DATA_arbiter_o),
+        .valid_o(VALID_arbiter_o),
+        .ready_i(READY_arbiter_i)
     );
 
 
     // --- axis in fsm ---
 
-    enum {GENERATE_HEADER, AW_SEND, AR_SEND, W_SEND} out_state, out_state_next;
-    integer packet_out_counter, packet_out_counter_next;
+    enum {GENERATE_HEADER, AW_SEND, AR_SEND, W_SEND, R_SEND, B_SEND} out_state, out_state_next;
 
     always_ff @(posedge ACLK or negedge ARESETn) begin
         if (!ARESETn) begin
             out_state <= GENERATE_HEADER;
-            packet_out_counter <= 0;
         end
         else begin
             out_state <= out_state_next;
-            packet_out_counter <= packet_out_counter_next;
         end
     end
 
@@ -195,13 +202,13 @@ module axi2axis_XY #(
 
         case (out_state)
             GENERATE_HEADER: begin
-                if (AxVALID_arbiter && m_axis_out.TREADY) begin
-                    if (AxTYPE_arbiter == 0) begin
-                        out_state_next = AW_SEND;
-                    end
-                    else begin
-                        out_state_next = AR_SEND;
-                    end
+                if (VALID_arbiter_o && m_axis_out.TREADY) begin
+                    case (DATA_arbiter_o)
+                        AW_SUBHEADER: out_state_next = AW_SEND;
+                        AR_SUBHEADER: out_state_next = AR_SEND;
+                        R_DATA: out_state_next = R_SEND;
+                        B_SUBHEADER: out_state_next = B_SEND;
+                    endcase
                 end
                 else begin
                     out_state_next = GENERATE_HEADER;
@@ -216,7 +223,7 @@ module axi2axis_XY #(
                 end
             end
             W_SEND: begin
-                if (AxREADY_arbiter) begin
+                if (READY_arbiter_i) begin
                     out_state_next = GENERATE_HEADER;
                 end
                 else begin
@@ -224,11 +231,27 @@ module axi2axis_XY #(
                 end
             end
             AR_SEND: begin
-                if (AxREADY_arbiter) begin
+                if (READY_arbiter_i) begin
                     out_state_next = GENERATE_HEADER;
                 end
                 else begin
                     out_state_next = AR_SEND;
+                end
+            end
+            B_SEND: begin
+                if (READY_arbiter_i) begin
+                    out_state_next = GENERATE_HEADER;
+                end
+                else begin
+                    out_state_next = B_SEND;
+                end
+            end
+            R_SEND: begin
+                if (READY_arbiter_i) begin
+                    out_state_next = GENERATE_HEADER;
+                end
+                else begin
+                    out_state_next = R_SEND;
                 end
             end
         endcase
@@ -236,225 +259,249 @@ module axi2axis_XY #(
 
     routing_header routing_header_out;
     aw_subheader aw_subheader_out;
-    ar_subheader ar_subheader_out;
     w_data w_data_out;
+    b_subheader b_subheader_out;
+    ar_subheader ar_subheader_out;
+    r_data r_data_out;
 
     always_comb begin
+        aw_subheader_out.PACKET_TYPE = AW_SUBHEADER;
+        aw_subheader_out.RESERVED = '0;
+        aw_subheader_out.ID = AWID_fifo;
+        aw_subheader_out.ADDR = AWADDR_fifo;
+        aw_subheader_out.LEN = AWLEN_fifo;
+        aw_subheader_out.SIZE = AWSIZE_fifo;
+        aw_subheader_out.BURST = AWBURST_fifo;
+
+        w_data_out.PACKET_TYPE = W_DATA;
+        w_data_out.RESERVED = '0;
+        w_data_out.DATA = WDATA_fifo;
+
+        b_subheader_out.PACKET_TYPE = B_SUBHEADER;
+        b_subheader_out.RESERVED = '0;
+        b_subheader_out.ID = m_axi_out.BID;
+
+        ar_subheader_out.PACKET_TYPE = AR_SUBHEADER;
+        ar_subheader_out.RESERVED = '0;
+        ar_subheader_out.ID = ARID_fifo;
+        ar_subheader_out.ADDR = ARADDR_fifo;
+        ar_subheader_out.LEN = ARLEN_fifo;
+        ar_subheader_out.SIZE = ARSIZE_fifo;
+        ar_subheader_out.BURST = ARBURST_fifo;
+
+        r_data_out.PACKET_TYPE = R_DATA;
+        r_data_out.RESERVED = '0;
+        r_data_out.ID = m_axi_out.RID;
+        r_data_out.DATA = m_axi_out.RDATA;
+    end
+
+    always @(*) begin
 
         routing_header_out = '0;
-        aw_subheader_out = '0;
-        ar_subheader_out = '0;
-        w_data_out = '0;
 
-        AxREADY_arbiter = '0;
-        m_axis_out.TVALID = '0;
         WREADY_fifo = '0;
-        packet_out_counter_next = '0;
+        READY_arbiter_i = '0;
+
+        m_axis_out.TVALID = '0;
+        m_axis_out.TDATA = '0;
+        m_axis_out.TSTRB = '1;
+        m_axis_out.TLAST = '0;
+        AWREADY_fifo = '0;
+        ARREADY_fifo = '0;
+        m_axi_out.BREADY = '0;
+        m_axi_out.RREADY = 0;
 
         case (out_state)
             GENERATE_HEADER: begin
-                routing_header_out.PACKET_TYPE = ROUTING_HEADER;
-                routing_header_out.RESERVED = '0;
-                routing_header_out.COORDINATE_X = (AxID_arbiter - 1) % MAX_ROUTERS_X;
-                routing_header_out.COORDINATE_Y = (AxID_arbiter - 1) / MAX_ROUTERS_X;
+                routing_header_out = '0;
 
-                if (AxTYPE_arbiter == 0) begin
-                    routing_header_out.PACKET_COUNT = AxLEN_arbiter + 2;
-                    packet_out_counter_next = AxLEN_arbiter + 2;
-                end
-                else begin
-                    routing_header_out.PACKET_COUNT = 1;
-                    packet_out_counter_next = 1;
-                end
+                if (VALID_arbiter_o) begin
+                    logic [MAX_ID_WIDTH-1:0] AXI_ID;
+                    AXI_ID = AWID_fifo;
 
-                m_axis_out.TVALID = AxVALID_arbiter;
-                m_axis_out.TDATA = routing_header_out;
+                    routing_header_out.PACKET_TYPE = ROUTING_HEADER;
+                    routing_header_out.RESERVED = '0;
+
+                    if (DATA_arbiter_o == AW_SUBHEADER) begin
+                        AXI_ID = AWID_fifo;
+                    end
+                    else if (DATA_arbiter_o == AR_SUBHEADER) begin
+                        AXI_ID = ARID_fifo;
+                    end
+                    else if (DATA_arbiter_o == B_SUBHEADER) begin
+                        AXI_ID = m_axi_out.BID;
+                    end
+                    else if (DATA_arbiter_o == R_DATA) begin
+                        AXI_ID = m_axi_out.RID;
+                    end
+
+                    routing_header_out.COORDINATE_X = (AXI_ID - 1) % MAX_ROUTERS_X;
+                    routing_header_out.COORDINATE_Y = (AXI_ID - 1) / MAX_ROUTERS_X;
+
+                    m_axis_out.TVALID = VALID_arbiter_o;
+                    m_axis_out.TDATA = routing_header_out;
+                end
             end
             AW_SEND: begin
-                aw_subheader_out.PACKET_TYPE = AW_SUBHEADER;
-                aw_subheader_out.RESERVED = '0;
-                aw_subheader_out.ID = AxID_arbiter;
-                aw_subheader_out.ADDR = AxADDR_arbiter;
-                aw_subheader_out.SIZE = AxSIZE_arbiter;
-                aw_subheader_out.BURST = AxBURST_arbiter;
-
-                packet_out_counter_next = packet_out_counter;
-
-                m_axis_out.TVALID = 1;
+                m_axis_out.TVALID = '1;
                 m_axis_out.TDATA = aw_subheader_out;
-
-                if (m_axis_out.TREADY) begin
-                    packet_out_counter_next = packet_out_counter - 1;
-                end
             end
             W_SEND: begin
-                w_data_out.PACKET_TYPE = W_DATA;
-                w_data_out.RESERVED = '0;
-                w_data_out.DATA = WDATA_fifo;
-                
                 m_axis_out.TDATA = w_data_out;
-
-                WREADY_fifo = 1;
+                m_axis_out.TSTRB = WSTRB_fifo;
+                WREADY_fifo = 0;
+                m_axis_out.TVALID = 0;
+                READY_arbiter_i = 0;
 
                 if (WVALID_fifo) begin
-                    m_axis_out.TVALID = 1;
-                    packet_out_counter_next = packet_out_counter - 1;
-                    if (WLAST_fifo) begin
-                        AxREADY_arbiter = 1;
+                    m_axis_out.TVALID = '1;
+                    if (m_axis_out.TREADY) begin
+                        WREADY_fifo = 1;
+                        if (WLAST_fifo) begin
+                            READY_arbiter_i = 1;
+                            AWREADY_fifo = 1;
+                            m_axis_out.TLAST = 1;
+                        end
                     end
                 end
-                else begin
-                    m_axis_out.TVALID = 0;
-                    AxREADY_arbiter = 0;
-                    packet_out_counter_next = packet_out_counter;
-                end
-                
             end
             AR_SEND: begin
-                ar_subheader_out.PACKET_TYPE = AR_SUBHEADER;
-                ar_subheader_out.RESERVED = '0;
-                ar_subheader_out.ID = AxID_arbiter;
-                ar_subheader_out.ADDR = AxADDR_arbiter;
-                ar_subheader_out.SIZE = AxSIZE_arbiter;
-                ar_subheader_out.BURST = AxBURST_arbiter;
-
                 m_axis_out.TVALID = 1;
                 m_axis_out.TDATA = ar_subheader_out;
+                READY_arbiter_i = 0;
 
                 if (m_axis_out.TREADY) begin
-                    packet_out_counter_next = packet_out_counter - 1;
-                    AxREADY_arbiter = 1;
+                    READY_arbiter_i = 1;
+                    ARREADY_fifo = 1;
+                    m_axis_out.TLAST = 1;
                 end
-                else begin
-                    packet_out_counter_next = packet_out_counter;
-                    AxREADY_arbiter = 0;
+            end
+            B_SEND: begin
+                m_axis_out.TVALID = 1;
+                m_axis_out.TDATA = b_subheader_out;
+                READY_arbiter_i = 0;
+
+                if (m_axis_out.TREADY) begin
+                    READY_arbiter_i = 1;
+                    m_axi_out.BREADY = 1;
+                    m_axis_out.TLAST = 1;
+                end
+            end
+            R_SEND: begin
+                m_axis_out.TDATA = r_data_out;
+                m_axi_out.RREADY = 0;
+                m_axis_out.TVALID = 0;
+                READY_arbiter_i = 0;
+
+                if (m_axi_out.RVALID) begin
+                    m_axis_out.TVALID = 1;
+                    if (m_axis_out.TREADY) begin
+                        m_axi_out.RREADY = 1;
+                        if (m_axi_out.RLAST) begin
+                            READY_arbiter_i = 1;
+                            m_axis_out.TLAST = 1;
+                        end
+                    end
                 end
             end
         endcase
     end
 
-    
-    // --- axis out fsm ---
-
-    enum {RECEIVE_HEADER, SEND_AXI_RESPONSE} in_state, in_state_next;
-    integer packet_in_counter, packet_in_counter_next;
-
-    always_ff @(posedge ACLK or negedge ARESETn) begin
-        if (!ARESETn) begin
-            in_state <= RECEIVE_HEADER;
-            packet_in_counter <= 0;
-        end
-        else begin
-            in_state <= in_state_next;
-            packet_in_counter <= packet_in_counter_next;
-        end
-    end
-
-    always_comb begin
-        in_state_next = RECEIVE_HEADER;
-
-        case (in_state)
-            RECEIVE_HEADER: begin
-                if (s_axis_in.TVALID && s_axis_in.TREADY) begin
-                    in_state_next = SEND_AXI_RESPONSE;
-                end
-                else begin
-                    in_state_next = RECEIVE_HEADER;
-                end
-            end
-            SEND_AXI_RESPONSE: begin
-                if (s_axis_in.TVALID) begin
-                    if (s_axis_in.TDATA[39:37] == B_SUBHEADER && s_axi_in.BREADY) begin
-                        in_state_next = RECEIVE_HEADER;
-                    end
-                    else if (s_axis_in.TDATA[39:37] == R_DATA && s_axi_in.RREADY) begin
-                        if (packet_in_counter_next == 0) begin
-                            in_state_next = RECEIVE_HEADER;
-                        end
-                        else begin
-                            in_state_next = SEND_AXI_RESPONSE;
-                        end
-                    end
-                    else begin
-                        in_state_next = SEND_AXI_RESPONSE;
-                    end
-                end
-                else begin
-                    in_state_next = SEND_AXI_RESPONSE;
-                end
-            end
-        endcase
-    end
+    // assign m_axis_out.TREADY = '1;
+    // --- axis out logic ---
 
     routing_header routing_header_in;
+    aw_subheader aw_subheader_in;
+    w_data w_data_in;
     b_subheader b_subheader_in;
+    ar_subheader ar_subheader_in;
     r_data r_data_in;
 
     always_comb begin
+        routing_header_in = s_axis_in.TDATA;
+        aw_subheader_in = s_axis_in.TDATA;
+        w_data_in = s_axis_in.TDATA;
+        b_subheader_in = s_axis_in.TDATA;
+        ar_subheader_in = s_axis_in.TDATA;
+        r_data_in = s_axis_in.TDATA;
+    end
 
-        routing_header_in = '0;
-        b_subheader_in = '0;
-        r_data_in = '0;
+    always @(*) begin
 
-        s_axis_in.TREADY = '0;
+        s_axis_in.TREADY = '1;
+
+        m_axi_out.AWVALID = 0;
+        m_axi_out.AWID = '0;
+        m_axi_out.AWADDR = '0;
+        m_axi_out.AWLEN = '0;
+        m_axi_out.AWSIZE = '0;
+        m_axi_out.AWBURST = '0;
+
+        m_axi_out.ARVALID = '0;
+        m_axi_out.ARID = '0;
+        m_axi_out.ARADDR = '0;
+        m_axi_out.ARLEN = '0;
+        m_axi_out.ARSIZE = '0;
+        m_axi_out.ARBURST = '0;
+
+        m_axi_out.WVALID = '0;
+        m_axi_out.WDATA = '0;
+        m_axi_out.WLAST = '0;
+        m_axi_out.WSTRB = '0;
+        
         s_axi_in.BVALID = '0;
         s_axi_in.BID = '0;
+
         s_axi_in.RVALID = '0;
         s_axi_in.RID = '0;
         s_axi_in.RDATA = '0;
-        packet_in_counter_next = packet_in_counter;
-        
-        case (in_state)
-            RECEIVE_HEADER: begin
-                routing_header_in = s_axis_in.TDATA;
+        s_axi_in.RLAST = '0;
+
+        case (s_axis_in.TDATA[39:37])
+            ROUTING_HEADER: begin
                 s_axis_in.TREADY = '1;
-
-                if (s_axis_in.TVALID) begin
-                    packet_in_counter_next = routing_header_in.PACKET_COUNT;
-                end
-                else begin
-                    packet_in_counter_next = packet_in_counter;
-                end
             end
-            SEND_AXI_RESPONSE: begin
-                if (s_axis_in.TDATA[39:37] == B_SUBHEADER && s_axis_in.TVALID) begin
-                    b_subheader_in = s_axis_in.TDATA;
-                    s_axi_in.BVALID = '1;
+            AW_SUBHEADER: begin
+                s_axis_in.TREADY = m_axi_out.AWREADY;
 
-                    if (s_axi_in.BREADY) begin
-                        s_axis_in.TREADY = '1;
-                        packet_in_counter_next = '0;
-                    end
-                    else begin
-                        s_axis_in.TREADY = '0;
-                        packet_in_counter_next = packet_in_counter;
-                    end
-                end
-                else if (s_axis_in.TDATA[39:37] == R_DATA && s_axis_in.TVALID) begin
-                    r_data_in = s_axis_in.TDATA;
-                    s_axi_in.RVALID = '1;
-                    s_axi_in.RLAST = (packet_in_counter == 1);
-                    s_axi_in.RID = r_data_in.ID;
-                    s_axi_in.RDATA = r_data_in.DATA;
-
-                    if (s_axi_in.RREADY) begin
-                        s_axis_in.TREADY = '1;
-                        packet_in_counter_next = packet_in_counter - 1;
-                    end
-                    else begin
-                        s_axis_in.TREADY = '0;
-                        packet_in_counter_next = packet_in_counter;
-                    end
-                end
-                else begin
-                    s_axis_in.TREADY = '0;
-                    s_axi_in.BVALID = '0;
-                    s_axi_in.BID = '0;
-                    s_axi_in.RVALID = '0;
-                    s_axi_in.RID = '0;
-                    s_axi_in.RDATA = '0;
-                    packet_in_counter_next = packet_in_counter;
-                end
+                m_axi_out.AWVALID = s_axis_in.TVALID;
+                m_axi_out.AWID = aw_subheader_in.ID;
+                m_axi_out.AWADDR = aw_subheader_in.ADDR;
+                m_axi_out.AWLEN = aw_subheader_in.LEN;
+                m_axi_out.AWSIZE = aw_subheader_in.SIZE;
+                m_axi_out.AWBURST = aw_subheader_in.BURST;
+            end
+            AR_SUBHEADER: begin
+                s_axis_in.TREADY = m_axi_out.ARREADY;
+                
+                m_axi_out.ARVALID = s_axis_in.TVALID;
+                m_axi_out.ARID = ar_subheader_in.ID;
+                m_axi_out.ARADDR = ar_subheader_in.ADDR;
+                m_axi_out.ARLEN = ar_subheader_in.LEN;
+                m_axi_out.ARSIZE = ar_subheader_in.SIZE;
+                m_axi_out.ARBURST = ar_subheader_in.BURST;
+            end
+            W_DATA: begin
+                s_axis_in.TREADY = m_axi_out.WREADY;
+                
+                m_axi_out.WVALID = s_axis_in.TVALID;
+                m_axi_out.WDATA = w_data_in.DATA;
+                m_axi_out.WSTRB = s_axis_in.TSTRB;
+                m_axi_out.WLAST = s_axis_in.TLAST;
+            end
+            B_SUBHEADER: begin
+                s_axis_in.TREADY = s_axi_in.BREADY;
+                
+                s_axi_in.BVALID = s_axis_in.TVALID;
+                s_axi_in.BID = b_subheader_in.ID;
+            end
+            R_DATA: begin
+                s_axis_in.TREADY = s_axi_in.RREADY;
+                
+                s_axi_in.RVALID = s_axis_in.TVALID;
+                s_axi_in.RID = r_data_in.ID;
+                s_axi_in.RDATA = r_data_in.DATA;
+                s_axi_in.RLAST = s_axis_in.TLAST;
             end
         endcase
     end

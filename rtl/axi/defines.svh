@@ -1,0 +1,2 @@
+`define TLAST_PRESENT
+`define TSTRB_PRESENT

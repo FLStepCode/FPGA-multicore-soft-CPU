@@ -1,3 +1,4 @@
+axi/defines.svh
 mesh_4x4/inc/noc_XY.svh 
 mesh_4x4/inc/noc.svh 
 mesh_4x4/inc/queue.svh 

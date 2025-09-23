@@ -1,7 +1,6 @@
 module stream_arbiter #(
     parameter DATA_WIDTH = 32,
-    parameter INPUT_NUM = 2,
-    localparam ADDR_WIDTH = $clog2(INPUT_NUM)
+    parameter INPUT_NUM = 2
 ) (
     input logic ACLK,
     input logic ARESETn,
@@ -14,6 +13,7 @@ module stream_arbiter #(
     output logic valid_o,
     input logic ready_i
 );
+    localparam ADDR_WIDTH = $clog2(INPUT_NUM);
 
     logic [ADDR_WIDTH-1:0] current_grant;
     logic [ADDR_WIDTH-1:0] next_grant;
@@ -28,7 +28,7 @@ module stream_arbiter #(
             current_grant <= 0;
         end
         else begin
-            if (ready_i) begin
+            if (ready_i || !valid_i[current_grant]) begin
                 current_grant <= next_grant;
             end
         end

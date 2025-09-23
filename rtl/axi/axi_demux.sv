@@ -142,7 +142,7 @@ module axi_demux #(
 
     generate
         genvar i;
-        for (i = 0; i < OUTPUT_NUM; i++) begin
+        for (i = 0; i < OUTPUT_NUM; i++) begin : map_if
             always_comb begin
                 AWREADY[i] = m_axi_out[i].AWREADY;
                 m_axi_out[i].AWVALID = AWVALID[i];
@@ -349,7 +349,7 @@ module axi_demux #(
     logic [ID_R_WIDTH + DATA_WIDTH + 1 - 1:0] data_i [OUTPUT_NUM];
 
     generate
-        for (i = 0; i < OUTPUT_NUM; i++) begin
+        for (i = 0; i < OUTPUT_NUM; i++) begin : map_data
             assign data_i[i] = {RID[i], RDATA[i], RLAST[i]};
         end
     endgenerate

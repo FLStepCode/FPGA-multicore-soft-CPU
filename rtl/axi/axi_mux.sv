@@ -78,7 +78,7 @@ module axi_mux #(
     generate
         genvar i;
 
-        for (i = 0; i < INPUT_NUM; i++) begin
+        for (i = 0; i < INPUT_NUM; i++) begin : map_if
             always_comb begin
                 s_axi_in[i].AWREADY = AWREADY[i];
                 AWVALID[i] = s_axi_in[i].AWVALID;
@@ -119,7 +119,7 @@ module axi_mux #(
     logic [ID_W_WIDTH + ADDR_WIDTH + 8 + 3 + 2 - 1:0] data_w [INPUT_NUM];
 
     generate
-        for (i = 0; i < INPUT_NUM; i++) begin
+        for (i = 0; i < INPUT_NUM; i++) begin : map_data_w
             assign data_w[i] = {AWID[i], AWADDR[i], AWLEN[i], AWSIZE[i], AWBURST[i]};
         end
     endgenerate
@@ -160,7 +160,7 @@ module axi_mux #(
     logic [ID_R_WIDTH + ADDR_WIDTH + 8 + 3 + 2 - 1:0] data_r [INPUT_NUM];
 
     generate
-        for (i = 0; i < INPUT_NUM; i++) begin
+        for (i = 0; i < INPUT_NUM; i++) begin : map_data_r
             assign data_r[i] = {ARID[i], ARADDR[i], ARLEN[i], ARSIZE[i], ARBURST[i]};
         end
     endgenerate

@@ -1,7 +1,6 @@
 module stream_fifo #(
     parameter DATA_WIDTH = 32,
-    parameter FIFO_LEN = 16,
-    localparam ADDR_WIDTH = $clog2(FIFO_LEN)
+    parameter FIFO_LEN = 16
 ) (
     input logic ACLK,
     input logic ARESETn,
@@ -15,6 +14,7 @@ module stream_fifo #(
     input logic ready_i
     
 );
+    localparam ADDR_WIDTH = $clog2(FIFO_LEN);
 
     logic [DATA_WIDTH-1:0] fifo_mem [FIFO_LEN];
     logic [ADDR_WIDTH-1:0] read_ptr, read_ptr_reg;
