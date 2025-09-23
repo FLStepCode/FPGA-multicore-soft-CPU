@@ -2,6 +2,7 @@ mesh_4x4/inc/noc_XY.svh
 mesh_4x4/inc/noc.svh 
 mesh_4x4/inc/queue.svh 
 mesh_4x4/inc/router.svh 
+axi/axi2axis_typedef.svh
 cores/src/sr_cpu.vh 
 tb/tb.sv 
 tb/tb_axi.sv 
@@ -12,6 +13,7 @@ tb/tb_demux/tb_demux.sv
 tb/tb_mux/tb_mux.sv 
 tb/router/tb_queue/tb_queue.sv
 tb/tb_bridgeless/tb_bridgeless.sv
+tb/tb_bridge/tb_bridge.sv
 boards/toplevel.sv 
 cores/src/cpu_with_ram.sv 
 cores/src/sm_register.v 
@@ -32,3 +34,4 @@ axi/ram_if.sv
 axi/ram.sv 
 axi/axi2ram.sv 
 axi/axi_ram.sv
+axi/axi2axis_XY.sv

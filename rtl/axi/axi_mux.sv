@@ -8,10 +8,7 @@ module axi_mux #(
     
     parameter DATA_WIDTH = 32,
 
-    parameter Ax_FIFO_LEN = 4,
-    parameter W_FIFO_LEN = 4,
-    parameter B_FIFO_LEN = 4,
-    parameter R_FIFO_LEN = 4
+    parameter Ax_FIFO_LEN = 4
 ) (
     input logic ACLK,
     input logic ARESETn,
@@ -60,7 +57,7 @@ module axi_mux #(
     logic RLAST [INPUT_NUM];
 
 
-    // AW FIFO channel
+    // AW arbiter channel
     logic AWVALID_arbiter;
     logic AWREADY_arbiter;
     logic [ID_W_WIDTH-1:0] AWID_arbiter;
@@ -68,6 +65,15 @@ module axi_mux #(
     logic [7:0] AWLEN_arbiter;
     logic [2:0] AWSIZE_arbiter;
     logic [1:0] AWBURST_arbiter;
+
+    // AW FIFO channel
+    logic AWVALID_fifo;
+    logic AWREADY_fifo;
+    logic [ID_W_WIDTH-1:0] AWID_fifo;
+    logic [ADDR_WIDTH-1:0] AWADDR_fifo;
+    logic [7:0] AWLEN_fifo;
+    logic [2:0] AWSIZE_fifo;
+    logic [1:0] AWBURST_fifo;
 
     generate
         genvar i;
@@ -131,7 +137,23 @@ module axi_mux #(
 
         .data_o({AWID_arbiter, AWADDR_arbiter, AWLEN_arbiter, AWSIZE_arbiter, AWBURST_arbiter}),
         .valid_o(AWVALID_arbiter),
-        .ready_i(m_axi_out.AWREADY)
+        .ready_i(AWREADY_arbiter)
+    );
+
+    stream_fifo #(
+        .DATA_WIDTH(ID_W_WIDTH + ADDR_WIDTH + 8 + 3 + 2),
+        .FIFO_LEN(Ax_FIFO_LEN)
+    ) stream_fifo_aw (
+        .ACLK(ACLK),
+        .ARESETn(ARESETn),
+
+        .data_i({AWID_arbiter, AWADDR_arbiter, AWLEN_arbiter, AWSIZE_arbiter, AWBURST_arbiter}),
+        .valid_i(AWVALID_arbiter),
+        .ready_o(AWREADY_arbiter),
+
+        .data_o({AWID_fifo, AWADDR_fifo, AWLEN_fifo, AWSIZE_fifo, AWBURST_fifo}),
+        .valid_o(AWVALID_fifo),
+        .ready_i(AWREADY_fifo)
     );
 
 
@@ -182,7 +204,7 @@ module axi_mux #(
                 AW_HANDSHAKE: begin
                     selected <= INPUT_NUM-1;
                     for (int j = 0; j < INPUT_NUM - 1; j++) begin
-                        if (AWID_arbiter >= ID_ROUTING[j * 2] && AWID_arbiter <= ID_ROUTING[j * 2 + 1]) begin
+                        if (AWID_fifo >= ID_ROUTING[j * 2] && AWID_fifo <= ID_ROUTING[j * 2 + 1]) begin
                             selected <= j;
                         end
                     end
@@ -211,7 +233,7 @@ module axi_mux #(
     end
 
     always_comb begin
-        AWREADY_arbiter = 0;
+        AWREADY_fifo = 0;
 
         for (int j = 0; j < INPUT_NUM - 1; j++) begin
             WREADY[j] = 0;
@@ -223,18 +245,18 @@ module axi_mux #(
                 sel = INPUT_NUM - 1;
 
                 for (int j = 0; j < INPUT_NUM - 1; j++) begin
-                    if (AWID_arbiter >= ID_ROUTING[j * 2] && AWID_arbiter <= ID_ROUTING[j * 2 + 1]) begin
+                    if (AWID_fifo >= ID_ROUTING[j * 2] && AWID_fifo <= ID_ROUTING[j * 2 + 1]) begin
                         sel = j;
                     end
                 end
 
-                AWREADY_arbiter = m_axi_out.AWREADY;
-                m_axi_out.AWVALID = AWVALID_arbiter;
-                m_axi_out.AWID = AWID_arbiter;
-                m_axi_out.AWADDR = AWADDR_arbiter;
-                m_axi_out.AWLEN = AWLEN_arbiter;
-                m_axi_out.AWSIZE = AWSIZE_arbiter;
-                m_axi_out.AWBURST = AWBURST_arbiter;
+                AWREADY_fifo = m_axi_out.AWREADY;
+                m_axi_out.AWVALID = AWVALID_fifo;
+                m_axi_out.AWID = AWID_fifo;
+                m_axi_out.AWADDR = AWADDR_fifo;
+                m_axi_out.AWLEN = AWLEN_fifo;
+                m_axi_out.AWSIZE = AWSIZE_fifo;
+                m_axi_out.AWBURST = AWBURST_fifo;
 
                 WREADY[sel] = m_axi_out.WREADY;
                 m_axi_out.WVALID = WVALID[sel];

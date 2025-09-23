@@ -20,8 +20,11 @@ module stream_fifo #(
     logic [ADDR_WIDTH-1:0] read_ptr, read_ptr_reg;
     logic [ADDR_WIDTH-1:0] write_ptr;
     logic [ADDR_WIDTH:0] count;
+    
+    logic write_handshake;
 
     assign ready_o = (count < FIFO_LEN);
+	assign valid_o = (count > 0);
 
     always @(posedge ACLK) begin
         if (valid_i && ready_o) begin
@@ -33,17 +36,11 @@ module stream_fifo #(
         data_o <= fifo_mem[read_ptr];
     end
 
-    always_comb begin
-        read_ptr = read_ptr_reg;
-        if ((count > 0) && ready_i) begin
-            read_ptr = (read_ptr_reg == (FIFO_LEN - 1)) ? 0 : read_ptr_reg + 1;
-        end
-    end
-
     always_ff @(posedge ACLK or negedge ARESETn) begin
         if (!ARESETn) begin
             read_ptr_reg <= 0;
             write_ptr <= 0;
+            write_handshake <= 0;
         end
         else begin
             if (valid_i && ready_o) begin
@@ -51,24 +48,29 @@ module stream_fifo #(
             end
 
             read_ptr_reg <= read_ptr;
+            write_handshake <= valid_i & ready_o;
+        end
+    end
+
+    always_comb begin
+        read_ptr = read_ptr_reg;
+        if (valid_o && ready_i) begin
+            read_ptr = (read_ptr_reg == (FIFO_LEN - 1)) ? 0 : read_ptr_reg + 1;
         end
     end
 
     always_ff @(posedge ACLK or negedge ARESETn) begin
         if (!ARESETn) begin
             count <= 0;
-			valid_o <= 0;
         end
         else begin
-		    valid_o <= (count > 0) ? 1 : 0;
 				
-            if ((valid_i && ready_o) && !(valid_o && ready_i)) begin
+            if (write_handshake && !(valid_o && ready_i)) begin
                 count <= count + 1;
             end
 
-            if (!(valid_i && ready_o) && (valid_o && ready_i)) begin
+            if (!write_handshake && (valid_o && ready_i)) begin
                 count <= count - 1;
-		        valid_o <= (count - 1 > 0) ? 1 : 0;
             end
         end
     end
