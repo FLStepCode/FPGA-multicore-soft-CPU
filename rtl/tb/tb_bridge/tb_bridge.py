@@ -10,12 +10,7 @@ async def axi_read_write(dut, axi_master, data, id, channel):
         dut.a_kalstrb.value = Force(0xF)
     else:
         dut.b_kalstrb.value = Force(0xF)
-    await axi_master.write(0x00000000, bytearray(8), awid=id)
-
-    if channel == 0:
-        dut.a_kalstrb.value = Force(0b0101)
-    else:
-        dut.b_kalstrb.value = Force(0b0101)
+        
     await axi_master.write(0x00000000, data, awid=id)
 
     await axi_master.read(0x00000000, 8, arid=id)

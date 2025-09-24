@@ -165,7 +165,6 @@ module tb_bridge (
         .rst_n(aresetn),
         .axi_s(axi_ram[0])
     );
-
     axi_ram ram_right (
         .clk(aclk),
         .rst_n(aresetn),

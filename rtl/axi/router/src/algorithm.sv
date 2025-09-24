@@ -35,11 +35,11 @@ module algorithm #(
     logic [CHANNEL_NUMBER_WIDTH-1:0] ctrl;
     logic [CHANNEL_NUMBER-1:0] selector;
     assign selector[0] =
-    ((target_x == ROUTER_X) && (target_y == ROUTER_Y)) && out[0].TREADY;
-    assign selector[1] = (target_y < ROUTER_Y) && out[1].TREADY;
-    assign selector[2] = (target_x > ROUTER_X) && out[2].TREADY;
-    assign selector[3] = (target_y > ROUTER_Y) && out[3].TREADY;
-    assign selector[4] = (target_x < ROUTER_X) && out[4].TREADY;
+    ((target_x == ROUTER_X) && (target_y == ROUTER_Y));
+    assign selector[1] = (target_y < ROUTER_Y);
+    assign selector[2] = (target_x > ROUTER_X);
+    assign selector[3] = (target_y > ROUTER_Y);
+    assign selector[4] = (target_x < ROUTER_X);
     logic hit;
     assign hit = |selector;
 
@@ -47,7 +47,7 @@ module algorithm #(
         ctrl = '0;
         for (int i = 0; i < CHANNEL_NUMBER; i++) begin
             if(selector[CHANNEL_NUMBER - 1 - i]) begin
-                ctrl = i;
+                ctrl = CHANNEL_NUMBER - 1 - i;
             end
         end
     end

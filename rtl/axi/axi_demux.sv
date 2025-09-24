@@ -84,7 +84,7 @@ module axi_demux #(
 
 
     stream_fifo #(
-        .DATA_WIDTH(ID_W_WIDTH + ADDR_WIDTH + 8 + 3 + 2),
+        .DATA_TYPE(logic [ID_W_WIDTH + ADDR_WIDTH + 8 + 3 + 2 - 1:0]),
         .FIFO_LEN(Ax_FIFO_LEN)
     ) stream_fifo_aw (
         .ACLK(ACLK),
@@ -100,7 +100,7 @@ module axi_demux #(
     );
 
     stream_fifo #(
-        .DATA_WIDTH(DATA_WIDTH + (DATA_WIDTH/8) + 1),
+        .DATA_TYPE(logic [DATA_WIDTH + (DATA_WIDTH/8) + 1 - 1:0]),
         .FIFO_LEN(W_FIFO_LEN)
     ) stream_fifo_w (
         .ACLK(ACLK),
@@ -125,7 +125,7 @@ module axi_demux #(
     logic [1:0] ARBURST_fifo;
 
     stream_fifo #(
-        .DATA_WIDTH(ID_R_WIDTH + ADDR_WIDTH + 8 + 3 + 2),
+        .DATA_TYPE(logic [ID_R_WIDTH + ADDR_WIDTH + 8 + 3 + 2 - 1:0]),
         .FIFO_LEN(Ax_FIFO_LEN)
     ) stream_fifo_ar (
         .ACLK(ACLK),

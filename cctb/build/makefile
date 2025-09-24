@@ -7,7 +7,7 @@ TOPLEVEL ?= axi_unwrap
 MODULE ?= tb_axi
 
 SIM ?= questa
-SIM_ARGS := -suppress 12110
+SIM_ARGS := -suppress 12110 -autofindloop
 SIM_BUILD ?= $(MODULE)
 
 WAVES ?= 1

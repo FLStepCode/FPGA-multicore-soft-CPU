@@ -34,6 +34,18 @@ module arbiter #(
     output logic [MAX_ROUTERS_X_WIDTH-1:0] target_x,
     output logic [MAX_ROUTERS_Y_WIDTH-1:0] target_y
 );
+    logic [MAX_ROUTERS_X_WIDTH-1:0] target_x_reg;
+    logic [MAX_ROUTERS_Y_WIDTH-1:0] target_y_reg;
+
+    assign target_x = (out.TDATA[DATA_WIDTH-1:DATA_WIDTH-PACKET_TYPE_WIDTH] == ROUTING_HEADER) ?
+                        out.TDATA[
+                            MAX_ROUTERS_X_WIDTH+MAX_ROUTERS_Y_WIDTH-1:
+                            MAX_ROUTERS_X_WIDTH
+                        ] : target_x_reg;
+    assign target_y = (out.TDATA[DATA_WIDTH-1:DATA_WIDTH-PACKET_TYPE_WIDTH] == ROUTING_HEADER) ?
+                        out.TDATA[
+                            MAX_ROUTERS_X_WIDTH-1:0
+                        ] : target_y_reg;
    
     logic [CHANNEL_NUMBER_WIDTH-1:0] current_grant;
     logic [CHANNEL_NUMBER_WIDTH-1:0] next_grant;
@@ -58,24 +70,29 @@ module arbiter #(
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             current_grant <= 0;
+            packages_left <= '1;
         end
         else begin
-            if (out.TREADY && packages_left == 0) begin
-                current_grant <= next_grant;
-                packages_left = TDATA[next_grant][
-                    MAX_ROUTERS_X_WIDTH+MAX_ROUTERS_Y_WIDTH
+            if (out.TDATA[DATA_WIDTH-1:DATA_WIDTH-PACKET_TYPE_WIDTH] == ROUTING_HEADER) begin
+                packages_left <= out.TDATA[
+                    (MAX_ROUTERS_X_WIDTH+MAX_ROUTERS_Y_WIDTH) * 2
                     +MAXIMUM_PACKAGES_NUMBER_WIDTH-1:
-                    MAX_ROUTERS_X_WIDTH+MAX_ROUTERS_Y_WIDTH
+                    (MAX_ROUTERS_X_WIDTH+MAX_ROUTERS_Y_WIDTH) * 2
                 ];
-                target_x <= TDATA[next_grant][
+                target_y_reg <= out.TDATA[
                     MAX_ROUTERS_X_WIDTH-1:0
                 ];
-                target_y <= TDATA[next_grant][
+                target_x_reg <= out.TDATA[
                     MAX_ROUTERS_X_WIDTH+MAX_ROUTERS_Y_WIDTH-1:
                     MAX_ROUTERS_X_WIDTH
                 ];
-            end else begin
+            end
+            else if (out.TVALID) begin
                 packages_left <= packages_left - out.TREADY; 
+            end
+
+            if (out.TREADY && packages_left == 1 || !out.TVALID) begin
+                current_grant <= next_grant;
             end
         end
     end
@@ -92,7 +109,6 @@ module arbiter #(
         next_grant = (next_grant + increment) >= CHANNEL_NUMBER ?
         (next_grant + increment - CHANNEL_NUMBER):
         (next_grant + increment);
-
     end
 
     axis_if_mux #(

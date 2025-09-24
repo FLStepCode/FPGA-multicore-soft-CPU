@@ -78,8 +78,6 @@ module axis_if_demux #(
 
     always_comb begin
 
-        in.TREADY = '0;
-
         for(int i = 0; i < CHANNEL_NUMBER; i++) begin
             TVALID[i] = '0;
             TDATA[i]  = '0;
@@ -105,34 +103,30 @@ module axis_if_demux #(
 
         end
 
-        if(en) begin
-
-            in.TREADY = TREADY[ctrl];
-            
-            // T channel 
-            TVALID[ctrl] = in.TVALID;
-            TDATA[ctrl]  = in.TDATA;
-            
-            `ifdef TSTRB_PRESENT
-            TSTRB[ctrl] = in.TSTRB;
-            `endif
-            `ifdef TKEEP_PRESENT
-            TKEEP[ctrl] = in.TKEEP;
-            `endif
-            `ifdef TLAST_PRESENT
-            TLAST[ctrl] = in.TLAST;
-            `endif
-            `ifdef TID_PRESENT
-            TID[ctrl] =   in.TID;
-            `endif
-            `ifdef TDEST_PRESENT
-            TDEST[ctrl] = in.TDEST;
-            `endif
-            `ifdef TUSER_PRESENT
-            TUSER[ctrl] = in.TUSER;
-            `endif
-				
-        end
+        in.TREADY = TREADY[ctrl];
+        
+        // T channel 
+        TVALID[ctrl] = in.TVALID;
+        TDATA[ctrl]  = in.TDATA;
+        
+        `ifdef TSTRB_PRESENT
+        TSTRB[ctrl] = in.TSTRB;
+        `endif
+        `ifdef TKEEP_PRESENT
+        TKEEP[ctrl] = in.TKEEP;
+        `endif
+        `ifdef TLAST_PRESENT
+        TLAST[ctrl] = in.TLAST;
+        `endif
+        `ifdef TID_PRESENT
+        TID[ctrl] =   in.TID;
+        `endif
+        `ifdef TDEST_PRESENT
+        TDEST[ctrl] = in.TDEST;
+        `endif
+        `ifdef TUSER_PRESENT
+        TUSER[ctrl] = in.TUSER;
+        `endif
 
     end
 
