@@ -4,6 +4,8 @@ from cocotb.clock import Clock
 from cocotbext.axi import AxiMaster, AxiBus
 from cocotb.handle import Force
 
+from random import randint
+
 class AxiWrapper:
 
     def __init__(self, dut, i):
@@ -58,13 +60,16 @@ async def test(dut):
     dut.aresetn.value = 1
     await RisingEdge(dut.aclk)
 
-    await Combine (
-        cocotb.start_soon(axi_read_write(dut, axi_master[0], b'12345678', 5, 0)),
-        cocotb.start_soon(axi_read_write(dut, axi_master[1], b'87654321', 2, 0)),
-        cocotb.start_soon(axi_read_write(dut, axi_master[2], b'18273645', 6, 0)),
-        cocotb.start_soon(axi_read_write(dut, axi_master[3], b'81726354', 8, 0)),
-        cocotb.start_soon(axi_read_write(dut, axi_master[4], b'12348765', 4, 0)),
-    )
+    for i in range(10):
+        processes = []
+        datas = [b'12345678', b'87654321', b'18273645', b'81726354', b'12348765']
+        ids = [5, 2, 6, 8, 4]
+        for j in range(5):
+            if randint(0, 1):
+                processes.append(cocotb.start_soon(axi_read_write(dut, axi_master[j], datas[j], ids[j], 0)))
+        await Combine (
+            *processes
+        )
 
     for i in range(10):
         await RisingEdge(dut.aclk)

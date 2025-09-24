@@ -69,11 +69,11 @@ module arbiter #(
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            current_grant <= 0;
-            packages_left <= '1;
+            current_grant <= '0;
+            packages_left <= '0;
         end
         else begin
-            if (out.TDATA[DATA_WIDTH-1:DATA_WIDTH-PACKET_TYPE_WIDTH] == ROUTING_HEADER) begin
+            if (out.TVALID && out.TDATA[DATA_WIDTH-1:DATA_WIDTH-PACKET_TYPE_WIDTH] == ROUTING_HEADER) begin
                 packages_left <= out.TDATA[
                     (MAX_ROUTERS_X_WIDTH+MAX_ROUTERS_Y_WIDTH) * 2
                     +MAXIMUM_PACKAGES_NUMBER_WIDTH-1:
@@ -87,12 +87,11 @@ module arbiter #(
                     MAX_ROUTERS_X_WIDTH
                 ];
             end
-            else if (out.TVALID) begin
-                packages_left <= packages_left - out.TREADY; 
-            end
-
-            if (out.TREADY && packages_left == 1 || !out.TVALID) begin
-                current_grant <= next_grant;
+            else begin
+                packages_left <= packages_left - (out.TREADY & out.TVALID); 
+                if (out.TREADY && packages_left == 0) begin
+                    current_grant <= next_grant;
+                end
             end
         end
     end
