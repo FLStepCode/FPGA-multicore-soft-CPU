@@ -25,7 +25,6 @@ cores/src/sr_cpu.sv
 cpu/noc_with_cores.sv 
 cpu/uart.sv 
 mesh_4x4/noc/noc.sv
-axi/router/inc/XY.svh
 axi/router/src/algorithm.sv
 axi/router/src/arbiter.sv
 axi/router/src/queue.sv

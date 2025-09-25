@@ -67,6 +67,8 @@ async def test(dut):
         for j in range(5):
             if randint(0, 1):
                 processes.append(cocotb.start_soon(axi_read_write(dut, axi_master[j], datas[j], ids[j], 0)))
+        if len(processes) == 0:
+                processes.append(cocotb.start_soon(axi_read_write(dut, axi_master[0], datas[0], ids[0], 0)))
         await Combine (
             *processes
         )

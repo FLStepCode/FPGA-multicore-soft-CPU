@@ -1,80 +1,79 @@
 module tb_axi_ram (
 
-    input  logic ACLK,
-    input  logic ARESETn,
+    input  logic aclk,
+    input  logic aresetn,
 
-    output logic AWREADY,
-    input  logic AWVALID,
-    input  logic [3:0] AWID,
-    input  logic [15:0] AWADDR,
-    input  logic [7:0] AWLEN,
-    input  logic [2:0] AWSIZE,
-    input  logic [1:0] AWBURST,
+    output logic awready,
+    input  logic awvalid,
+    input  logic [3:0] awid,
+    input  logic [15:0] awaddr,
+    input  logic [7:0] awlen,
+    input  logic [2:0] awsize,
+    input  logic [1:0] awburst,
 
-    output logic WREADY,
-    input  logic WVALID,
-    input  logic [31:0] WDATA,
-    input  logic [3:0] WSTRB,
-    input  logic WLAST,
+    output logic wready,
+    input  logic wvalid,
+    input  logic [31:0] wdata,
+    input  logic [3:0] kalstrb,
+    input  logic wlast,
 
-    output logic BVALID,
-    output logic [3:0] BID,
-    input  logic BREADY,
+    output logic bvalid,
+    output logic [3:0] bid,
+    input  logic bready,
 
-    output logic ARREADY,
-    input  logic ARVALID,
-    input  logic [3:0] ARID,
-    input  logic [15:0] ARADDR,
-    input  logic [7:0] ARLEN,
-    input  logic [2:0] ARSIZE,
-    input  logic [1:0] ARBURST,
+    output logic arready,
+    input  logic arvalid,
+    input  logic [3:0] arid,
+    input  logic [15:0] araddr,
+    input  logic [7:0] arlen,
+    input  logic [2:0] arsize,
+    input  logic [1:0] arburst,
 
-    output logic RVALID,
-    output logic [3:0] RID,
-    output logic [31:0] RDATA,
-    output logic RLAST,
-    input  logic RREADY
+    output logic rvalid,
+    output logic [3:0] rid,
+    output logic [31:0] rdata,
+    output logic rlast,
+    input  logic rready
 );
 
     axi_if master ();
-    axi_if slave[3] ();
 
     always_comb begin
-        master.AWVALID = AWVALID;
-        master.AWID    = AWID;
-        master.AWADDR  = AWADDR;
-        master.AWLEN   = AWLEN;
-        master.AWSIZE  = AWSIZE;
-        master.AWBURST = AWBURST;
-        AWREADY        = master.AWREADY;
+        master.AWVALID = awvalid;
+        master.AWID    = awid;
+        master.AWADDR  = awaddr;
+        master.AWLEN   = awlen;
+        master.AWSIZE  = awsize;
+        master.AWBURST = awburst;
+        awready        = master.AWREADY;
 
-        master.WVALID = WVALID;
-        master.WDATA  = WDATA;
-        master.WSTRB  = WSTRB;
-        master.WLAST  = WLAST;
-        WREADY        = master.WREADY;
+        master.WVALID = wvalid;
+        master.WDATA  = wdata;
+        master.WSTRB  = kalstrb;
+        master.WLAST  = wlast;
+        wready        = master.WREADY;
         
-        BVALID = master.BVALID;
-        BID    = master.BID;
-        master.BREADY = BREADY;
+        bvalid = master.BVALID;
+        bid    = master.BID;
+        master.BREADY = bready;
         
-        master.ARVALID = ARVALID;
-        master.ARID    = ARID;
-        master.ARADDR  = ARADDR;
-        master.ARLEN   = ARLEN;
-        master.ARSIZE  = ARSIZE;
-        master.ARBURST = ARBURST;
-        ARREADY        = master.ARREADY;
+        master.ARVALID = arvalid;
+        master.ARID    = arid;
+        master.ARADDR  = araddr;
+        master.ARLEN   = arlen;
+        master.ARSIZE  = arsize;
+        master.ARBURST = arburst;
+        arready        = master.ARREADY;
 
-        RVALID = master.RVALID;
-        RID    = master.RID;
-        RDATA  = master.RDATA;
-        RLAST  = master.RLAST;
-        master.RREADY = RREADY;
+        rvalid = master.RVALID;
+        rid    = master.RID;
+        rdata  = master.RDATA;
+        rlast  = master.RLAST;
+        master.RREADY = rready;
     end
 
     axi_ram ram (
-        .clk(ACLK), .rst_n(ARESETn),
+        .clk(aclk), .rst_n(rst_n),
         .axi_s(master)
     );
     
