@@ -34,14 +34,14 @@ module algorithm #(
 
     logic [CHANNEL_NUMBER_WIDTH-1:0] ctrl;
     logic [CHANNEL_NUMBER-1:0] selector;
-    assign selector[0] =
-    ((target_x == ROUTER_X) && (target_y == ROUTER_Y));
+    logic [CHANNEL_NUMBER-1:0] busy;
+    logic [CHANNEL_NUMBER-1:0] busy_next;
+
+    assign selector[0] = ((target_x == ROUTER_X) && (target_y == ROUTER_Y));
     assign selector[1] = (target_y < ROUTER_Y);
     assign selector[2] = (target_x > ROUTER_X);
     assign selector[3] = (target_y > ROUTER_Y);
     assign selector[4] = (target_x < ROUTER_X);
-    logic hit;
-    assign hit = |selector;
 
     always_comb begin
         ctrl = '0;
@@ -69,7 +69,7 @@ module algorithm #(
         `endif
     ) demux (
         in,
-        hit,
+        1'b1,
         ctrl,
         out
     );

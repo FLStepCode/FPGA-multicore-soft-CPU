@@ -53,7 +53,8 @@ module arbiter #(
 
     logic [CHANNEL_NUMBER-1:0] valid_i;
     logic [CHANNEL_NUMBER*2 - 1:0] shifted_valid_i;
-    logic [MAXIMUM_PACKAGES_NUMBER_WIDTH-1:0] packages_left;
+    // logic [MAXIMUM_PACKAGES_NUMBER_WIDTH-1:0] packages_left;
+    logic [7:0] packages_left;
     
     logic [DATA_WIDTH-1:0] TDATA [CHANNEL_NUMBER];
     
@@ -76,7 +77,7 @@ module arbiter #(
             if (out.TVALID && out.TDATA[DATA_WIDTH-1:DATA_WIDTH-PACKET_TYPE_WIDTH] == ROUTING_HEADER) begin
                 packages_left <= out.TDATA[
                     (MAX_ROUTERS_X_WIDTH+MAX_ROUTERS_Y_WIDTH) * 2
-                    +MAXIMUM_PACKAGES_NUMBER_WIDTH-1:
+                    +8-1:
                     (MAX_ROUTERS_X_WIDTH+MAX_ROUTERS_Y_WIDTH) * 2
                 ];
                 target_y_reg <= out.TDATA[
@@ -89,9 +90,12 @@ module arbiter #(
             end
             else begin
                 packages_left <= packages_left - (out.TREADY & out.TVALID); 
-                if (out.TREADY && packages_left == 0) begin
-                    current_grant <= next_grant;
-                end
+            end
+            if (packages_left == 1 && (out.TREADY && out.TVALID)) begin
+                current_grant <= next_grant;
+            end
+            else if (packages_left == 0 && !out.TVALID) begin
+                current_grant <= next_grant;
             end
         end
     end

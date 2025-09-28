@@ -1,6 +1,7 @@
 tb/tb_demux/tb_demux.py
 tb/router/tb_queue/tb_queue.py
 tb/router/tb_router/tb_router.py
+tb/router/tb_mesh/tb_mesh.py
 tb/tb_bridgeless/tb_bridgeless.py
 tb/tb_bridge/tb_bridge.py
 tb/tb_ram/tb_axi_ram.py

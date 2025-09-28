@@ -1,0 +1,80 @@
+import cocotb
+from cocotb.triggers import RisingEdge, Combine
+from cocotb.clock import Clock
+from cocotbext.axi import AxiMaster, AxiBus
+from cocotb.handle import Force
+
+from random import randint
+
+class AxiWrapper:
+
+    def __init__(self, dut, i):
+
+        self._log = dut._log
+        self._name = f"kal {i}"
+
+        self.awready = dut.awready[i]
+        self.awvalid = dut.awvalid[i]
+        self.awid = dut.awid[i]
+        self.awaddr = dut.awaddr[i]
+        self.awlen = dut.awlen[i]
+        self.awsize = dut.awsize[i]
+        self.awburst = dut.awburst[i]
+        self.wready = dut.wready[i]
+        self.wvalid = dut.wvalid[i]
+        self.wdata = dut.wdata[i]
+        self.wstrb = dut.wstrb[i]
+        self.wlast = dut.wlast[i]
+        self.bvalid = dut.bvalid[i]
+        self.bid = dut.bid[i]
+        self.bready = dut.bready[i]
+        self.arready = dut.arready[i]
+        self.arvalid = dut.arvalid[i]
+        self.arid = dut.arid[i]
+        self.araddr = dut.araddr[i]
+        self.arlen = dut.arlen[i]
+        self.arsize = dut.arsize[i]
+        self.arburst = dut.arburst[i]
+        self.rvalid = dut.rvalid[i]
+        self.rid = dut.rid[i]
+        self.rdata = dut.rdata[i]
+        self.rlast = dut.rlast[i]
+        self.rready = dut.rready[i]
+
+
+async def axi_read_write(dut, axi_master, addr, data, id, channel):
+    
+    await axi_master.write(addr, data, awid=id)
+    await axi_master.read(addr, 16, arid=id)
+
+
+@cocotb.test
+async def test(dut):
+    cocotb.start_soon(Clock(dut.aclk, 1, units="ns").start())
+
+    axi_master = [AxiMaster(AxiBus.from_prefix(AxiWrapper(dut, i), ""), dut.aclk, dut.aresetn, reset_active_level=False) for i in range(9)]
+    
+    dut.aresetn.value = 0
+    await RisingEdge(dut.aclk)
+    await RisingEdge(dut.aclk)
+    dut.aresetn.value = 1
+    await RisingEdge(dut.aclk)
+
+    for i in range(10):
+        cocotb.log.info(f"pass {i}")
+        processes = []
+        datas = [b'0000000000000000', b'1111111111111111', b'2222222222222222', b'3333333333333333',
+                 b'4444444444444444', b'5555555555555555', b'6666666666666666', b'7777777777777777', b'8888888888888888']
+        addrs = [32 * i for i in range(9)]
+        for j in [0, 1, 2, 3, 5, 6, 7, 8]:
+            id = randint(1, 9)
+            while id == j:
+                id = randint(1, 9)
+
+            processes.append(cocotb.start_soon(axi_read_write(dut, axi_master[j], addrs[j], datas[j], 5, 0)))
+        await Combine (
+            *processes
+        )
+
+    for i in range(10):
+        await RisingEdge(dut.aclk)

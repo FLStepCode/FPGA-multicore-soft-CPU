@@ -14,7 +14,7 @@ module router #(
     `endif
     ,
     parameter CHANNEL_NUMBER = 5,
-    parameter BUFFER_LENGTH = 4,
+    parameter BUFFER_LENGTH = 16,
     parameter MAX_ROUTERS_X = 4,
     parameter MAX_ROUTERS_X_WIDTH
     = $clog2(MAX_ROUTERS_X),

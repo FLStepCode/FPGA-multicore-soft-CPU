@@ -14,6 +14,7 @@ tb/tb_demux/tb_demux.sv
 tb/tb_mux/tb_mux.sv 
 tb/router/tb_queue/tb_queue.sv
 tb/router/tb_router/tb_router.sv
+tb/router/tb_mesh/tb_mesh.sv
 tb/tb_bridgeless/tb_bridgeless.sv
 tb/tb_bridge/tb_bridge.sv
 boards/toplevel.sv 
@@ -29,6 +30,7 @@ axi/router/src/algorithm.sv
 axi/router/src/arbiter.sv
 axi/router/src/queue.sv
 axi/router/src/router.sv
+axi/XY_mesh/XY_mesh.sv
 axi/axi_demux.sv
 axi/axi_if.sv
 axi/axi_mux.sv

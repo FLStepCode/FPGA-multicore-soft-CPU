@@ -176,6 +176,8 @@ module axi2ram
             end
             REQUESTING_DATA: begin
                 if(axi_s.RREADY) begin
+                    ARLEN <= (ARLEN == 0) ? '0 : ARLEN - 1'b1;
+
                     case (ARBURST)
                         2'b01: begin
                             ARADDR <= ARADDR + 1'b1;
