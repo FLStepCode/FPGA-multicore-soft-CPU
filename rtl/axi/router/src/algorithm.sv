@@ -25,6 +25,8 @@ module algorithm #(
     parameter ROUTER_X = 0,
     parameter ROUTER_Y = 0
 ) (
+    input clk, rst_n,
+    
     axis_if.s in,
     axis_if.m out [CHANNEL_NUMBER],
 
@@ -32,8 +34,25 @@ module algorithm #(
     input logic [MAX_ROUTERS_Y_WIDTH-1:0] target_y
 );
 
+    axis_if #(
+        .DATA_WIDTH(DATA_WIDTH)
+        `ifdef TID_PRESENT
+        ,
+        .ID_WIDTH(ID_WIDTH)
+        `endif
+        `ifdef TDEST_PRESENT
+        ,
+        .DEST_WIDTH(DEST_WIDTH)
+        `endif
+        `ifdef TUSER_PRESENT
+        ,
+        .USER_WIDTH(USER_WIDTH)
+        `endif
+    ) in_filtered();
+
     logic [CHANNEL_NUMBER_WIDTH-1:0] ctrl;
     logic [CHANNEL_NUMBER-1:0] selector;
+
     logic [CHANNEL_NUMBER-1:0] busy;
     logic [CHANNEL_NUMBER-1:0] busy_next;
 
@@ -49,6 +68,96 @@ module algorithm #(
             if(selector[CHANNEL_NUMBER - 1 - i]) begin
                 ctrl = CHANNEL_NUMBER - 1 - i;
             end
+        end
+    end
+
+    always_ff @(posedge clk or negedge rst_n) begin
+        if(!rst_n) begin
+            busy <= '0;
+        end else begin
+            busy <= busy_next;
+        end
+    end
+
+    always_comb begin
+        busy_next = busy;
+        if (in.TVALID && (in.TDATA[DATA_WIDTH-1:DATA_WIDTH-PACKET_TYPE_WIDTH] == ROUTING_HEADER)) begin
+            busy_next[ctrl] = 1'b1;
+
+            in_filtered.TVALID = !busy[ctrl] ? '1 : '0;
+            in_filtered.TDATA  = !busy[ctrl] ? in.TDATA : '0;
+            `ifdef TSTRB_PRESENT
+            in_filtered.TSTRB  = !busy[ctrl] ? in.TSTRB : '0;
+            `endif
+            `ifdef TKEEP_PRESENT
+            in_filtered.TKEEP  = !busy[ctrl] ? in.TKEEP : '0;
+            `endif
+            `ifdef TLAST_PRESENT
+            in_filtered.TLAST  = !busy[ctrl] ? in.TLAST : '0;
+            `endif
+            `ifdef TID_PRESENT
+            in_filtered.TID    = !busy[ctrl] ? in.TID : '0;
+            `endif
+            `ifdef TDEST_PRESENT
+            in_filtered.TDEST  = !busy[ctrl] ? in.TDEST : '0;
+            `endif
+            `ifdef TUSER_PRESENT
+            in_filtered.TUSER  = !busy[ctrl] ? in.TUSER : '0;
+            `endif
+
+            in.TREADY = !busy[ctrl] ? in_filtered.TREADY : 1'b0;
+        end
+        else if (in.TVALID) begin
+            in_filtered.TVALID = in.TVALID;
+            in_filtered.TDATA  = in.TDATA;
+            `ifdef TSTRB_PRESENT
+            in_filtered.TSTRB  = in.TSTRB;
+            `endif
+            `ifdef TKEEP_PRESENT
+            in_filtered.TKEEP  = in.TKEEP;
+            `endif
+            `ifdef TLAST_PRESENT
+            in_filtered.TLAST  = in.TLAST;
+            `endif
+            `ifdef TID_PRESENT
+            in_filtered.TID    = in.TID;
+            `endif
+            `ifdef TDEST_PRESENT
+            in_filtered.TDEST  = in.TDEST;
+            `endif
+            `ifdef TUSER_PRESENT
+            in_filtered.TUSER  = in.TUSER;
+            `endif
+
+            in.TREADY = in_filtered.TREADY;
+
+            if (in.TLAST && in_filtered.TREADY) begin
+                busy_next[ctrl] = 1'b0;
+            end
+        end
+        else begin
+            in_filtered.TVALID = 1'b0;
+            in_filtered.TDATA  = '0;
+            `ifdef TSTRB_PRESENT
+            in_filtered.TSTRB  = '0;
+            `endif
+            `ifdef TKEEP_PRESENT
+            in_filtered.TKEEP  = '0;
+            `endif
+            `ifdef TLAST_PRESENT
+            in_filtered.TLAST  = '0;
+            `endif
+            `ifdef TID_PRESENT
+            in_filtered.TID    = '0;
+            `endif
+            `ifdef TDEST_PRESENT
+            in_filtered.TDEST  = '0;
+            `endif
+            `ifdef TUSER_PRESENT
+            in_filtered.TUSER  = '0;
+            `endif
+
+            in.TREADY = in_filtered.TREADY;
         end
     end
 
@@ -68,7 +177,7 @@ module algorithm #(
         .USER_WIDTH(USER_WIDTH)
         `endif
     ) demux (
-        in,
+        in_filtered,
         1'b1,
         ctrl,
         out

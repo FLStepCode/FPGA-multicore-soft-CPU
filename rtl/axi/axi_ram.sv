@@ -4,7 +4,8 @@ module axi_ram
     parameter ID_R_WIDTH = 4,
     parameter ADDR_WIDTH = 16,
     parameter DATA_WIDTH = 32,
-    parameter BYTE_WIDTH = 8
+    parameter BYTE_WIDTH = 8,
+    parameter ID = 0
 ) (
 	input clk, rst_n,
     axi_if.s axi_s
@@ -20,7 +21,8 @@ module axi_ram
         .ID_W_WIDTH(ID_W_WIDTH),
         .ID_R_WIDTH(ID_R_WIDTH),
         .ADDR_WIDTH(ADDR_WIDTH),
-        .DATA_WIDTH(DATA_WIDTH)
+        .DATA_WIDTH(DATA_WIDTH),
+        .ID(ID)
         ) axi (
         .clk(clk), .rst_n(rst_n),
         .ram_ports(ram_i),

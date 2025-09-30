@@ -48,8 +48,8 @@ async def axi_read_write(dut, axi_master, addr, data, id, channel):
     await axi_master.read(addr, 16, arid=id)
 
 
-@cocotb.test
-async def test(dut):
+# @cocotb.test
+async def test_all_in_one(dut):
     cocotb.start_soon(Clock(dut.aclk, 1, units="ns").start())
 
     axi_master = [AxiMaster(AxiBus.from_prefix(AxiWrapper(dut, i), ""), dut.aclk, dut.aresetn, reset_active_level=False) for i in range(9)]
@@ -64,17 +64,54 @@ async def test(dut):
         cocotb.log.info(f"pass {i}")
         processes = []
         datas = [b'0000000000000000', b'1111111111111111', b'2222222222222222', b'3333333333333333',
-                 b'4444444444444444', b'5555555555555555', b'6666666666666666', b'7777777777777777', b'8888888888888888']
+                 b'4444444444444444', b'5555555555555555', b'6666666666666666', b'7777777777777777', b'8888888888888888'] * 2
         addrs = [32 * i for i in range(9)]
-        for j in [0, 1, 2, 3, 5, 6, 7, 8]:
+        for j in range(9):
             id = randint(1, 9)
-            while id == j:
+            while id == j + 1:
                 id = randint(1, 9)
+            processes.append(cocotb.start_soon(axi_read_write(dut, axi_master[j % 9], addrs[j], datas[j], id, 0)))
 
-            processes.append(cocotb.start_soon(axi_read_write(dut, axi_master[j], addrs[j], datas[j], 5, 0)))
         await Combine (
             *processes
         )
+
+    for i in range(10):
+        await RisingEdge(dut.aclk)
+
+@cocotb.test
+async def feedback_loop(dut):
+    cocotb.start_soon(Clock(dut.aclk, 1, units="ns").start())
+
+    axi_master = [AxiMaster(AxiBus.from_prefix(AxiWrapper(dut, i), ""), dut.aclk, dut.aresetn, reset_active_level=False) for i in range(9)]
+    
+    dut.aresetn.value = 0
+    await RisingEdge(dut.aclk)
+    await RisingEdge(dut.aclk)
+    dut.aresetn.value = 1
+    await RisingEdge(dut.aclk)
+
+    processes = []
+    datas = [b'0000000000000000', b'1111111111111111', b'2222222222222222', b'3333333333333333', b'4444444444444444',
+             b'5555555555555555', b'6666666666666666', b'7777777777777777', b'8888888888888888', b'9999999999999999'] * 10
+    addrs = [32 * i for i in range(100)]
+    for i in range(100):
+        processes.append(cocotb.start_soon(axi_master[1].write(addrs[i], datas[i], awid=1)))
+        processes.append(cocotb.start_soon(axi_master[0].write(addrs[i], datas[i], awid=2)))
+
+    await Combine (
+        *processes
+    )
+
+    processes = []
+
+    for j in range(100):
+        processes.append(cocotb.start_soon(axi_master[j % 2].read(addrs[j], 16, arid=2 - j % 2)))
+        # processes.append(cocotb.start_soon(axi_read_write(dut, axi_master[j % 2], addrs[j], datas[j], 2 - j % 2, 0)))
+
+    await Combine (
+        *processes
+    )
 
     for i in range(10):
         await RisingEdge(dut.aclk)

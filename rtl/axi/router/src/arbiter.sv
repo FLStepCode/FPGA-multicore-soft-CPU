@@ -34,18 +34,8 @@ module arbiter #(
     output logic [MAX_ROUTERS_X_WIDTH-1:0] target_x,
     output logic [MAX_ROUTERS_Y_WIDTH-1:0] target_y
 );
-    logic [MAX_ROUTERS_X_WIDTH-1:0] target_x_reg;
-    logic [MAX_ROUTERS_Y_WIDTH-1:0] target_y_reg;
-
-    assign target_x = (out.TDATA[DATA_WIDTH-1:DATA_WIDTH-PACKET_TYPE_WIDTH] == ROUTING_HEADER) ?
-                        out.TDATA[
-                            MAX_ROUTERS_X_WIDTH+MAX_ROUTERS_Y_WIDTH-1:
-                            MAX_ROUTERS_X_WIDTH
-                        ] : target_x_reg;
-    assign target_y = (out.TDATA[DATA_WIDTH-1:DATA_WIDTH-PACKET_TYPE_WIDTH] == ROUTING_HEADER) ?
-                        out.TDATA[
-                            MAX_ROUTERS_X_WIDTH-1:0
-                        ] : target_y_reg;
+    logic [MAX_ROUTERS_X_WIDTH-1:0] target_x_reg [CHANNEL_NUMBER];
+    logic [MAX_ROUTERS_Y_WIDTH-1:0] target_y_reg [CHANNEL_NUMBER];
    
     logic [CHANNEL_NUMBER_WIDTH-1:0] current_grant;
     logic [CHANNEL_NUMBER_WIDTH-1:0] next_grant;
@@ -54,9 +44,19 @@ module arbiter #(
     logic [CHANNEL_NUMBER-1:0] valid_i;
     logic [CHANNEL_NUMBER*2 - 1:0] shifted_valid_i;
     // logic [MAXIMUM_PACKAGES_NUMBER_WIDTH-1:0] packages_left;
-    logic [7:0] packages_left;
+    logic [7:0] packages_left [CHANNEL_NUMBER];
     
     logic [DATA_WIDTH-1:0] TDATA [CHANNEL_NUMBER];
+
+    assign target_x = (out.TVALID && out.TDATA[DATA_WIDTH-1:DATA_WIDTH-PACKET_TYPE_WIDTH] == ROUTING_HEADER) ?
+                        out.TDATA[
+                            MAX_ROUTERS_X_WIDTH+MAX_ROUTERS_Y_WIDTH-1:
+                            MAX_ROUTERS_X_WIDTH
+                        ] : target_x_reg[current_grant];
+    assign target_y = (out.TVALID && out.TDATA[DATA_WIDTH-1:DATA_WIDTH-PACKET_TYPE_WIDTH] == ROUTING_HEADER) ?
+                        out.TDATA[
+                            MAX_ROUTERS_X_WIDTH-1:0
+                        ] : target_y_reg[current_grant];
     
     generate
 	    genvar i;
@@ -71,30 +71,31 @@ module arbiter #(
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             current_grant <= '0;
-            packages_left <= '0;
+            for (int i = 0; i < CHANNEL_NUMBER; i++) begin
+                packages_left[i] <= '0;
+                target_x_reg[i] <= '0;
+                target_y_reg[i] <= '0;
+            end
         end
         else begin
             if (out.TVALID && out.TDATA[DATA_WIDTH-1:DATA_WIDTH-PACKET_TYPE_WIDTH] == ROUTING_HEADER) begin
-                packages_left <= out.TDATA[
+                packages_left[current_grant] <= out.TDATA[
                     (MAX_ROUTERS_X_WIDTH+MAX_ROUTERS_Y_WIDTH) * 2
                     +8-1:
                     (MAX_ROUTERS_X_WIDTH+MAX_ROUTERS_Y_WIDTH) * 2
                 ];
-                target_y_reg <= out.TDATA[
+                target_y_reg[current_grant] <= out.TDATA[
                     MAX_ROUTERS_X_WIDTH-1:0
                 ];
-                target_x_reg <= out.TDATA[
+                target_x_reg[current_grant] <= out.TDATA[
                     MAX_ROUTERS_X_WIDTH+MAX_ROUTERS_Y_WIDTH-1:
                     MAX_ROUTERS_X_WIDTH
                 ];
             end
             else begin
-                packages_left <= packages_left - (out.TREADY & out.TVALID); 
+                packages_left[current_grant] <= packages_left[current_grant] - (out.TREADY & out.TVALID);
             end
-            if (packages_left == 1 && (out.TREADY && out.TVALID)) begin
-                current_grant <= next_grant;
-            end
-            else if (packages_left == 0 && !out.TVALID) begin
+            if (!out.TREADY || !out.TVALID || (packages_left[current_grant] == 1 && out.TVALID && out.TREADY)) begin
                 current_grant <= next_grant;
             end
         end

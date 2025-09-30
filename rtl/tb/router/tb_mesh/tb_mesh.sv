@@ -83,10 +83,16 @@ module tb_mesh (
         .m_axi_out(axi_ram)
     );
 
-    axi_ram ram[9] (
-        .clk({9{aclk}}),
-        .rst_n({9{aresetn}}),
-        .axi_s(axi_ram)
-    );
+    generate
+        for (genvar i = 0; i < 9; i++) begin : map_rams
+            axi_ram #(
+                .ID(i + 1)
+            ) ram (
+                .clk(aclk),
+                .rst_n(aresetn),
+                .axi_s(axi_ram[i])
+            );
+        end
+    endgenerate
     
 endmodule

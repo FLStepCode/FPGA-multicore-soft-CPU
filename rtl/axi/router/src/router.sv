@@ -124,6 +124,7 @@ module router #(
         .ROUTER_X(ROUTER_X),
         .ROUTER_Y(ROUTER_Y)
     ) alg (
+        clk, rst_n,
         arbiter_out.s,
         out,
         target_x,

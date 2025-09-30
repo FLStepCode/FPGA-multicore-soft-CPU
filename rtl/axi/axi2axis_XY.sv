@@ -515,289 +515,345 @@ module axi2axis_XY #(
     end
 
     always_comb begin
-        case (s_axis_in.TDATA[39:37])
-            ROUTING_HEADER: begin
-                RRESP_LEN_next = RRESP_LEN;
+        if (s_axis_in.TVALID) begin
+            case (s_axis_in.TDATA[39:37])
+                ROUTING_HEADER: begin
+                    RRESP_LEN_next = RRESP_LEN;
 
-                ROUTING_SOURCE_X_next = routing_header_in.SOURCE_X;
-                ROUTING_SOURCE_Y_next = routing_header_in.SOURCE_Y;
+                    ROUTING_SOURCE_X_next = routing_header_in.SOURCE_X;
+                    ROUTING_SOURCE_Y_next = routing_header_in.SOURCE_Y;
 
-                RRESP_DESTINATION_X_next = RRESP_DESTINATION_X;
-                RRESP_DESTINATION_Y_next = RRESP_DESTINATION_Y;
-                BRESP_DESTINATION_X_next = BRESP_DESTINATION_X;
-                BRESP_DESTINATION_Y_next = BRESP_DESTINATION_Y;
+                    RRESP_DESTINATION_X_next = RRESP_DESTINATION_X;
+                    RRESP_DESTINATION_Y_next = RRESP_DESTINATION_Y;
+                    BRESP_DESTINATION_X_next = BRESP_DESTINATION_X;
+                    BRESP_DESTINATION_Y_next = BRESP_DESTINATION_Y;
 
-                s_axis_in.TREADY = '1;
+                    s_axis_in.TREADY = '1;
 
-                m_axi_out.AWVALID = '0;
-                m_axi_out.AWID = '0;
-                m_axi_out.AWADDR = '0;
-                m_axi_out.AWLEN = '0;
-                m_axi_out.AWSIZE = '0;
-                m_axi_out.AWBURST = '0;
+                    m_axi_out.AWVALID = '0;
+                    m_axi_out.AWID = '0;
+                    m_axi_out.AWADDR = '0;
+                    m_axi_out.AWLEN = '0;
+                    m_axi_out.AWSIZE = '0;
+                    m_axi_out.AWBURST = '0;
 
-                m_axi_out.ARVALID = '0;
-                m_axi_out.ARID = '0;
-                m_axi_out.ARADDR = '0;
-                m_axi_out.ARLEN = '0;
-                m_axi_out.ARSIZE = '0;
-                m_axi_out.ARBURST = '0;
+                    m_axi_out.ARVALID = '0;
+                    m_axi_out.ARID = '0;
+                    m_axi_out.ARADDR = '0;
+                    m_axi_out.ARLEN = '0;
+                    m_axi_out.ARSIZE = '0;
+                    m_axi_out.ARBURST = '0;
 
-                m_axi_out.WVALID = '0;
-                m_axi_out.WDATA = '0;
-                m_axi_out.WLAST = '0;
-                m_axi_out.WSTRB = '0;
-                
-                s_axi_in.BVALID = '0;
-                s_axi_in.BID = '0;
+                    m_axi_out.WVALID = '0;
+                    m_axi_out.WDATA = '0;
+                    m_axi_out.WLAST = '0;
+                    m_axi_out.WSTRB = '0;
+                    
+                    s_axi_in.BVALID = '0;
+                    s_axi_in.BID = '0;
 
-                s_axi_in.RVALID = '0;
-                s_axi_in.RID = '0;
-                s_axi_in.RDATA = '0;
-                s_axi_in.RLAST = '0;
-            end
-            AW_SUBHEADER: begin
-                RRESP_LEN_next = RRESP_LEN;
+                    s_axi_in.RVALID = '0;
+                    s_axi_in.RID = '0;
+                    s_axi_in.RDATA = '0;
+                    s_axi_in.RLAST = '0;
+                end
+                AW_SUBHEADER: begin
+                    RRESP_LEN_next = RRESP_LEN;
 
-                ROUTING_SOURCE_X_next = ROUTING_SOURCE_X;
-                ROUTING_SOURCE_Y_next = ROUTING_SOURCE_Y;
+                    ROUTING_SOURCE_X_next = ROUTING_SOURCE_X;
+                    ROUTING_SOURCE_Y_next = ROUTING_SOURCE_Y;
 
-                RRESP_DESTINATION_X_next = RRESP_DESTINATION_X;
-                RRESP_DESTINATION_Y_next = RRESP_DESTINATION_Y;
-                BRESP_DESTINATION_X_next = ROUTING_SOURCE_X;
-                BRESP_DESTINATION_Y_next = ROUTING_SOURCE_Y;
+                    RRESP_DESTINATION_X_next = RRESP_DESTINATION_X;
+                    RRESP_DESTINATION_Y_next = RRESP_DESTINATION_Y;
 
-                s_axis_in.TREADY = m_axi_out.AWREADY;
+                    if (m_axi_out.AWREADY) begin
+                        BRESP_DESTINATION_X_next = ROUTING_SOURCE_X;
+                        BRESP_DESTINATION_Y_next = ROUTING_SOURCE_Y;
+                    end
+                    else begin
+                        BRESP_DESTINATION_X_next = BRESP_DESTINATION_X;
+                        BRESP_DESTINATION_Y_next = BRESP_DESTINATION_Y;
+                    end
 
-                m_axi_out.AWVALID = s_axis_in.TVALID;
-                m_axi_out.AWID = aw_subheader_in.ID;
-                m_axi_out.AWADDR = aw_subheader_in.ADDR;
-                m_axi_out.AWLEN = aw_subheader_in.LEN;
-                m_axi_out.AWSIZE = aw_subheader_in.SIZE;
-                m_axi_out.AWBURST = aw_subheader_in.BURST;
+                    s_axis_in.TREADY = m_axi_out.AWREADY;
 
-                m_axi_out.ARVALID = '0;
-                m_axi_out.ARID = '0;
-                m_axi_out.ARADDR = '0;
-                m_axi_out.ARLEN = '0;
-                m_axi_out.ARSIZE = '0;
-                m_axi_out.ARBURST = '0;
+                    m_axi_out.AWVALID = s_axis_in.TVALID;
+                    m_axi_out.AWID = aw_subheader_in.ID;
+                    m_axi_out.AWADDR = aw_subheader_in.ADDR;
+                    m_axi_out.AWLEN = aw_subheader_in.LEN;
+                    m_axi_out.AWSIZE = aw_subheader_in.SIZE;
+                    m_axi_out.AWBURST = aw_subheader_in.BURST;
 
-                m_axi_out.WVALID = '0;
-                m_axi_out.WDATA = '0;
-                m_axi_out.WLAST = '0;
-                m_axi_out.WSTRB = '0;
-                
-                s_axi_in.BVALID = '0;
-                s_axi_in.BID = '0;
+                    m_axi_out.ARVALID = '0;
+                    m_axi_out.ARID = '0;
+                    m_axi_out.ARADDR = '0;
+                    m_axi_out.ARLEN = '0;
+                    m_axi_out.ARSIZE = '0;
+                    m_axi_out.ARBURST = '0;
 
-                s_axi_in.RVALID = '0;
-                s_axi_in.RID = '0;
-                s_axi_in.RDATA = '0;
-                s_axi_in.RLAST = '0;                
-            end
-            AR_SUBHEADER: begin
-                RRESP_LEN_next = ar_subheader_in.LEN + 1;
+                    m_axi_out.WVALID = '0;
+                    m_axi_out.WDATA = '0;
+                    m_axi_out.WLAST = '0;
+                    m_axi_out.WSTRB = '0;
+                    
+                    s_axi_in.BVALID = '0;
+                    s_axi_in.BID = '0;
 
-                ROUTING_SOURCE_X_next = ROUTING_SOURCE_X;
-                ROUTING_SOURCE_Y_next = ROUTING_SOURCE_Y;
+                    s_axi_in.RVALID = '0;
+                    s_axi_in.RID = '0;
+                    s_axi_in.RDATA = '0;
+                    s_axi_in.RLAST = '0;                
+                end
+                AR_SUBHEADER: begin
+                    RRESP_LEN_next = ar_subheader_in.LEN + 1;
 
-                RRESP_DESTINATION_X_next = ROUTING_SOURCE_X;
-                RRESP_DESTINATION_Y_next = ROUTING_SOURCE_Y;
-                BRESP_DESTINATION_X_next = BRESP_DESTINATION_X;
-                BRESP_DESTINATION_Y_next = BRESP_DESTINATION_Y;
+                    ROUTING_SOURCE_X_next = ROUTING_SOURCE_X;
+                    ROUTING_SOURCE_Y_next = ROUTING_SOURCE_Y;
 
-                s_axis_in.TREADY = m_axi_out.ARREADY;
+                    BRESP_DESTINATION_X_next = BRESP_DESTINATION_X;
+                    BRESP_DESTINATION_Y_next = BRESP_DESTINATION_Y;
 
-                m_axi_out.AWVALID = '0;
-                m_axi_out.AWID = '0;
-                m_axi_out.AWADDR = '0;
-                m_axi_out.AWLEN = '0;
-                m_axi_out.AWSIZE = '0;
-                m_axi_out.AWBURST = '0;
+                    if (m_axi_out.ARREADY) begin
+                        RRESP_DESTINATION_X_next = ROUTING_SOURCE_X;
+                        RRESP_DESTINATION_Y_next = ROUTING_SOURCE_Y;
+                    end
+                    else begin
+                        RRESP_DESTINATION_X_next = RRESP_DESTINATION_X;
+                        RRESP_DESTINATION_Y_next = RRESP_DESTINATION_Y;
+                    end
 
-                m_axi_out.ARVALID = s_axis_in.TVALID;
-                m_axi_out.ARID = ar_subheader_in.ID;
-                m_axi_out.ARADDR = ar_subheader_in.ADDR;
-                m_axi_out.ARLEN = ar_subheader_in.LEN;
-                m_axi_out.ARSIZE = ar_subheader_in.SIZE;
-                m_axi_out.ARBURST = ar_subheader_in.BURST;
+                    s_axis_in.TREADY = m_axi_out.ARREADY;
 
-                m_axi_out.WVALID = '0;
-                m_axi_out.WDATA = '0;
-                m_axi_out.WLAST = '0;
-                m_axi_out.WSTRB = '0;
-                
-                s_axi_in.BVALID = '0;
-                s_axi_in.BID = '0;
+                    m_axi_out.AWVALID = '0;
+                    m_axi_out.AWID = '0;
+                    m_axi_out.AWADDR = '0;
+                    m_axi_out.AWLEN = '0;
+                    m_axi_out.AWSIZE = '0;
+                    m_axi_out.AWBURST = '0;
 
-                s_axi_in.RVALID = '0;
-                s_axi_in.RID = '0;
-                s_axi_in.RDATA = '0;
-                s_axi_in.RLAST = '0;                
-            end
-            W_DATA: begin
-                RRESP_LEN_next = RRESP_LEN;
+                    m_axi_out.ARVALID = s_axis_in.TVALID;
+                    m_axi_out.ARID = ar_subheader_in.ID;
+                    m_axi_out.ARADDR = ar_subheader_in.ADDR;
+                    m_axi_out.ARLEN = ar_subheader_in.LEN;
+                    m_axi_out.ARSIZE = ar_subheader_in.SIZE;
+                    m_axi_out.ARBURST = ar_subheader_in.BURST;
 
-                ROUTING_SOURCE_X_next = ROUTING_SOURCE_X;
-                ROUTING_SOURCE_Y_next = ROUTING_SOURCE_Y;
+                    m_axi_out.WVALID = '0;
+                    m_axi_out.WDATA = '0;
+                    m_axi_out.WLAST = '0;
+                    m_axi_out.WSTRB = '0;
+                    
+                    s_axi_in.BVALID = '0;
+                    s_axi_in.BID = '0;
 
-                RRESP_DESTINATION_X_next = RRESP_DESTINATION_X;
-                RRESP_DESTINATION_Y_next = RRESP_DESTINATION_Y;
-                BRESP_DESTINATION_X_next = BRESP_DESTINATION_X;
-                BRESP_DESTINATION_Y_next = BRESP_DESTINATION_Y;
+                    s_axi_in.RVALID = '0;
+                    s_axi_in.RID = '0;
+                    s_axi_in.RDATA = '0;
+                    s_axi_in.RLAST = '0;                
+                end
+                W_DATA: begin
+                    RRESP_LEN_next = RRESP_LEN;
 
-                s_axis_in.TREADY = m_axi_out.WREADY;
+                    ROUTING_SOURCE_X_next = ROUTING_SOURCE_X;
+                    ROUTING_SOURCE_Y_next = ROUTING_SOURCE_Y;
 
-                m_axi_out.AWVALID = '0;
-                m_axi_out.AWID = '0;
-                m_axi_out.AWADDR = '0;
-                m_axi_out.AWLEN = '0;
-                m_axi_out.AWSIZE = '0;
-                m_axi_out.AWBURST = '0;
+                    RRESP_DESTINATION_X_next = RRESP_DESTINATION_X;
+                    RRESP_DESTINATION_Y_next = RRESP_DESTINATION_Y;
+                    BRESP_DESTINATION_X_next = BRESP_DESTINATION_X;
+                    BRESP_DESTINATION_Y_next = BRESP_DESTINATION_Y;
 
-                m_axi_out.ARVALID = '0;
-                m_axi_out.ARID = '0;
-                m_axi_out.ARADDR = '0;
-                m_axi_out.ARLEN = '0;
-                m_axi_out.ARSIZE = '0;
-                m_axi_out.ARBURST = '0;
+                    s_axis_in.TREADY = m_axi_out.WREADY;
 
-                m_axi_out.WVALID = s_axis_in.TVALID;
-                m_axi_out.WDATA = w_data_in.DATA;
-                m_axi_out.WSTRB = s_axis_in.TSTRB;
-                m_axi_out.WLAST = s_axis_in.TLAST;
-                
-                s_axi_in.BVALID = '0;
-                s_axi_in.BID = '0;
+                    m_axi_out.AWVALID = '0;
+                    m_axi_out.AWID = '0;
+                    m_axi_out.AWADDR = '0;
+                    m_axi_out.AWLEN = '0;
+                    m_axi_out.AWSIZE = '0;
+                    m_axi_out.AWBURST = '0;
 
-                s_axi_in.RVALID = '0;
-                s_axi_in.RID = '0;
-                s_axi_in.RDATA = '0;
-                s_axi_in.RLAST = '0;
-                
-            end
-            B_SUBHEADER: begin
-                RRESP_LEN_next = RRESP_LEN;
+                    m_axi_out.ARVALID = '0;
+                    m_axi_out.ARID = '0;
+                    m_axi_out.ARADDR = '0;
+                    m_axi_out.ARLEN = '0;
+                    m_axi_out.ARSIZE = '0;
+                    m_axi_out.ARBURST = '0;
 
-                ROUTING_SOURCE_X_next = ROUTING_SOURCE_X;
-                ROUTING_SOURCE_Y_next = ROUTING_SOURCE_Y;
+                    m_axi_out.WVALID = s_axis_in.TVALID;
+                    m_axi_out.WDATA = w_data_in.DATA;
+                    m_axi_out.WSTRB = s_axis_in.TSTRB;
+                    m_axi_out.WLAST = s_axis_in.TLAST;
+                    
+                    s_axi_in.BVALID = '0;
+                    s_axi_in.BID = '0;
 
-                RRESP_DESTINATION_X_next = RRESP_DESTINATION_X;
-                RRESP_DESTINATION_Y_next = RRESP_DESTINATION_Y;
-                BRESP_DESTINATION_X_next = BRESP_DESTINATION_X;
-                BRESP_DESTINATION_Y_next = BRESP_DESTINATION_Y;
+                    s_axi_in.RVALID = '0;
+                    s_axi_in.RID = '0;
+                    s_axi_in.RDATA = '0;
+                    s_axi_in.RLAST = '0;
+                    
+                end
+                B_SUBHEADER: begin
+                    RRESP_LEN_next = RRESP_LEN;
 
-                s_axis_in.TREADY = s_axi_in.BREADY;
+                    ROUTING_SOURCE_X_next = ROUTING_SOURCE_X;
+                    ROUTING_SOURCE_Y_next = ROUTING_SOURCE_Y;
 
-                m_axi_out.AWVALID = '0;
-                m_axi_out.AWID = '0;
-                m_axi_out.AWADDR = '0;
-                m_axi_out.AWLEN = '0;
-                m_axi_out.AWSIZE = '0;
-                m_axi_out.AWBURST = '0;
+                    RRESP_DESTINATION_X_next = RRESP_DESTINATION_X;
+                    RRESP_DESTINATION_Y_next = RRESP_DESTINATION_Y;
+                    BRESP_DESTINATION_X_next = BRESP_DESTINATION_X;
+                    BRESP_DESTINATION_Y_next = BRESP_DESTINATION_Y;
 
-                m_axi_out.ARVALID = '0;
-                m_axi_out.ARID = '0;
-                m_axi_out.ARADDR = '0;
-                m_axi_out.ARLEN = '0;
-                m_axi_out.ARSIZE = '0;
-                m_axi_out.ARBURST = '0;
+                    s_axis_in.TREADY = s_axi_in.BREADY;
 
-                m_axi_out.WVALID = '0;
-                m_axi_out.WDATA = '0;
-                m_axi_out.WLAST = '0;
-                m_axi_out.WSTRB = '0;
-                
-                s_axi_in.BVALID = s_axis_in.TVALID;
-                s_axi_in.BID = b_subheader_in.ID;
+                    m_axi_out.AWVALID = '0;
+                    m_axi_out.AWID = '0;
+                    m_axi_out.AWADDR = '0;
+                    m_axi_out.AWLEN = '0;
+                    m_axi_out.AWSIZE = '0;
+                    m_axi_out.AWBURST = '0;
 
-                s_axi_in.RVALID = '0;
-                s_axi_in.RID = '0;
-                s_axi_in.RDATA = '0;
-                s_axi_in.RLAST = '0;
-            end
-            R_DATA: begin
-                RRESP_LEN_next = RRESP_LEN;
+                    m_axi_out.ARVALID = '0;
+                    m_axi_out.ARID = '0;
+                    m_axi_out.ARADDR = '0;
+                    m_axi_out.ARLEN = '0;
+                    m_axi_out.ARSIZE = '0;
+                    m_axi_out.ARBURST = '0;
 
-                ROUTING_SOURCE_X_next = ROUTING_SOURCE_X;
-                ROUTING_SOURCE_Y_next = ROUTING_SOURCE_Y;
+                    m_axi_out.WVALID = '0;
+                    m_axi_out.WDATA = '0;
+                    m_axi_out.WLAST = '0;
+                    m_axi_out.WSTRB = '0;
+                    
+                    s_axi_in.BVALID = s_axis_in.TVALID;
+                    s_axi_in.BID = b_subheader_in.ID;
 
-                RRESP_DESTINATION_X_next = RRESP_DESTINATION_X;
-                RRESP_DESTINATION_Y_next = RRESP_DESTINATION_Y;
-                BRESP_DESTINATION_X_next = BRESP_DESTINATION_X;
-                BRESP_DESTINATION_Y_next = BRESP_DESTINATION_Y;
+                    s_axi_in.RVALID = '0;
+                    s_axi_in.RID = '0;
+                    s_axi_in.RDATA = '0;
+                    s_axi_in.RLAST = '0;
+                end
+                R_DATA: begin
+                    RRESP_LEN_next = RRESP_LEN;
 
-                s_axis_in.TREADY = s_axi_in.RREADY;
+                    ROUTING_SOURCE_X_next = ROUTING_SOURCE_X;
+                    ROUTING_SOURCE_Y_next = ROUTING_SOURCE_Y;
 
-                m_axi_out.AWVALID = '0;
-                m_axi_out.AWID = '0;
-                m_axi_out.AWADDR = '0;
-                m_axi_out.AWLEN = '0;
-                m_axi_out.AWSIZE = '0;
-                m_axi_out.AWBURST = '0;
+                    RRESP_DESTINATION_X_next = RRESP_DESTINATION_X;
+                    RRESP_DESTINATION_Y_next = RRESP_DESTINATION_Y;
+                    BRESP_DESTINATION_X_next = BRESP_DESTINATION_X;
+                    BRESP_DESTINATION_Y_next = BRESP_DESTINATION_Y;
 
-                m_axi_out.ARVALID = '0;
-                m_axi_out.ARID = '0;
-                m_axi_out.ARADDR = '0;
-                m_axi_out.ARLEN = '0;
-                m_axi_out.ARSIZE = '0;
-                m_axi_out.ARBURST = '0;
+                    s_axis_in.TREADY = s_axi_in.RREADY;
 
-                m_axi_out.WVALID = '0;
-                m_axi_out.WDATA = '0;
-                m_axi_out.WLAST = '0;
-                m_axi_out.WSTRB = '0;
-                
-                s_axi_in.BVALID = '0;
-                s_axi_in.BID = '0;
+                    m_axi_out.AWVALID = '0;
+                    m_axi_out.AWID = '0;
+                    m_axi_out.AWADDR = '0;
+                    m_axi_out.AWLEN = '0;
+                    m_axi_out.AWSIZE = '0;
+                    m_axi_out.AWBURST = '0;
 
-                s_axi_in.RVALID = s_axis_in.TVALID;
-                s_axi_in.RID = r_data_in.ID;
-                s_axi_in.RDATA = r_data_in.DATA;
-                s_axi_in.RLAST = s_axis_in.TLAST;                
-            end
-            default: begin
-                RRESP_LEN_next = RRESP_LEN;
+                    m_axi_out.ARVALID = '0;
+                    m_axi_out.ARID = '0;
+                    m_axi_out.ARADDR = '0;
+                    m_axi_out.ARLEN = '0;
+                    m_axi_out.ARSIZE = '0;
+                    m_axi_out.ARBURST = '0;
 
-                ROUTING_SOURCE_X_next = ROUTING_SOURCE_X;
-                ROUTING_SOURCE_Y_next = ROUTING_SOURCE_Y;
+                    m_axi_out.WVALID = '0;
+                    m_axi_out.WDATA = '0;
+                    m_axi_out.WLAST = '0;
+                    m_axi_out.WSTRB = '0;
+                    
+                    s_axi_in.BVALID = '0;
+                    s_axi_in.BID = '0;
 
-                RRESP_DESTINATION_X_next = RRESP_DESTINATION_X;
-                RRESP_DESTINATION_Y_next = RRESP_DESTINATION_Y;
-                BRESP_DESTINATION_X_next = BRESP_DESTINATION_X;
-                BRESP_DESTINATION_Y_next = BRESP_DESTINATION_Y;
+                    s_axi_in.RVALID = s_axis_in.TVALID;
+                    s_axi_in.RID = r_data_in.ID;
+                    s_axi_in.RDATA = r_data_in.DATA;
+                    s_axi_in.RLAST = s_axis_in.TLAST;                
+                end
+                default: begin
+                    RRESP_LEN_next = RRESP_LEN;
 
-                s_axis_in.TREADY = '1;
+                    ROUTING_SOURCE_X_next = ROUTING_SOURCE_X;
+                    ROUTING_SOURCE_Y_next = ROUTING_SOURCE_Y;
 
-                m_axi_out.AWVALID = '0;
-                m_axi_out.AWID = '0;
-                m_axi_out.AWADDR = '0;
-                m_axi_out.AWLEN = '0;
-                m_axi_out.AWSIZE = '0;
-                m_axi_out.AWBURST = '0;
+                    RRESP_DESTINATION_X_next = RRESP_DESTINATION_X;
+                    RRESP_DESTINATION_Y_next = RRESP_DESTINATION_Y;
+                    BRESP_DESTINATION_X_next = BRESP_DESTINATION_X;
+                    BRESP_DESTINATION_Y_next = BRESP_DESTINATION_Y;
 
-                m_axi_out.ARVALID = '0;
-                m_axi_out.ARID = '0;
-                m_axi_out.ARADDR = '0;
-                m_axi_out.ARLEN = '0;
-                m_axi_out.ARSIZE = '0;
-                m_axi_out.ARBURST = '0;
+                    s_axis_in.TREADY = '1;
 
-                m_axi_out.WVALID = '0;
-                m_axi_out.WDATA = '0;
-                m_axi_out.WLAST = '0;
-                m_axi_out.WSTRB = '0;
-                
-                s_axi_in.BVALID = '0;
-                s_axi_in.BID = '0;
+                    m_axi_out.AWVALID = '0;
+                    m_axi_out.AWID = '0;
+                    m_axi_out.AWADDR = '0;
+                    m_axi_out.AWLEN = '0;
+                    m_axi_out.AWSIZE = '0;
+                    m_axi_out.AWBURST = '0;
 
-                s_axi_in.RVALID = '0;
-                s_axi_in.RID = '0;
-                s_axi_in.RDATA = '0;
-                s_axi_in.RLAST = '0;
-            end
-        endcase
+                    m_axi_out.ARVALID = '0;
+                    m_axi_out.ARID = '0;
+                    m_axi_out.ARADDR = '0;
+                    m_axi_out.ARLEN = '0;
+                    m_axi_out.ARSIZE = '0;
+                    m_axi_out.ARBURST = '0;
+
+                    m_axi_out.WVALID = '0;
+                    m_axi_out.WDATA = '0;
+                    m_axi_out.WLAST = '0;
+                    m_axi_out.WSTRB = '0;
+                    
+                    s_axi_in.BVALID = '0;
+                    s_axi_in.BID = '0;
+
+                    s_axi_in.RVALID = '0;
+                    s_axi_in.RID = '0;
+                    s_axi_in.RDATA = '0;
+                    s_axi_in.RLAST = '0;
+                end
+            endcase
+        end
+        else begin
+            RRESP_LEN_next = RRESP_LEN;
+
+            ROUTING_SOURCE_X_next = ROUTING_SOURCE_X;
+            ROUTING_SOURCE_Y_next = ROUTING_SOURCE_Y;
+
+            RRESP_DESTINATION_X_next = RRESP_DESTINATION_X;
+            RRESP_DESTINATION_Y_next = RRESP_DESTINATION_Y;
+            BRESP_DESTINATION_X_next = BRESP_DESTINATION_X;
+            BRESP_DESTINATION_Y_next = BRESP_DESTINATION_Y;
+
+            s_axis_in.TREADY = '1;
+
+            m_axi_out.AWVALID = '0;
+            m_axi_out.AWID = '0;
+            m_axi_out.AWADDR = '0;
+            m_axi_out.AWLEN = '0;
+            m_axi_out.AWSIZE = '0;
+            m_axi_out.AWBURST = '0;
+
+            m_axi_out.ARVALID = '0;
+            m_axi_out.ARID = '0;
+            m_axi_out.ARADDR = '0;
+            m_axi_out.ARLEN = '0;
+            m_axi_out.ARSIZE = '0;
+            m_axi_out.ARBURST = '0;
+
+            m_axi_out.WVALID = '0;
+            m_axi_out.WDATA = '0;
+            m_axi_out.WLAST = '0;
+            m_axi_out.WSTRB = '0;
+            
+            s_axi_in.BVALID = '0;
+            s_axi_in.BID = '0;
+
+            s_axi_in.RVALID = '0;
+            s_axi_in.RID = '0;
+            s_axi_in.RDATA = '0;
+            s_axi_in.RLAST = '0;
+        end
     end
 
 
