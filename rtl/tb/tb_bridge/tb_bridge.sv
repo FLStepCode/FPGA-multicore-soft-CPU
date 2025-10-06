@@ -69,7 +69,7 @@ module tb_bridge (
 );
 
     axi_if axi[2](), axi_ram[2]();
-    axis_if #(.DATA_WIDTH(40)) axis[2]();
+    axis_if #(.DATA_WIDTH(40)) axis[4]();
 
     always_comb begin
         axi[0].AWVALID = a_awvalid;
@@ -145,8 +145,11 @@ module tb_bridge (
         .s_axi_in(axi[0]),
         .m_axi_out(axi_ram[0]),
         
-        .s_axis_in(axis[1]),
-        .m_axis_out(axis[0])
+        .s_axis_req_in(axis[1]),
+        .m_axis_req_out(axis[0]),
+        
+        .s_axis_resp_in(axis[3]),
+        .m_axis_resp_out(axis[2])
     );
 
     axi2axis_XY dut_right (
@@ -156,8 +159,11 @@ module tb_bridge (
         .s_axi_in(axi[1]),
         .m_axi_out(axi_ram[1]),
         
-        .s_axis_in(axis[0]),
-        .m_axis_out(axis[1])
+        .s_axis_req_in(axis[0]),
+        .m_axis_req_out(axis[1]),
+        
+        .s_axis_resp_in(axis[2]),
+        .m_axis_resp_out(axis[3])
     );
 
     axi_ram ram_left (

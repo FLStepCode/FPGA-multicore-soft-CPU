@@ -27,10 +27,13 @@ cpu/noc_with_cores.sv
 cpu/uart.sv 
 mesh_4x4/noc/noc.sv
 axi/router/src/algorithm.sv
+axi/router/src/algorithm_dual.sv
 axi/router/src/arbiter.sv
 axi/router/src/queue.sv
 axi/router/src/router.sv
+axi/router/src/router_dual.sv
 axi/XY_mesh/XY_mesh.sv
+axi/XY_mesh/XY_mesh_dual.sv
 axi/axi_demux.sv
 axi/axi_if.sv
 axi/axi_mux.sv

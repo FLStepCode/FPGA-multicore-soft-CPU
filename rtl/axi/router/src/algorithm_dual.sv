@@ -1,4 +1,4 @@
-module algorithm #(
+module algorithm_dual #(
     parameter DATA_WIDTH = 32
     `ifdef TID_PRESENT
     ,
@@ -13,7 +13,7 @@ module algorithm #(
     parameter USER_WIDTH = 4
     `endif
     ,
-    parameter CHANNEL_NUMBER = 5,
+    parameter CHANNEL_NUMBER = 10,
     parameter CHANNEL_NUMBER_WIDTH
     = $clog2(CHANNEL_NUMBER),
     parameter MAX_ROUTERS_X = 4,
@@ -29,6 +29,8 @@ module algorithm #(
     
     axis_if.s in,
     axis_if.m out [CHANNEL_NUMBER],
+
+    input logic [CHANNEL_NUMBER_WIDTH-1:0] current_grant,
 
     input logic [MAX_ROUTERS_X_WIDTH-1:0] target_x,
     input logic [MAX_ROUTERS_Y_WIDTH-1:0] target_y
@@ -57,16 +59,27 @@ module algorithm #(
     logic [CHANNEL_NUMBER-1:0] busy_next;
 
     assign selector[0] = ((target_x == ROUTER_X) && (target_y == ROUTER_Y));
-    assign selector[1] = (target_y < ROUTER_Y);
-    assign selector[2] = (target_x > ROUTER_X);
-    assign selector[3] = (target_y > ROUTER_Y);
-    assign selector[4] = (target_x < ROUTER_X);
+    assign selector[1] = ((target_x == ROUTER_X) && (target_y == ROUTER_Y));
+
+    assign selector[2] = (target_y < ROUTER_Y);
+    assign selector[3] = (target_y < ROUTER_Y);
+
+    assign selector[4] = (target_x > ROUTER_X);
+    assign selector[5] = (target_x > ROUTER_X);
+
+    assign selector[6] = (target_y > ROUTER_Y);
+    assign selector[7] = (target_y > ROUTER_Y);
+
+    assign selector[8] = (target_x < ROUTER_X);
+    assign selector[9] = (target_x < ROUTER_X);
 
     always_comb begin
         ctrl = '0;
         for (int i = 0; i < CHANNEL_NUMBER; i++) begin
-            if(selector[CHANNEL_NUMBER - 1 - i]) begin
-                ctrl = CHANNEL_NUMBER - 1 - i;
+            int channel;
+            channel = CHANNEL_NUMBER - 1 - i;
+            if(selector[channel] && (channel[0] == current_grant[0])) begin
+                ctrl = channel;
             end
         end
     end
@@ -82,7 +95,6 @@ module algorithm #(
     always_comb begin
         busy_next = busy;
         if (in.TVALID && (in.TDATA[DATA_WIDTH-1:DATA_WIDTH-PACKET_TYPE_WIDTH] == ROUTING_HEADER)) begin
-            busy_next[ctrl] = 1'b1;
 
             in_filtered.TVALID = !busy[ctrl] ? '1 : '0;
             in_filtered.TDATA  = !busy[ctrl] ? in.TDATA : '0;

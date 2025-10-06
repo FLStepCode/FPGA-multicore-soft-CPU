@@ -31,13 +31,14 @@ module arbiter #(
     axis_if.s in [CHANNEL_NUMBER],
     axis_if.m out,
 
+    output logic [CHANNEL_NUMBER_WIDTH-1:0] current_grant,
+
     output logic [MAX_ROUTERS_X_WIDTH-1:0] target_x,
     output logic [MAX_ROUTERS_Y_WIDTH-1:0] target_y
 );
     logic [MAX_ROUTERS_X_WIDTH-1:0] target_x_reg [CHANNEL_NUMBER];
     logic [MAX_ROUTERS_Y_WIDTH-1:0] target_y_reg [CHANNEL_NUMBER];
    
-    logic [CHANNEL_NUMBER_WIDTH-1:0] current_grant;
     logic [CHANNEL_NUMBER_WIDTH-1:0] next_grant;
     logic [CHANNEL_NUMBER_WIDTH-1:0] increment;
 

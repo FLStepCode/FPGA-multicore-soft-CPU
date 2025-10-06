@@ -4,8 +4,7 @@ module axi2ram
     parameter ID_R_WIDTH = 4,
     parameter ADDR_WIDTH = 16,
     parameter DATA_WIDTH = 32,
-    parameter BYTE_WIDTH = 8,
-    parameter ID = 0
+    parameter BYTE_WIDTH = 8
 )
 (
 	input clk, rst_n,
@@ -110,6 +109,8 @@ module axi2ram
 
         axi_s.AWREADY = 1'b0;
         axi_s.WREADY = 1'b0;
+        axi_s.BID = AWID;
+        axi_s.BVALID = 1'b0;
 
         for (int i = 0; i < WSRTB_W; i++) begin
             write_en_b[i] = 1'b0;
@@ -135,9 +136,15 @@ module axi2ram
 
                 if(axi_s.WVALID) begin
                     if(AWLEN == 1'b0 || axi_s.WLAST) begin
-                        w_state_next = READING_ADDRESS;
+                        w_state_next = RESPONDING;
                     end
                 end
+            end
+            RESPONDING: begin
+                w_state_next = RESPONDING;
+                axi_s.BVALID = 1'b1;
+                if(axi_s.BREADY)
+                    w_state_next = READING_ADDRESS;
             end
             default:;
         endcase
@@ -238,22 +245,5 @@ module axi2ram
 
     end
     end : LogicBlock
-
-    integer bvalid_count;
-    assign axi_s.BVALID = bvalid_count > 0;
-    assign axi_s.BID = ID;
-
-    always_ff @(posedge clk or negedge rst_n) begin
-        if(!rst_n) begin
-            bvalid_count <= 0;
-        end else begin
-            if ((axi_s.WVALID && axi_s.WREADY && axi_s.WLAST) && !(axi_s.BREADY)) begin
-                bvalid_count <= bvalid_count + 1;
-            end
-            else if (!(axi_s.WVALID && axi_s.WREADY && axi_s.WLAST) && (axi_s.BREADY)) begin
-                bvalid_count <= bvalid_count - 1;
-            end
-        end
-    end
 
 endmodule : axi2ram

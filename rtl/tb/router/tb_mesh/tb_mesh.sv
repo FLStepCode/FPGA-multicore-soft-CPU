@@ -75,7 +75,7 @@ module tb_mesh (
         end
     endgenerate
 
-    XY_mesh dut (
+    XY_mesh_dual dut (
         .ACLK(aclk),
         .ARESETn(aresetn),
 
@@ -85,9 +85,7 @@ module tb_mesh (
 
     generate
         for (genvar i = 0; i < 9; i++) begin : map_rams
-            axi_ram #(
-                .ID(i + 1)
-            ) ram (
+            axi_ram ram (
                 .clk(aclk),
                 .rst_n(aresetn),
                 .axi_s(axi_ram[i])
