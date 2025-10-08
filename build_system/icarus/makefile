@@ -6,7 +6,8 @@ TOPLEVEL ?= tb
 SIM_PATH ?= $(TOPLEVEL)
 SIM_PATH := $(ICARUS_PATH)/$(SIM_PATH)
 
-VCD_PATH ?= $(SIM_PATH)/$(TOPLEVEL).vcd
+VCD_FILE ?= $(TOPLEVEL).vcd
+VCD_FILE := $(SIM_PATH)/$(VCD_FILE)
 
 run:
 	rm -rf $(SIM_PATH); \
@@ -19,4 +20,4 @@ run:
 	vvp simv
 
 wave:
-	gtkwave $(VCD_PATH)
+	gtkwave $(VCD_FILE)

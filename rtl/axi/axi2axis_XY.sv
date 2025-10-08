@@ -383,7 +383,7 @@ module axi2axis_XY #(
                 m_axis_req_out.TDATA = w_data_out;
                 m_axis_req_out.TSTRB = WSTRB_fifo;
                 m_axis_req_out.TLAST = WVALID_fifo & WLAST_fifo;
-                AWREADY_fifo = WVALID_fifo & WLAST_fifo;
+                AWREADY_fifo = m_axis_req_out.TREADY & WVALID_fifo & WLAST_fifo;
                 ARREADY_fifo = '0;
             end
             AR_SEND: begin

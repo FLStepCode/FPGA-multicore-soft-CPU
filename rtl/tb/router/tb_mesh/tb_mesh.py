@@ -119,11 +119,11 @@ async def test_random(dut):
         cocotb.log.info(f"pass {i}")
         processes = []
         datas = [b'0000000000000000', b'1111111111111111', b'2222222222222222', b'3333333333333333',
-                 b'4444444444444444', b'5555555555555555', b'6666666666666666', b'7777777777777777', b'8888888888888888'] * 2
+                 b'4444444444444444', b'5555555555555555', b'6666666666666666', b'7777777777777777', b'8888888888888888']
         addrs = [32 * i for i in range(9)]
-        for j in range(9):
+        for j in range(36):
             id = randint(1, 9)
-            processes.append(cocotb.start_soon(axi_read_write(dut, axi_master[j % 9], addrs[j], datas[j], id, 0)))
+            processes.append(cocotb.start_soon(axi_read_write(dut, axi_master[j % 9], addrs[j % 9], datas[j % 9], id, 0)))
 
         await Combine (
             *processes
