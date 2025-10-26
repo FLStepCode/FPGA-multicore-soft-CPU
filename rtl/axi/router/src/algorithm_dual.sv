@@ -94,7 +94,7 @@ module algorithm_dual #(
 
     always_comb begin
         busy_next = busy;
-        if (in.TVALID && (in.TDATA[DATA_WIDTH-1:DATA_WIDTH-PACKET_TYPE_WIDTH] == ROUTING_HEADER)) begin
+        if (in.TVALID && (in.TID == ROUTING_HEADER)) begin
 
             in_filtered.TVALID = !busy[ctrl] ? '1 : '0;
             in_filtered.TDATA  = !busy[ctrl] ? in.TDATA : '0;

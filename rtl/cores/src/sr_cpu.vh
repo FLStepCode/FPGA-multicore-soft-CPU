@@ -9,18 +9,12 @@
  */ 
 
 //ALU commands
-`define ALU_IDLE    3'b000
 `define ALU_ADD     3'b001
 `define ALU_OR      3'b010
 `define ALU_SRL     3'b011
 `define ALU_SLTU    3'b100
 `define ALU_SUB     3'b101
 `define ALU_MUL     3'b110
-
-//AGU commands
-`define AGU_IDLE    3'b000
-`define AGU_LOAD    3'b001
-`define AGU_STORE   3'b010
 
 // instruction opcode
 `define RVOP_ADDI   7'b0010011

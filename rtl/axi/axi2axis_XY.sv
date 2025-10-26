@@ -4,15 +4,16 @@ module axi2axis_XY #(
     parameter ID_W_WIDTH = 4,
     parameter ID_R_WIDTH = 4,
     parameter MAX_ID_WIDTH = 4,
+    parameter AXIS_CHANNEL_WIDTH = 40,
 
     parameter ROUTER_X = 0,
     parameter MAX_ROUTERS_X = 4,
     parameter MAX_ROUTERS_X_WIDTH
-    = $clog2(MAX_ROUTERS_X),
+    = $clog2(MAX_ROUTERS_X-1),
     parameter ROUTER_Y = 0,
     parameter MAX_ROUTERS_Y = 4,
     parameter MAX_ROUTERS_Y_WIDTH
-    = $clog2(MAX_ROUTERS_Y),
+    = $clog2(MAX_ROUTERS_Y-1),
 
     parameter Ax_FIFO_LEN = 4,
     parameter W_FIFO_LEN = 4
@@ -30,8 +31,7 @@ module axi2axis_XY #(
 );
 
     typedef struct packed {
-        packet_type PACKET_TYPE;
-        logic [40 - (PACKET_TYPE_WIDTH + 8 + (MAX_ROUTERS_X_WIDTH + MAX_ROUTERS_Y_WIDTH) * 2) - 1:0] RESERVED;
+        logic [AXIS_CHANNEL_WIDTH - (8 + (MAX_ROUTERS_X_WIDTH + MAX_ROUTERS_Y_WIDTH) * 2) - 1:0] RESERVED;
         logic [7:0] PACKET_COUNT;
         logic [MAX_ROUTERS_X_WIDTH-1:0] SOURCE_X;
         logic [MAX_ROUTERS_Y_WIDTH-1:0] SOURCE_Y;
@@ -40,8 +40,7 @@ module axi2axis_XY #(
     } routing_header;
 
     typedef struct packed {
-        packet_type PACKET_TYPE;
-        logic [40 - (PACKET_TYPE_WIDTH + ID_W_WIDTH + ADDR_WIDTH + 8 + 3 + 2) - 1:0] RESERVED;
+        logic [AXIS_CHANNEL_WIDTH - (ID_W_WIDTH + ADDR_WIDTH + 8 + 3 + 2) - 1:0] RESERVED;
         logic [ID_W_WIDTH-1:0] ID;
         logic [ADDR_WIDTH-1:0] ADDR;
         logic [7:0] LEN;
@@ -50,20 +49,17 @@ module axi2axis_XY #(
     } aw_subheader;
 
     typedef struct packed {
-        packet_type PACKET_TYPE;
-        logic [40 - (PACKET_TYPE_WIDTH + ID_W_WIDTH) - 1:0] RESERVED;
+        logic [AXIS_CHANNEL_WIDTH - (ID_W_WIDTH) - 1:0] RESERVED;
         logic [ID_W_WIDTH-1:0] ID;
     } b_subheader;
 
     typedef struct packed {
-        packet_type PACKET_TYPE;
-        logic [40 - (PACKET_TYPE_WIDTH + 32) - 1:0] RESERVED;
-        logic [31:0] DATA;
+        logic [AXIS_CHANNEL_WIDTH - (DATA_WIDTH) - 1:0] RESERVED;
+        logic [DATA_WIDTH-1:0] DATA;
     } w_data;
 
     typedef struct packed {
-        packet_type PACKET_TYPE;
-        logic [40 - (PACKET_TYPE_WIDTH + ID_R_WIDTH + ADDR_WIDTH + 8 + 3 + 2) - 1:0] RESERVED;
+        logic [AXIS_CHANNEL_WIDTH - (ID_R_WIDTH + ADDR_WIDTH + 8 + 3 + 2) - 1:0] RESERVED;
         logic [ID_R_WIDTH-1:0] ID;
         logic [ADDR_WIDTH-1:0] ADDR;
         logic [7:0] LEN;
@@ -72,10 +68,9 @@ module axi2axis_XY #(
     } ar_subheader;
 
     typedef struct packed {
-        packet_type PACKET_TYPE;
-        logic [40 - (PACKET_TYPE_WIDTH + ID_R_WIDTH + 32) - 1:0] RESERVED;
+        logic [AXIS_CHANNEL_WIDTH - (ID_R_WIDTH + DATA_WIDTH) - 1:0] RESERVED;
         logic [ID_R_WIDTH-1:0] ID;
-        logic [31:0] DATA;
+        logic [DATA_WIDTH-1:0] DATA;
     } r_data;
 
     // AW channel
@@ -223,7 +218,6 @@ module axi2axis_XY #(
     r_data r_data_out;
 
     always_comb begin
-        aw_subheader_out.PACKET_TYPE = AW_SUBHEADER;
         aw_subheader_out.RESERVED = '0;
         aw_subheader_out.ID = AWID_fifo;
         aw_subheader_out.ADDR = AWADDR_fifo;
@@ -231,15 +225,12 @@ module axi2axis_XY #(
         aw_subheader_out.SIZE = AWSIZE_fifo;
         aw_subheader_out.BURST = AWBURST_fifo;
 
-        w_data_out.PACKET_TYPE = W_DATA;
         w_data_out.RESERVED = '0;
         w_data_out.DATA = WDATA_fifo;
 
-        b_subheader_out.PACKET_TYPE = B_SUBHEADER;
         b_subheader_out.RESERVED = '0;
         b_subheader_out.ID = m_axi_out.BID;
 
-        ar_subheader_out.PACKET_TYPE = AR_SUBHEADER;
         ar_subheader_out.RESERVED = '0;
         ar_subheader_out.ID = ARID_fifo;
         ar_subheader_out.ADDR = ARADDR_fifo;
@@ -247,7 +238,6 @@ module axi2axis_XY #(
         ar_subheader_out.SIZE = ARSIZE_fifo;
         ar_subheader_out.BURST = ARBURST_fifo;
 
-        r_data_out.PACKET_TYPE = R_DATA;
         r_data_out.RESERVED = '0;
         r_data_out.ID = m_axi_out.RID;
         r_data_out.DATA = m_axi_out.RDATA;
@@ -314,7 +304,6 @@ module axi2axis_XY #(
         case (out_req_state)
             GENERATE_HEADER: begin
                 if (request_valid_o) begin
-                    routing_header_req_out.PACKET_TYPE = ROUTING_HEADER;
                     routing_header_req_out.RESERVED = '0;
 
                     if (request_data_o == AW_SUBHEADER) begin
@@ -338,6 +327,7 @@ module axi2axis_XY #(
                     WREADY_fifo = '0;
                     request_ready_i = '0;
 
+                    m_axis_req_out.TID = ROUTING_HEADER;
                     m_axis_req_out.TVALID = '1;
                     m_axis_req_out.TDATA = routing_header_req_out;
                     m_axis_req_out.TSTRB = '1;
@@ -351,6 +341,7 @@ module axi2axis_XY #(
                     WREADY_fifo = '0;
                     request_ready_i = '0;
 
+                    m_axis_req_out.TID = '0;
                     m_axis_req_out.TVALID = '0;
                     m_axis_req_out.TDATA = '0;
                     m_axis_req_out.TSTRB = '1;
@@ -365,6 +356,7 @@ module axi2axis_XY #(
                 WREADY_fifo = '0;
                 request_ready_i = '0;
 
+                m_axis_req_out.TID = AW_SUBHEADER;
                 m_axis_req_out.TVALID = '1;
                 m_axis_req_out.TDATA = aw_subheader_out;
                 m_axis_req_out.TSTRB = '1;
@@ -379,6 +371,7 @@ module axi2axis_XY #(
                 WREADY_fifo = m_axis_req_out.TREADY;
                 request_ready_i = m_axis_req_out.TREADY & WVALID_fifo & WLAST_fifo;
 
+                m_axis_req_out.TID = W_DATA;
                 m_axis_req_out.TVALID = WVALID_fifo;
                 m_axis_req_out.TDATA = w_data_out;
                 m_axis_req_out.TSTRB = WSTRB_fifo;
@@ -392,6 +385,7 @@ module axi2axis_XY #(
                 WREADY_fifo = '0;
                 request_ready_i = ARVALID_fifo & m_axis_req_out.TREADY;
 
+                m_axis_req_out.TID = AR_SUBHEADER;
                 m_axis_req_out.TVALID = ARVALID_fifo;
                 m_axis_req_out.TDATA = ar_subheader_out;
                 m_axis_req_out.TSTRB = '1;
@@ -405,6 +399,7 @@ module axi2axis_XY #(
                 WREADY_fifo = '0;
                 request_ready_i = '0;
 
+                m_axis_req_out.TID = '0;
                 m_axis_req_out.TVALID = '0;
                 m_axis_req_out.TDATA = '0;
                 m_axis_req_out.TSTRB = '1;
@@ -469,7 +464,6 @@ module axi2axis_XY #(
             GENERATE_HEADER: begin
                 if (response_valid_o) begin
 
-                    routing_header_resp_out.PACKET_TYPE = ROUTING_HEADER;
                     routing_header_resp_out.RESERVED = '0;
 
                     if (response_data_o == B_SUBHEADER) begin
@@ -490,6 +484,7 @@ module axi2axis_XY #(
 
                     response_ready_i = '0;
 
+                    m_axis_resp_out.TID = ROUTING_HEADER;
                     m_axis_resp_out.TVALID = '1;
                     m_axis_resp_out.TDATA = routing_header_resp_out;
                     m_axis_resp_out.TSTRB = '1;
@@ -502,6 +497,7 @@ module axi2axis_XY #(
 
                     response_ready_i = '0;
 
+                    m_axis_resp_out.TID = '0;
                     m_axis_resp_out.TVALID = '0;
                     m_axis_resp_out.TDATA = '0;
                     m_axis_resp_out.TSTRB = '1;
@@ -515,6 +511,7 @@ module axi2axis_XY #(
 
                 response_ready_i = m_axis_resp_out.TREADY;
 
+                m_axis_resp_out.TID = B_SUBHEADER;
                 m_axis_resp_out.TVALID = m_axi_out.BVALID;
                 m_axis_resp_out.TDATA = b_subheader_out;
                 m_axis_resp_out.TSTRB = '1;
@@ -527,6 +524,7 @@ module axi2axis_XY #(
 
                 response_ready_i = m_axis_resp_out.TREADY & m_axi_out.RVALID & m_axi_out.RLAST;
 
+                m_axis_resp_out.TID = R_DATA;
                 m_axis_resp_out.TVALID = m_axi_out.RVALID;
                 m_axis_resp_out.TDATA = r_data_out;
                 m_axis_resp_out.TSTRB = '1;
@@ -539,6 +537,7 @@ module axi2axis_XY #(
 
                 response_ready_i = '0;
 
+                m_axis_resp_out.TID = '0;
                 m_axis_resp_out.TVALID = '0;
                 m_axis_resp_out.TDATA = '0;
                 m_axis_resp_out.TSTRB = '1;
@@ -593,7 +592,7 @@ module axi2axis_XY #(
 
     always_comb begin
         if (s_axis_req_in.TVALID) begin
-            case (s_axis_req_in.TDATA[39:37])
+            case (s_axis_req_in.TID)
                 ROUTING_HEADER: begin
                     RRESP_LEN_next = RRESP_LEN;
 
@@ -806,7 +805,7 @@ module axi2axis_XY #(
 
     always_comb begin
         if (s_axis_resp_in.TVALID) begin
-            case (s_axis_resp_in.TDATA[39:37])
+            case (s_axis_resp_in.TID)
                 ROUTING_HEADER: begin
                     s_axis_resp_in.TREADY = '1;
                     

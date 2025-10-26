@@ -16,6 +16,8 @@
     `define PATH "./modelsim/"
 `endif
 
+`define TEST
+
 module sm_rom
 #(
     parameter SIZE = 128,
@@ -32,71 +34,11 @@ module sm_rom
 
         `ifdef TEST
 
-            `ifdef SELF_WRITE
-
-                if (NODE_ID == 1) begin
-                    rom[0] = 32'h00500293;
-                    rom[1] = 32'h005282b3;
-                    rom[2] = 32'h5e51afa3;
-                    rom[3] = 32'h5ff1a303;
-                    rom[4] = 32'hfe000ae3;
-                end
-                else begin
-                    rom[0] = 32'h00000063;
-                end
-            
-            `elsif WRITE_TO_ANOTHER
-
-                if (NODE_ID == 1) begin
-                    rom[0] = 32'h00500293;
-                    rom[1] = 32'h40018393;
-                    rom[2] = 32'h5ff38393;
-                    rom[3] = 32'h005282b3;
-                    rom[4] = 32'h0053a023;
-                    rom[5] = 32'h0003a303;
-                    rom[6] = 32'hfe000ae3;
-                end
-                else begin
-                    rom[0] = 32'h00000063;
-                end
-            
-            `elsif CROSS_WRITE
-
-                if (NODE_ID == 1) begin
-                    rom[0] = 32'h00500293;
-                    rom[1] = 32'h40018393;
-                    rom[2] = 32'h5ff38393;
-                    rom[3] = 32'h005282b3;
-                    rom[4] = 32'h0053a023;
-                    rom[5] = 32'h0003a303;
-                    rom[6] = 32'hfe000ae3;
-                end
-                else if (NODE_ID == 2) begin
-                    rom[0] = 32'h00500293;
-                    rom[1] = 32'h20018393;
-                    rom[2] = 32'h3ff38393;
-                    rom[3] = 32'h005282b3;
-                    rom[4] = 32'h0053a023;
-                    rom[5] = 32'h0003a303;
-                    rom[6] = 32'hfe000ae3;
-                end
-                else begin
-                    rom[0] = 32'h00000063;
-                end
-
-            `elsif SIMULTANEOUS_READ
-
-                if (NODE_ID != 1) begin
-                    rom[0] = 32'h5ff1a303;
-                    rom[1] = 32'hfe000ee3;
-                end
-                else begin
-                    rom[0] = 32'h00500293;
-                    rom[1] = 32'h5e51afa3;
-                    rom[2] = 32'h00000063;
-                end
-
-            `endif
+            rom[0] = 32'h61400293;
+            rom[1] = 32'h08000313;
+            rom[2] = 32'h00532023;
+            rom[3] = 32'h00032383;
+            rom[4] = 32'h00000063;
             
         `else
             if (NODE_ID == 0) begin

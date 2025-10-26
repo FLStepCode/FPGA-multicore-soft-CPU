@@ -2,43 +2,45 @@ module tb_mesh (
     input aclk,
     input aresetn,
 
-    output logic awready[9],
-    input  logic awvalid[9],
-    input  logic [3:0] awid[9],
-    input  logic [19:0] awaddr[9],
-    input  logic [7:0] awlen[9],
-    input  logic [2:0] awsize[9],
-    input  logic [1:0] awburst[9],
+    output logic awready[16],
+    input  logic awvalid[16],
+    input  logic [3:0] awid[16],
+    input  logic [15:0] awaddr[16],
+    input  logic [7:0] awlen[16],
+    input  logic [2:0] awsize[16],
+    input  logic [1:0] awburst[16],
 
-    output logic wready[9],
-    input  logic wvalid[9],
-    input  logic [31:0] wdata[9],
-    input  logic [3:0] wstrb[9],
-    input  logic wlast[9],
+    output logic wready[16],
+    input  logic wvalid[16],
+    input  logic [7:0] wdata[16],
+    input  logic wstrb[16],
+    input  logic wlast[16],
 
-    output logic bvalid[9],
-    output logic [3:0] bid[9],
-    input  logic bready[9],
+    output logic bvalid[16],
+    output logic [3:0] bid[16],
+    input  logic bready[16],
 
-    output logic arready[9],
-    input  logic arvalid[9],
-    input  logic [3:0] arid[9],
-    input  logic [19:0] araddr[9],
-    input  logic [7:0] arlen[9],
-    input  logic [2:0] arsize[9],
-    input  logic [1:0] arburst[9],
+    output logic arready[16],
+    input  logic arvalid[16],
+    input  logic [3:0] arid[16],
+    input  logic [15:0] araddr[16],
+    input  logic [7:0] arlen[16],
+    input  logic [2:0] arsize[16],
+    input  logic [1:0] arburst[16],
 
-    output logic rvalid[9],
-    output logic [3:0] rid[9],
-    output logic [31:0] rdata[9],
-    output logic rlast[9],
-    input  logic rready[9]
+    output logic rvalid[16],
+    output logic [3:0] rid[16],
+    output logic [7:0] rdata[16],
+    output logic rlast[16],
+    input  logic rready[16]
     
 );
-    axi_if axi[9](), axi_ram[9]();
+    axi_if #(
+        .DATA_WIDTH(8)
+    ) axi[16](), axi_ram[16]();
 
     generate
-        for (genvar i = 0; i < 9; i++) begin : map_wires
+        for (genvar i = 0; i < 16; i++) begin : map_wires
             always_comb begin
                 axi[i].AWVALID = awvalid[i];
                 axi[i].AWID    = awid[i];
@@ -84,7 +86,7 @@ module tb_mesh (
     );
 
     generate
-        for (genvar i = 0; i < 9; i++) begin : map_rams
+        for (genvar i = 0; i < 16; i++) begin : map_rams
             axi_ram ram (
                 .clk(aclk),
                 .rst_n(aresetn),

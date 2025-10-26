@@ -8,35 +8,32 @@
  *                        Aleksandr Romanov 
  */ 
 
-module sr_cpu #(
-    parameter NODE_ID = 0
-) (
-    input           clk,        // clock
-    input           rst_n,      // reset
-    input   [ 4:0]  regAddr,    // debug access reg address
-    output  [31:0]  regData,    // debug access reg data
+module sr_cpu
+(
+    input   logic         clk,        // clock
+    input   logic         rst_n,      // reset
+    input   logic [ 4:0]  regAddr,    // debug access reg address
+    output  logic [31:0]  regData,    // debug access reg data
+    output  logic [31:0]  imAddr,     // instruction memory address
+    input   logic [31:0]  imData,     // instruction memory data
 
-    // connection to ram controller
-    input[31:0] dataToCpu,
-    input instrSuccess,
-    output[31:0] dataFromCpu,
-    output[31:0] ramAddress,
-    output[2:0] aguInstructionOut
+    output  logic         mem_wr_o,
+    output  logic [15:0]  mem_addr_o,
+    output  logic         mem_req_valid_o,
+    input   logic         mem_req_ready_i,
+    output  logic         mem_resp_ready_o,
+    input   logic         mem_resp_valid_i,
+    output  logic [31:0]  mem_wdata_o,
+    input   logic [31:0]  mem_rdata_i
 );
-
-    wire    [31:0]  imAddr;
-    wire    [31:0]  imData;
-    sm_rom #(.NODE_ID(NODE_ID)) reset_rom(imAddr, imData);
 
     //control wires
     wire        aluZero;
     wire        pcSrc;
     wire        regWrite;
-    wire        aluSrc;
+    wire  [1:0] aluSrc;
     wire  [1:0] wdSrc;
     wire  [2:0] aluControl;
-    wire  [2:0] aguControl;
-    wire        cpuPause_n;
 
     //instruction decode wires
     wire [ 6:0] cmdOp;
@@ -54,14 +51,15 @@ module sr_cpu #(
     wire [31:0] pc;
     wire [31:0] pcBranch = pc + immB;
     wire [31:0] pcPlus4  = pc + 4;
-    wire [31:0] pcNext   = cpuPause_n ? (pcSrc ? pcBranch : pcPlus4) : pc;
-    sm_register r_pc(clk, rst_n, pcNext, pc);
+    wire [31:0] pcNext   = pcSrc ? pcBranch : pcPlus4;
+
+    logic pc_we;
+
+    sm_register_we r_pc(clk, rst_n, pc_we, pcNext, pc);
 
     //program memory access
     assign imAddr = pc >> 2;
-    wire [31:0] instr = rst_n ? imData : 0;
-
-    //data memory access
+    wire [31:0] instr = imData;
 
     //instruction decode
     sr_decode id (
@@ -74,7 +72,7 @@ module sr_cpu #(
         .cmdF7      ( cmdF7        ),
         .immI       ( immI         ),
         .immB       ( immB         ),
-        .immU       ( immU         ), 
+        .immU       ( immU         ),
         .immS       ( immS         )
     );
 
@@ -82,7 +80,10 @@ module sr_cpu #(
     wire [31:0] rd0;
     wire [31:0] rd1;
     wire [31:0] rd2;
-    reg [31:0] wd3;
+    wire [31:0] wd3;
+
+    assign mem_resp_ready_o = 1;
+    assign mem_wdata_o      = rd2;
 
     sm_register_file rf (
         .clk        ( clk          ),
@@ -101,7 +102,8 @@ module sr_cpu #(
     assign regData = (regAddr != 0) ? rd0 : pc;
 
     //alu
-    wire [31:0] srcB = aluSrc ? immI : rd2;
+    wire [31:0] srcB = (aluSrc == 2'b00) ? rd2 :
+                       (aluSrc == 2'b01) ? immI : immS;
     wire [31:0] aluResult;
 
     sr_alu alu (
@@ -112,42 +114,30 @@ module sr_cpu #(
         .result     ( aluResult    ) 
     );
 
-    sr_agu agu (
-        .srcR1      ( rd1          ),
-        .srcI       ( immI         ),
-        .srcS       ( immS         ),
-        .srcD       ( rd2          ),
-        .oper       ( aguControl   ),
-        .memData    ( dataFromCpu   ),
-        .memAddress ( ramAddress ),
-        .memInstr   ( aguInstructionOut ),
-        .cpuPause_n  ( cpuPause_n ),
-        .instrSuccess( instrSuccess )
-    );
-
-    always @(*) begin
-        case (wdSrc)
-            2'b00: wd3 = aluResult;
-            2'b01: wd3 = immU;
-            default: wd3 = dataToCpu;
-        endcase
-    end
+    assign wd3 = (wdSrc == 2'b00) ? aluResult :
+                 (wdSrc == 2'b01) ? immU : mem_rdata_i;
+    assign mem_addr_o = aluResult;
 
     //control
     sr_control sm_control (
-        .cmdOp      ( cmdOp        ),
-        .cmdF3      ( cmdF3        ),
-        .cmdF7      ( cmdF7        ),
-        .aluZero    ( aluZero      ),
-        .pcSrc      ( pcSrc        ),
-        .regWrite   ( regWrite     ),
-        .aluSrc     ( aluSrc       ),
-        .wdSrc      ( wdSrc        ),
-        .aluControl ( aluControl   ),
-        .aguControl ( aguControl   ) 
+        .clk              ( clk              ),
+        .rst_n            ( rst_n            ),
+
+        .cmdOp            ( cmdOp            ),
+        .cmdF3            ( cmdF3            ),
+        .cmdF7            ( cmdF7            ),
+        .aluZero          ( aluZero          ),
+        .mem_resp_valid_i ( mem_resp_valid_i ),
+        .mem_req_ready_i  ( mem_req_ready_i  ),
+        .pc_we            ( pc_we            ),
+        .pcSrc            ( pcSrc            ),
+        .regWrite         ( regWrite         ),
+        .aluSrc           ( aluSrc           ),
+        .wdSrc            ( wdSrc            ),
+        .aluControl       ( aluControl       ),
+        .mem_req_valid_o  ( mem_req_valid_o  ),
+        .mem_wr_o         ( mem_wr_o         )
     );
-
-
 
 endmodule
 
@@ -163,7 +153,7 @@ module sr_decode
     output reg [31:0] immI,
     output reg [31:0] immB,
     output reg [31:0] immU,
-    output reg [31:0] immS 
+    output reg [31:0] immS
 );
     assign cmdOp = instr[ 6: 0];
     assign rd    = instr[11: 7];
@@ -204,29 +194,39 @@ endmodule
 
 module sr_control
 (
+    input            clk,
+    input            rst_n,
+
     input     [ 6:0] cmdOp,
     input     [ 2:0] cmdF3,
     input     [ 6:0] cmdF7,
     input            aluZero,
+    input            mem_resp_valid_i,
+    input            mem_req_ready_i,
     output           pcSrc, 
+    output reg       pc_we,
     output reg       regWrite, 
-    output reg       aluSrc,
+    output reg [1:0] aluSrc,
     output reg [1:0] wdSrc,
     output reg [2:0] aluControl,
-    output reg [2:0] aguControl
+    output reg       mem_req_valid_o,
+    output reg       mem_wr_o
 );
     reg          branch;
     reg          condZero;
+    reg          handshake_was;
     assign pcSrc = branch & (aluZero == condZero);
 
     always @ (*) begin
-        branch      = 1'b0;
-        condZero    = 1'b0;
-        regWrite    = 1'b0;
-        aluSrc      = 1'b0;
-        wdSrc       = 2'b00;
-        aluControl  = `ALU_IDLE;
-        aguControl  = `AGU_IDLE;
+        branch          = 1'b0;
+        condZero        = 1'b0;
+        regWrite        = 1'b0;
+        aluSrc          = 2'b00;
+        wdSrc           = 2'b00;
+        aluControl      = `ALU_ADD;
+        pc_we           = 1'b1;
+        mem_req_valid_o = 1'b0;
+        mem_wr_o        = 1'b0;
 
         casez( {cmdF7, cmdF3, cmdOp} )
             { `RVF7_ADD,  `RVF3_ADD,  `RVOP_ADD  } : begin regWrite = 1'b1; aluControl = `ALU_ADD;  end
@@ -234,18 +234,29 @@ module sr_control
             { `RVF7_SRL,  `RVF3_SRL,  `RVOP_SRL  } : begin regWrite = 1'b1; aluControl = `ALU_SRL;  end
             { `RVF7_SLTU, `RVF3_SLTU, `RVOP_SLTU } : begin regWrite = 1'b1; aluControl = `ALU_SLTU; end
             { `RVF7_SUB,  `RVF3_SUB,  `RVOP_SUB  } : begin regWrite = 1'b1; aluControl = `ALU_SUB;  end
-            { `RVF7_MUL,  `RVF3_MUL,  `RVOP_MUL  } : begin regWrite = 1'b1; aluControl = `ALU_MUL;  end
 
-            { `RVF7_ANY,  `RVF3_ADDI, `RVOP_ADDI } : begin regWrite = 1'b1; aluSrc = 1'b1; aluControl = `ALU_ADD; end
+            { `RVF7_ANY,  `RVF3_ADDI, `RVOP_ADDI } : begin regWrite = 1'b1; aluSrc = 2'b01; aluControl = `ALU_ADD; end
             { `RVF7_ANY,  `RVF3_ANY,  `RVOP_LUI  } : begin regWrite = 1'b1; wdSrc  = 2'b01; end
-            { `RVF7_ANY,  `RVF3_LW,   `RVOP_LW   } : begin regWrite = 1'b1; wdSrc  = 2'b10; aguControl = `AGU_LOAD; end
-            { `RVF7_ANY,  `RVF3_SW,   `RVOP_SW   } : begin aguControl = `AGU_STORE; end
+            { `RVF7_ANY,  `RVF3_LW,   `RVOP_LW   } : begin regWrite = 1'b1; aluSrc = 2'b01; wdSrc = 2'b10; aluControl = `ALU_ADD; pc_we = mem_resp_valid_i; mem_req_valid_o = !handshake_was; mem_wr_o = 1'b0; end
+            { `RVF7_ANY,  `RVF3_SW,   `RVOP_SW   } : begin                  aluSrc = 2'b10; aluControl = `ALU_ADD; pc_we = mem_resp_valid_i; mem_req_valid_o = !handshake_was; mem_wr_o = 1'b1; end
 
-            { `RVF7_ANY,  `RVF3_BEQ,  `RVOP_BEQ  } : begin; branch = 1'b1; condZero = 1'b1; aluControl = `ALU_SUB; end
+            { `RVF7_ANY,  `RVF3_BEQ,  `RVOP_BEQ  } : begin branch = 1'b1; condZero = 1'b1; aluControl = `ALU_SUB; end
             { `RVF7_ANY,  `RVF3_BNE,  `RVOP_BNE  } : begin branch = 1'b1; aluControl = `ALU_SUB; end
-            default: begin
-            end
         endcase
+    end
+
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            handshake_was <= '0;
+        end
+        else begin
+            if (mem_req_valid_o && mem_req_ready_i) begin
+                handshake_was <= '1;
+            end
+            if (mem_resp_valid_i) begin
+                handshake_was <= '0;
+            end
+        end
     end
 endmodule
 
@@ -264,54 +275,11 @@ module sr_alu
             `ALU_OR   : result = srcA | srcB;
             `ALU_SRL  : result = srcA >> srcB [4:0];
             `ALU_SLTU : result = (srcA < srcB) ? 1 : 0;
-            `ALU_SUB  : result = srcA - srcB;
-            `ALU_MUL  : result = srcA * srcB;
+            `ALU_SUB : result = srcA - srcB;
         endcase
     end
 
     assign zero   = (result == 0);
-endmodule
-
-module sr_agu (
-    input [31:0] srcR1,
-    input [31:0] srcI,
-    input [31:0] srcS,
-    input [31:0] srcD,
-    input [2:0] oper,
-    output reg [31:0] memData,
-    output reg [31:0] memAddress,
-    output reg [2:0] memInstr,
-    output reg cpuPause_n,
-    input instrSuccess
-);
-
-    reg counter;
-
-    integer i;
-
-    always @(*) begin
-        case (oper)
-            default: begin
-                memAddress = 32'hFFFFFFFF;
-                memInstr = 0;
-                memData = 32'hFFFFFFFF;
-                cpuPause_n = 1;
-            end
-            `AGU_LOAD: begin
-                memAddress = srcR1 + srcI;
-                memInstr = oper;
-                memData = 32'hFFFFFFFF;
-                cpuPause_n = instrSuccess;
-            end
-            `AGU_STORE: begin
-                memAddress = srcR1 + srcS;
-                memInstr = oper;
-                memData = srcD;
-                cpuPause_n = instrSuccess;
-            end
-        endcase
-    end
-
 endmodule
 
 module sm_register_file
@@ -328,14 +296,6 @@ module sm_register_file
     input         we3
 );
     reg [31:0] rf [31:0];
-    integer i;
-
-    initial begin
-        for (i = 0; i < 32; i = i + 1)
-        begin
-            rf[i] = 0;
-        end
-    end
 
     assign rd0 = (a0 != 0) ? rf [a0] : 32'b0;
     assign rd1 = (a1 != 0) ? rf [a1] : 32'b0;

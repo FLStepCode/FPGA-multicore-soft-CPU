@@ -1,12 +1,16 @@
 module XY_mesh_dual #(
     parameter ADDR_WIDTH = 16,
-    parameter DATA_WIDTH = 32,
+    parameter DATA_WIDTH = 8,
     parameter ID_W_WIDTH = 4,
     parameter ID_R_WIDTH = 4,
     parameter MAX_ID_WIDTH = 4,
 
-    parameter MAX_ROUTERS_X = 3,
-    parameter MAX_ROUTERS_Y = 3,
+    parameter MAX_ROUTERS_X = 4,
+    parameter MAX_ROUTERS_X_WIDTH
+    = $clog2(MAX_ROUTERS_X-1),
+    parameter MAX_ROUTERS_Y = 4,
+    parameter MAX_ROUTERS_Y_WIDTH
+    = $clog2(MAX_ROUTERS_Y-1),
 
     parameter Ax_FIFO_LEN = 4,
     parameter W_FIFO_LEN = 4
@@ -16,6 +20,31 @@ module XY_mesh_dual #(
     axi_if.s s_axi_in[MAX_ROUTERS_X*MAX_ROUTERS_Y],
     axi_if.m m_axi_out[MAX_ROUTERS_X*MAX_ROUTERS_Y]
 );
+
+    localparam ROUTING_HEADER_EFFECTIVE = 8 + (MAX_ROUTERS_X_WIDTH + MAX_ROUTERS_Y_WIDTH) * 2;
+    localparam ROUTING_HEADER_WIDTH = (ROUTING_HEADER_EFFECTIVE / 8 + ((ROUTING_HEADER_EFFECTIVE % 8) != 0)) * 8;
+
+    localparam AW_SUBHEADER_EFFECTIVE = ID_W_WIDTH + ADDR_WIDTH + 8 + 3 + 2;
+    localparam AW_SUBHEADER_WIDTH = (AW_SUBHEADER_EFFECTIVE / 8 + ((AW_SUBHEADER_EFFECTIVE % 8) != 0)) * 8;
+
+    localparam B_SUBHEADER_EFFECTIVE = ID_W_WIDTH;
+    localparam B_SUBHEADER_WIDTH = (B_SUBHEADER_EFFECTIVE / 8 + ((B_SUBHEADER_EFFECTIVE % 8) != 0)) * 8;
+
+    localparam W_DATA_EFFECTIVE = DATA_WIDTH;
+    localparam W_DATA_WIDTH = (W_DATA_EFFECTIVE / 8 + ((W_DATA_EFFECTIVE % 8) != 0)) * 8;
+
+    localparam AR_SUBHEADER_EFFECTIVE = ID_R_WIDTH + ADDR_WIDTH + 8 + 3 + 2;
+    localparam AR_SUBHEADER_WIDTH = (AR_SUBHEADER_EFFECTIVE / 8 + ((AR_SUBHEADER_EFFECTIVE % 8) != 0)) * 8;
+
+    localparam R_DATA_EFFECTIVE = ID_R_WIDTH + DATA_WIDTH;
+    localparam R_DATA_WIDTH = (R_DATA_EFFECTIVE / 8 + ((R_DATA_EFFECTIVE % 8) != 0)) * 8;
+
+    localparam COMP_1 = (ROUTING_HEADER_WIDTH > AW_SUBHEADER_WIDTH) ? ROUTING_HEADER_WIDTH : AW_SUBHEADER_WIDTH;
+    localparam COMP_2 = (B_SUBHEADER_WIDTH > W_DATA_WIDTH) ? B_SUBHEADER_WIDTH : W_DATA_WIDTH;
+    localparam COMP_3 = (AR_SUBHEADER_WIDTH > R_DATA_WIDTH) ? AR_SUBHEADER_WIDTH : R_DATA_WIDTH;
+
+    localparam COMP_4 = (COMP_1 > COMP_2) ? COMP_1 : COMP_2;
+    localparam AXIS_CHANNEL_WIDTH = (COMP_3 > COMP_4) ? COMP_3 : COMP_4;
 
     typedef enum logic [3:0] {
         HOME_REQ,
@@ -31,11 +60,13 @@ module XY_mesh_dual #(
     } index;
     
     axis_if #(
-        .DATA_WIDTH(40)
+        .DATA_WIDTH(AXIS_CHANNEL_WIDTH),
+        .ID_WIDTH(3)
     ) router_if[MAX_ROUTERS_Y+2][MAX_ROUTERS_X+2][10]();
 
     axis_if #(
-        .DATA_WIDTH(40)
+        .DATA_WIDTH(AXIS_CHANNEL_WIDTH),
+        .ID_WIDTH(3)
     ) from_home[MAX_ROUTERS_Y+2][MAX_ROUTERS_X+2][2]();
 
     generate
@@ -74,6 +105,7 @@ module XY_mesh_dual #(
                     .ID_W_WIDTH(ID_W_WIDTH),
                     .ID_R_WIDTH(ID_R_WIDTH),
                     .MAX_ID_WIDTH(MAX_ID_WIDTH),
+                    .AXIS_CHANNEL_WIDTH(AXIS_CHANNEL_WIDTH),
 
                     .ROUTER_X(j),
                     .MAX_ROUTERS_X(MAX_ROUTERS_X),
@@ -96,7 +128,8 @@ module XY_mesh_dual #(
                 );
                 
                 router_dual #(
-                    .DATA_WIDTH(40),
+                    .DATA_WIDTH(AXIS_CHANNEL_WIDTH),
+                    .ID_WIDTH(3),
                     .ROUTER_X(j),
                     .MAX_ROUTERS_X(MAX_ROUTERS_X),
                     .ROUTER_Y(i),

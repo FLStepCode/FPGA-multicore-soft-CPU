@@ -49,12 +49,12 @@ module arbiter #(
     
     logic [DATA_WIDTH-1:0] TDATA [CHANNEL_NUMBER];
 
-    assign target_x = (out.TVALID && out.TDATA[DATA_WIDTH-1:DATA_WIDTH-PACKET_TYPE_WIDTH] == ROUTING_HEADER) ?
+    assign target_x = (out.TVALID && (out.TID == ROUTING_HEADER)) ?
                         out.TDATA[
                             MAX_ROUTERS_X_WIDTH+MAX_ROUTERS_Y_WIDTH-1:
                             MAX_ROUTERS_X_WIDTH
                         ] : target_x_reg[current_grant];
-    assign target_y = (out.TVALID && out.TDATA[DATA_WIDTH-1:DATA_WIDTH-PACKET_TYPE_WIDTH] == ROUTING_HEADER) ?
+    assign target_y = (out.TVALID && (out.TID == ROUTING_HEADER)) ?
                         out.TDATA[
                             MAX_ROUTERS_X_WIDTH-1:0
                         ] : target_y_reg[current_grant];
@@ -79,7 +79,7 @@ module arbiter #(
             end
         end
         else begin
-            if (out.TVALID && out.TDATA[DATA_WIDTH-1:DATA_WIDTH-PACKET_TYPE_WIDTH] == ROUTING_HEADER) begin
+            if (out.TVALID && (out.TID == ROUTING_HEADER)) begin
                 packages_left[current_grant] <= out.TDATA[
                     (MAX_ROUTERS_X_WIDTH+MAX_ROUTERS_Y_WIDTH) * 2
                     +8-1:
