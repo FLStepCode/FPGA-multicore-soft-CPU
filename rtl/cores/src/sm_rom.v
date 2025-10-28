@@ -16,7 +16,7 @@
     `define PATH "./modelsim/"
 `endif
 
-`define TEST
+`define SINGLE_CORE
 
 module sm_rom
 #(

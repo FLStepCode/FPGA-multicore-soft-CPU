@@ -3,7 +3,7 @@ module sr_cpu_axi
     input   logic         clk,  
     input   logic         rst_n,
 
-    axi_if.m s_axi
+    axi_if.m m_axi
 );
 
     logic         mem_wr;
@@ -56,7 +56,7 @@ module sr_cpu_axi
         .mem_wdata_i      (mem_wdata),
         .mem_rdata_o      (mem_rdata),
 
-        .s_axi            (s_axi)
+        .m_axi            (m_axi)
     );
 
 endmodule

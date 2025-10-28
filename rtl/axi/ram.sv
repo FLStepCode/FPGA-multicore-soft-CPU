@@ -6,7 +6,7 @@ module ram #(
     ram_if.s ports
 );
 
-logic [BYTE_WIDTH-1:0] ram [2**ADDR_WIDTH-1:0];
+logic [BYTE_WIDTH-1:0] ram [2**ADDR_WIDTH];
 
 always @( posedge clk_a ) begin : mem_a
     begin

@@ -10,8 +10,7 @@ SIM_PATH := $(QUESTA_PATH)/$(SIM_PATH)
 VARS_TCL_PATH := $(SIM_PATH)/vars.tcl
 
 run:
-	rm -rf $(SIM_PATH); \
-	mkdir $(SIM_PATH); \
+	mkdir -p $(SIM_PATH); \
 	
 	@echo set FILES_RTL_PATH $(FILES_RTL_PATH) > $(VARS_TCL_PATH)
 	@echo set FILES_HEX_PATH $(FILES_HEX_PATH) >> $(VARS_TCL_PATH)

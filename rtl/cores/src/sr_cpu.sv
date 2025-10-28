@@ -87,6 +87,7 @@ module sr_cpu
 
     sm_register_file rf (
         .clk        ( clk          ),
+        .rst_n      ( rst_n        ),
         .a0         ( regAddr      ),
         .a1         ( rs1          ),
         .a2         ( rs2          ),
@@ -185,7 +186,7 @@ module sr_decode
 
     // S-immediate
     always @ (*) begin
-        immS[31: 12] = { 20 {1'b0} };
+        immS[31: 12] = { 20 {instr[31]} };
         immS[11: 5] = instr[31:25];
         immS[4:0] = instr[11:7];
     end
@@ -218,13 +219,13 @@ module sr_control
     assign pcSrc = branch & (aluZero == condZero);
 
     always @ (*) begin
+        pc_we           = 1'b1;
         branch          = 1'b0;
         condZero        = 1'b0;
         regWrite        = 1'b0;
         aluSrc          = 2'b00;
         wdSrc           = 2'b00;
         aluControl      = `ALU_ADD;
-        pc_we           = 1'b1;
         mem_req_valid_o = 1'b0;
         mem_wr_o        = 1'b0;
 
@@ -239,6 +240,7 @@ module sr_control
             { `RVF7_ANY,  `RVF3_ANY,  `RVOP_LUI  } : begin regWrite = 1'b1; wdSrc  = 2'b01; end
             { `RVF7_ANY,  `RVF3_LW,   `RVOP_LW   } : begin regWrite = 1'b1; aluSrc = 2'b01; wdSrc = 2'b10; aluControl = `ALU_ADD; pc_we = mem_resp_valid_i; mem_req_valid_o = !handshake_was; mem_wr_o = 1'b0; end
             { `RVF7_ANY,  `RVF3_SW,   `RVOP_SW   } : begin                  aluSrc = 2'b10; aluControl = `ALU_ADD; pc_we = mem_resp_valid_i; mem_req_valid_o = !handshake_was; mem_wr_o = 1'b1; end
+            { `RVF7_MUL,  `RVF3_MUL,  `RVOP_MUL  } : begin regWrite = 1'b1; aluControl = `ALU_MUL;  end
 
             { `RVF7_ANY,  `RVF3_BEQ,  `RVOP_BEQ  } : begin branch = 1'b1; condZero = 1'b1; aluControl = `ALU_SUB; end
             { `RVF7_ANY,  `RVF3_BNE,  `RVOP_BNE  } : begin branch = 1'b1; aluControl = `ALU_SUB; end
@@ -275,7 +277,8 @@ module sr_alu
             `ALU_OR   : result = srcA | srcB;
             `ALU_SRL  : result = srcA >> srcB [4:0];
             `ALU_SLTU : result = (srcA < srcB) ? 1 : 0;
-            `ALU_SUB : result = srcA - srcB;
+            `ALU_SUB  : result = srcA - srcB;
+            `ALU_MUL  : result = srcA * srcB;
         endcase
     end
 
@@ -285,6 +288,7 @@ endmodule
 module sm_register_file
 (
     input         clk,
+    input         rst_n,
     input  [ 4:0] a0,
     input  [ 4:0] a1,
     input  [ 4:0] a2,
@@ -301,6 +305,12 @@ module sm_register_file
     assign rd1 = (a1 != 0) ? rf [a1] : 32'b0;
     assign rd2 = (a2 != 0) ? rf [a2] : 32'b0;
 
-    always @ (posedge clk)
-        if(we3) rf [a3] <= wd3;
+    always_ff @ (posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            rf <= '{default:'0};
+        end
+        else begin
+            if(we3) rf [a3] <= wd3;
+        end
+    end
 endmodule

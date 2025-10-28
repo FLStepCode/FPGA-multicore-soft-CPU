@@ -9,6 +9,8 @@ tb/tb_ram/tb_axi_ram.sv
 tb/tb_demux/tb_demux.sv 
 tb/tb_mux/tb_mux.sv 
 tb/tb_cpu/tb_cpu.sv
+tb/tb_cpu/tb_cpu_tb.sv
+tb/tb_cpu/tb_mesh_cpu.sv
 tb/router/tb_queue/tb_queue.sv
 tb/router/tb_router/tb_router.sv
 tb/router/tb_mesh/tb_mesh.sv
@@ -27,6 +29,7 @@ axi/router/src/router.sv
 axi/router/src/router_dual.sv
 axi/XY_mesh/XY_mesh.sv
 axi/XY_mesh/XY_mesh_dual.sv
+axi/XY_mesh/XY_mesh_dual_cpu.sv
 axi/axi_demux.sv
 axi/axi_if.sv
 axi/axi_mux.sv

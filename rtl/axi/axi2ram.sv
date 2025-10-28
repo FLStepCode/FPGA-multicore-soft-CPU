@@ -77,7 +77,9 @@ module axi2ram
         axi_s.RID = ARID;
 
         for (int i = 0; i < WSRTB_W; i++) begin
-            addr_a[i] = ARADDR;
+            addr_a[i] = r_state == RESPONDING ? (ARBURST == 2'b01) ? ARADDR + axi_s.RREADY : 
+                        (ARBURST == 2'b10) ? (ARADDR + axi_s.RREADY > 2**ADDR_WIDTH-1 ? '0 : ARADDR + axi_s.RREADY) : ARADDR
+                        : ARADDR;
             write_en_a[i] = 1'b0;
             write_a[i] = '0;
             axi_s.RDATA[i*8 +: 8] = data_a[i];
@@ -175,24 +177,6 @@ module axi2ram
                 ARBURST <= axi_s.ARBURST;
             end
             REQUESTING_DATA: begin
-                if(axi_s.RREADY) begin
-                    ARLEN <= (ARLEN == 0) ? '0 : ARLEN - 1'b1;
-
-                    case (ARBURST)
-                        2'b01: begin
-                            ARADDR <= ARADDR + 1'b1;
-                        end
-                        2'b10: begin
-                            if(ARADDR + 1'b1 > 2**ADDR_WIDTH-1) begin
-                                ARADDR <= '0;
-                            end
-                            else begin
-                                ARADDR <= ARADDR + 1'b1;
-                            end
-                        end
-                    endcase
-
-                end
             end
             RESPONDING: begin
                 if(axi_s.RREADY) begin

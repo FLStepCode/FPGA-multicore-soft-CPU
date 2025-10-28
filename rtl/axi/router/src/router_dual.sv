@@ -16,7 +16,7 @@ module router_dual #(
     parameter CHANNEL_NUMBER = 10,
     parameter CHANNEL_NUMBER_WIDTH
     = $clog2(CHANNEL_NUMBER),
-    parameter BUFFER_LENGTH = 2,
+    parameter BUFFER_LENGTH = 16,
     parameter MAX_ROUTERS_X = 4,
     parameter MAX_ROUTERS_X_WIDTH
     = $clog2(MAX_ROUTERS_X),

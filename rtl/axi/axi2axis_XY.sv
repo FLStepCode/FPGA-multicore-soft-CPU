@@ -73,31 +73,6 @@ module axi2axis_XY #(
         logic [DATA_WIDTH-1:0] DATA;
     } r_data;
 
-    // AW channel
-    logic AWVALID_fifo;
-    logic AWREADY_fifo;
-    logic [ID_W_WIDTH-1:0] AWID_fifo;
-    logic [ADDR_WIDTH-1:0] AWADDR_fifo;
-    logic [7:0] AWLEN_fifo;
-    logic [2:0] AWSIZE_fifo;
-    logic [1:0] AWBURST_fifo;
-
-    // W channel
-    logic WVALID_fifo;
-    logic WREADY_fifo;
-    logic [DATA_WIDTH-1:0] WDATA_fifo;
-    logic [(DATA_WIDTH/8)-1:0] WSTRB_fifo;
-    logic WLAST_fifo;
-
-    // AR channel 
-    logic ARVALID_fifo;
-    logic ARREADY_fifo;
-    logic [ID_R_WIDTH-1:0] ARID_fifo;
-    logic [ADDR_WIDTH-1:0] ARADDR_fifo;
-    logic [7:0] ARLEN_fifo;
-    logic [2:0] ARSIZE_fifo;
-    logic [1:0] ARBURST_fifo;
-
     // response coordinate logic
     logic [8:0] RRESP_LEN, RRESP_LEN_next;
     logic [MAX_ROUTERS_X_WIDTH-1:0] ROUTING_SOURCE_X, ROUTING_SOURCE_X_next;
@@ -106,57 +81,7 @@ module axi2axis_XY #(
     logic [MAX_ROUTERS_Y_WIDTH-1:0] RRESP_DESTINATION_Y, RRESP_DESTINATION_Y_next;
     logic [MAX_ROUTERS_X_WIDTH-1:0] BRESP_DESTINATION_X, BRESP_DESTINATION_X_next;
     logic [MAX_ROUTERS_Y_WIDTH-1:0] BRESP_DESTINATION_Y, BRESP_DESTINATION_Y_next;
-
-    stream_fifo #(
-        .DATA_TYPE(logic [ID_W_WIDTH + ADDR_WIDTH + 8 + 3 + 2 - 1:0]),
-        .FIFO_LEN(Ax_FIFO_LEN)
-    ) stream_fifo_aw (
-        .ACLK(ACLK),
-        .ARESETn(ARESETn),
-
-        .data_i({s_axi_in.AWID, s_axi_in.AWADDR, s_axi_in.AWLEN, s_axi_in.AWSIZE, s_axi_in.AWBURST}),
-        .valid_i(s_axi_in.AWVALID),
-        .ready_o(s_axi_in.AWREADY),
-
-        .data_o({AWID_fifo, AWADDR_fifo, AWLEN_fifo, AWSIZE_fifo, AWBURST_fifo}),
-        .valid_o(AWVALID_fifo),
-        .ready_i(AWREADY_fifo)
-    );
-
-    stream_fifo #(
-        .DATA_TYPE(logic [DATA_WIDTH + (DATA_WIDTH/8) + 1 - 1:0]),
-        .FIFO_LEN(W_FIFO_LEN)
-    ) stream_fifo_w (
-        .ACLK(ACLK),
-        .ARESETn(ARESETn),
-
-        .data_i({s_axi_in.WDATA, s_axi_in.WSTRB, s_axi_in.WLAST}),
-        .valid_i(s_axi_in.WVALID),
-        .ready_o(s_axi_in.WREADY),
-
-        .data_o({WDATA_fifo, WSTRB_fifo, WLAST_fifo}),
-        .valid_o(WVALID_fifo),
-        .ready_i(WREADY_fifo)
-    );
-
-    stream_fifo #(
-        .DATA_TYPE(logic [ID_R_WIDTH + ADDR_WIDTH + 8 + 3 + 2 - 1:0]),
-        .FIFO_LEN(Ax_FIFO_LEN)
-    ) stream_fifo_ar (
-        .ACLK(ACLK),
-        .ARESETn(ARESETn),
-
-        .data_i({s_axi_in.ARID, s_axi_in.ARADDR, s_axi_in.ARLEN, s_axi_in.ARSIZE, s_axi_in.ARBURST}),
-        .valid_i(s_axi_in.ARVALID),
-        .ready_o(s_axi_in.ARREADY),
-
-        .data_o({ARID_fifo, ARADDR_fifo, ARLEN_fifo, ARSIZE_fifo, ARBURST_fifo}),
-        .valid_o(ARVALID_fifo),
-        .ready_i(ARREADY_fifo)
-    );
     
-    
-    logic [3:0] VALID_arbiter_i;
 
     packet_type AW;
     packet_type AR;
@@ -183,7 +108,7 @@ module axi2axis_XY #(
         .ARESETn(ARESETn),
 
         .data_i('{AR, AW}),
-        .valid_i('{AWVALID_fifo, ARVALID_fifo}),
+        .valid_i('{s_axi_in.AWVALID, s_axi_in.ARVALID}),
         // .ready_o(READY_arbiter_o),
 
         .data_o(request_data_o),
@@ -219,24 +144,24 @@ module axi2axis_XY #(
 
     always_comb begin
         aw_subheader_out.RESERVED = '0;
-        aw_subheader_out.ID = AWID_fifo;
-        aw_subheader_out.ADDR = AWADDR_fifo;
-        aw_subheader_out.LEN = AWLEN_fifo;
-        aw_subheader_out.SIZE = AWSIZE_fifo;
-        aw_subheader_out.BURST = AWBURST_fifo;
+        aw_subheader_out.ID = s_axi_in.AWID;
+        aw_subheader_out.ADDR = s_axi_in.AWADDR;
+        aw_subheader_out.LEN = s_axi_in.AWLEN;
+        aw_subheader_out.SIZE = s_axi_in.AWSIZE;
+        aw_subheader_out.BURST = s_axi_in.AWBURST;
 
         w_data_out.RESERVED = '0;
-        w_data_out.DATA = WDATA_fifo;
+        w_data_out.DATA = s_axi_in.WDATA;
 
         b_subheader_out.RESERVED = '0;
         b_subheader_out.ID = m_axi_out.BID;
 
         ar_subheader_out.RESERVED = '0;
-        ar_subheader_out.ID = ARID_fifo;
-        ar_subheader_out.ADDR = ARADDR_fifo;
-        ar_subheader_out.LEN = ARLEN_fifo;
-        ar_subheader_out.SIZE = ARSIZE_fifo;
-        ar_subheader_out.BURST = ARBURST_fifo;
+        ar_subheader_out.ID = s_axi_in.ARID;
+        ar_subheader_out.ADDR = s_axi_in.ARADDR;
+        ar_subheader_out.LEN = s_axi_in.ARLEN;
+        ar_subheader_out.SIZE = s_axi_in.ARSIZE;
+        ar_subheader_out.BURST = s_axi_in.ARBURST;
 
         r_data_out.RESERVED = '0;
         r_data_out.ID = m_axi_out.RID;
@@ -279,7 +204,7 @@ module axi2axis_XY #(
                 end
             end
             W_SEND: begin
-                if (WREADY_fifo && WVALID_fifo && WLAST_fifo) begin
+                if (s_axi_in.WREADY && s_axi_in.WVALID && s_axi_in.WLAST) begin
                     out_req_state_next = GENERATE_HEADER;
                 end
                 else begin
@@ -287,7 +212,7 @@ module axi2axis_XY #(
                 end
             end
             AR_SEND: begin
-                if (ARREADY_fifo && ARVALID_fifo) begin
+                if (s_axi_in.ARREADY && s_axi_in.ARVALID) begin
                     out_req_state_next = GENERATE_HEADER;
                 end
                 else begin
@@ -307,13 +232,13 @@ module axi2axis_XY #(
                     routing_header_req_out.RESERVED = '0;
 
                     if (request_data_o == AW_SUBHEADER) begin
-                        routing_header_req_out.DESTINATION_X = (AWID_fifo - 1) % MAX_ROUTERS_X;
-                        routing_header_req_out.DESTINATION_Y = (AWID_fifo - 1) / MAX_ROUTERS_X;
-                        routing_header_req_out.PACKET_COUNT = AWLEN_fifo + 2;
+                        routing_header_req_out.DESTINATION_X = (s_axi_in.AWID - 1) % MAX_ROUTERS_X;
+                        routing_header_req_out.DESTINATION_Y = (s_axi_in.AWID - 1) / MAX_ROUTERS_X;
+                        routing_header_req_out.PACKET_COUNT = s_axi_in.AWLEN + 2;
                     end
                     else if (request_data_o == AR_SUBHEADER) begin
-                        routing_header_req_out.DESTINATION_X = (ARID_fifo - 1) % MAX_ROUTERS_X;
-                        routing_header_req_out.DESTINATION_Y = (ARID_fifo - 1) / MAX_ROUTERS_X;
+                        routing_header_req_out.DESTINATION_X = (s_axi_in.ARID - 1) % MAX_ROUTERS_X;
+                        routing_header_req_out.DESTINATION_Y = (s_axi_in.ARID - 1) / MAX_ROUTERS_X;
                         routing_header_req_out.PACKET_COUNT = 1;
                     end
                     else begin
@@ -324,7 +249,7 @@ module axi2axis_XY #(
                     routing_header_req_out.SOURCE_Y = ROUTER_Y;
 
 
-                    WREADY_fifo = '0;
+                    s_axi_in.WREADY = '0;
                     request_ready_i = '0;
 
                     m_axis_req_out.TID = ROUTING_HEADER;
@@ -332,13 +257,13 @@ module axi2axis_XY #(
                     m_axis_req_out.TDATA = routing_header_req_out;
                     m_axis_req_out.TSTRB = '1;
                     m_axis_req_out.TLAST = '0;
-                    AWREADY_fifo = '0;
-                    ARREADY_fifo = '0;
+                    s_axi_in.AWREADY = '0;
+                    s_axi_in.ARREADY = '0;
                 end
                 else begin
                     routing_header_req_out = '0;
 
-                    WREADY_fifo = '0;
+                    s_axi_in.WREADY = '0;
                     request_ready_i = '0;
 
                     m_axis_req_out.TID = '0;
@@ -346,14 +271,14 @@ module axi2axis_XY #(
                     m_axis_req_out.TDATA = '0;
                     m_axis_req_out.TSTRB = '1;
                     m_axis_req_out.TLAST = '0;
-                    AWREADY_fifo = '0;
-                    ARREADY_fifo = '0;
+                    s_axi_in.AWREADY = '0;
+                    s_axi_in.ARREADY = '0;
                 end
             end
             AW_SEND: begin
                 routing_header_req_out = '0;
 
-                WREADY_fifo = '0;
+                s_axi_in.WREADY = '0;
                 request_ready_i = '0;
 
                 m_axis_req_out.TID = AW_SUBHEADER;
@@ -361,42 +286,42 @@ module axi2axis_XY #(
                 m_axis_req_out.TDATA = aw_subheader_out;
                 m_axis_req_out.TSTRB = '1;
                 m_axis_req_out.TLAST = '0;
-                AWREADY_fifo = '0;
-                ARREADY_fifo = '0;
+                s_axi_in.AWREADY = '0;
+                s_axi_in.ARREADY = '0;
 
             end
             W_SEND: begin
                 routing_header_req_out = '0;
                 
-                WREADY_fifo = m_axis_req_out.TREADY;
-                request_ready_i = m_axis_req_out.TREADY & WVALID_fifo & WLAST_fifo;
+                s_axi_in.WREADY = m_axis_req_out.TREADY;
+                request_ready_i = m_axis_req_out.TREADY & s_axi_in.WVALID & s_axi_in.WLAST;
 
                 m_axis_req_out.TID = W_DATA;
-                m_axis_req_out.TVALID = WVALID_fifo;
+                m_axis_req_out.TVALID = s_axi_in.WVALID;
                 m_axis_req_out.TDATA = w_data_out;
-                m_axis_req_out.TSTRB = WSTRB_fifo;
-                m_axis_req_out.TLAST = WVALID_fifo & WLAST_fifo;
-                AWREADY_fifo = m_axis_req_out.TREADY & WVALID_fifo & WLAST_fifo;
-                ARREADY_fifo = '0;
+                m_axis_req_out.TSTRB = s_axi_in.WSTRB;
+                m_axis_req_out.TLAST = s_axi_in.WVALID & s_axi_in.WLAST;
+                s_axi_in.AWREADY = m_axis_req_out.TREADY & s_axi_in.WVALID & s_axi_in.WLAST;
+                s_axi_in.ARREADY = '0;
             end
             AR_SEND: begin
                 routing_header_req_out = '0;
 
-                WREADY_fifo = '0;
-                request_ready_i = ARVALID_fifo & m_axis_req_out.TREADY;
+                s_axi_in.WREADY = '0;
+                request_ready_i = s_axi_in.ARVALID & m_axis_req_out.TREADY;
 
                 m_axis_req_out.TID = AR_SUBHEADER;
-                m_axis_req_out.TVALID = ARVALID_fifo;
+                m_axis_req_out.TVALID = s_axi_in.ARVALID;
                 m_axis_req_out.TDATA = ar_subheader_out;
                 m_axis_req_out.TSTRB = '1;
                 m_axis_req_out.TLAST = 1;
-                AWREADY_fifo = '0;
-                ARREADY_fifo = m_axis_req_out.TREADY;
+                s_axi_in.AWREADY = '0;
+                s_axi_in.ARREADY = m_axis_req_out.TREADY;
             end
             default: begin
                 routing_header_req_out = '0;
 
-                WREADY_fifo = '0;
+                s_axi_in.WREADY = '0;
                 request_ready_i = '0;
 
                 m_axis_req_out.TID = '0;
@@ -404,8 +329,8 @@ module axi2axis_XY #(
                 m_axis_req_out.TDATA = '0;
                 m_axis_req_out.TSTRB = '1;
                 m_axis_req_out.TLAST = '0;
-                AWREADY_fifo = '0;
-                ARREADY_fifo = '0;
+                s_axi_in.AWREADY = '0;
+                s_axi_in.ARREADY = '0;
             end
         endcase
     end

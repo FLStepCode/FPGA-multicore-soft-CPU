@@ -20,7 +20,41 @@ module stream_fifo #(
     logic [ADDR_WIDTH-1:0] read_ptr, read_ptr_reg;
     logic [ADDR_WIDTH-1:0] write_ptr;
     logic [ADDR_WIDTH:0] count;
-    
+
+    assign data_o = fifo_mem[read_ptr];
+
+    assign valid_o = (count > 0);
+    assign ready_o = !(count == FIFO_LEN);
+
+    always_ff @(posedge ACLK or negedge ARESETn) begin
+        if (!ARESETn) begin
+            read_ptr <= 0;
+            write_ptr <= 0;
+            count <= 0;
+        end
+        else begin
+            if (valid_i && ready_o) begin
+                write_ptr <= (write_ptr == (FIFO_LEN - 1)) ? 0 : write_ptr + 1;
+            end
+            if (valid_o && ready_i) begin
+                read_ptr <= (read_ptr == (FIFO_LEN - 1)) ? 0 : read_ptr + 1;
+            end
+
+            if (valid_i && ready_o && !(valid_o && ready_i)) begin
+                count <= count + 1;
+            end
+            else if (!(valid_i && ready_o) && (valid_o && ready_i)) begin
+                count <= count - 1;
+            end
+        end
+    end
+
+    always @(posedge ACLK) begin
+        if (valid_i && ready_o) begin
+            fifo_mem[write_ptr] <= data_i;
+        end
+    end
+    /*
     logic write_handshake;
 
     assign ready_o = !((count != 0) & (read_ptr_reg == write_ptr));
@@ -74,5 +108,5 @@ module stream_fifo #(
             end
         end
     end
-    
+    */
 endmodule
