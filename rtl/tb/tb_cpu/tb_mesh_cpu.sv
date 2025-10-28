@@ -9,23 +9,22 @@ always #1 clk = !clk;
 
 initial begin
 
-    $readmemh("single_core.hex", dut.cpu[0].instr.rom);
-
-    dut.cpu[1].instr.rom = '{default:'0};
-    dut.cpu[2].instr.rom = '{default:'0};
-    dut.cpu[3].instr.rom = '{default:'0};
-    dut.cpu[4].instr.rom = '{default:'0};
-    dut.cpu[5].instr.rom = '{default:'0};
-    dut.cpu[6].instr.rom = '{default:'0};
-    dut.cpu[7].instr.rom = '{default:'0};
-    dut.cpu[8].instr.rom = '{default:'0};
-    dut.cpu[9].instr.rom = '{default:'0};
-    dut.cpu[10].instr.rom = '{default:'0};
-    dut.cpu[11].instr.rom = '{default:'0};
-    dut.cpu[12].instr.rom = '{default:'0};
-    dut.cpu[13].instr.rom = '{default:'0};
-    dut.cpu[14].instr.rom = '{default:'0};
-    dut.cpu[15].instr.rom = '{default:'0};
+    $readmemh("instr_node_0.hex",   dut.cpu[0].instr.rom);
+    $readmemh("instr_node_1.hex",   dut.cpu[1].instr.rom);
+    $readmemh("instr_node_2.hex",   dut.cpu[2].instr.rom);
+    $readmemh("instr_node_3.hex",   dut.cpu[3].instr.rom);
+    $readmemh("instr_node_4.hex",   dut.cpu[4].instr.rom);
+    $readmemh("instr_node_5.hex",   dut.cpu[5].instr.rom);
+    $readmemh("instr_node_6.hex",   dut.cpu[6].instr.rom);
+    $readmemh("instr_node_7.hex",   dut.cpu[7].instr.rom);
+    $readmemh("instr_node_8.hex",   dut.cpu[8].instr.rom);
+    $readmemh("instr_node_9.hex",   dut.cpu[9].instr.rom);
+    $readmemh("instr_node_10.hex", dut.cpu[10].instr.rom);
+    $readmemh("instr_node_11.hex", dut.cpu[11].instr.rom);
+    $readmemh("instr_node_12.hex", dut.cpu[12].instr.rom);
+    $readmemh("instr_node_13.hex", dut.cpu[13].instr.rom);
+    $readmemh("instr_node_14.hex", dut.cpu[14].instr.rom);
+    $readmemh("instr_node_15.hex", dut.cpu[15].instr.rom);
 
     $readmemh("ram_image_0.hex", dut.ram[0].generate_rams[0].coupled_ram.ram);
     $readmemh("ram_image_1.hex", dut.ram[1].generate_rams[0].coupled_ram.ram);
@@ -50,7 +49,7 @@ initial begin
 
     for (int i = 0; i < 100; i++) begin
         $display("Progress: %d/100", i);
-        for (int j = 0; j < 40000; j++) begin
+        for (int j = 0; j < 10000; j++) begin
             @(posedge clk);
         end
     end

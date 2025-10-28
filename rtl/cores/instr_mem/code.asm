@@ -1,20 +1,22 @@
 main:
         addi    sp,sp,-48
         li      s0,40960
+        li      t3,4096
+        li      s4,24576
         li      s2,40960
         li      s1,40960
-        li      s5,16384
+        li      s5,4096
         addi    t2,s0,16
         addi    t0,s0,20
         addi    t6,s0,24
         addi    t5,s0,28
         addi    t4,s0,32
+        addi    t3,t3,496
+        addi    s4,s4,128
         addi    s2,s2,4
         addi    s1,s1,8
         addi    s0,s0,12
-        addi    s5,s5,1608
-        li      t3,192
-        li      s4,20480
+        addi    s5,s5,1496
         li      s3,40960
 .L2:
         addi    a4,t3,-192
@@ -67,4 +69,4 @@ main:
         addi    s4,s4,192
         bne     t3,s5,.L2
 End:
-        beq     x0, x0, End
+	beq	x0,x0,End
