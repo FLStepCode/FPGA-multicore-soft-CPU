@@ -11,6 +11,7 @@ tb/tb_mux/tb_mux.sv
 tb/tb_cpu/tb_cpu.sv
 tb/tb_cpu/tb_cpu_tb.sv
 tb/tb_cpu/tb_mesh_cpu.sv
+tb/tb_cpu/tb_mesh_cpu_wrap.sv
 tb/router/tb_queue/tb_queue.sv
 tb/router/tb_router/tb_router.sv
 tb/router/tb_mesh/tb_mesh.sv

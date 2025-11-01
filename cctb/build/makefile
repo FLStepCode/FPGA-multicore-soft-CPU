@@ -7,7 +7,7 @@ TOPLEVEL ?= axi_unwrap
 MODULE ?= tb_axi
 
 SIM ?= questa
-SIM_ARGS := -suppress 12110 -autofindloop
+SIM_ARGS := -suppress 12110 -autofindloop -voptargs="\""-access=rw+/. -debug,cell"\"" -suppress 12130
 SIM_BUILD ?= $(MODULE)
 
 WAVES ?= 1
@@ -23,7 +23,7 @@ run: cctb/build/venv/bin/activate
 	export COCOTB_MAKEFILES=$$(cocotb-config --makefiles); \
 	make -f $${COCOTB_MAKEFILES}/Makefile.sim TOPLEVEL_LANG=$(TOPLEVEL_LANG) \
 	TOPLEVEL=$(TOPLEVEL) MODULE=$(MODULE) SIM=$(SIM) SIM_BUILD=$(SIM_BUILD) \
-	SIM_ARGS="$(SIM_ARGS)" WAVES=$(WAVES) \
+	SIM_ARGS='$(SIM_ARGS)' WAVES=$(WAVES) \
 	VERILOG_SOURCES="$${VERILOG_SOURCES}"; \
 	rm -rf $(MODULE).py
 

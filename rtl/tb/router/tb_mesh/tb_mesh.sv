@@ -1,5 +1,6 @@
+`timescale 1ns/1ps
+
 module tb_mesh (
-    input aclk,
     input aresetn,
 
     output logic awready[16],
@@ -35,6 +36,15 @@ module tb_mesh (
     input  logic rready[16]
     
 );
+
+    logic aclk;
+
+    always #1 aclk = ~aclk;
+
+    initial begin
+        aclk = 1;
+    end
+
     axi_if #(
         .DATA_WIDTH(8)
     ) axi[16](), axi_ram[16]();

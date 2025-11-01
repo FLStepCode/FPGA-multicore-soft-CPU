@@ -6,3 +6,4 @@ tb/tb_bridgeless/tb_bridgeless.py
 tb/tb_bridge/tb_bridge.py
 tb/tb_ram/tb_axi_ram.py
 tb/tb_cpu/tb_cpu.py
+tb/tb_cpu/tb_mesh_cpu.py

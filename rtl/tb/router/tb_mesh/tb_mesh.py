@@ -49,8 +49,7 @@ async def axi_read_write(dut, axi_master, addr, data, id, channel):
 
 @cocotb.test
 async def feedback_loop(dut):
-    cocotb.start_soon(Clock(dut.aclk, 1, units="ns").start())
-
+    
     axi_master = [AxiMaster(AxiBus.from_prefix(AxiWrapper(dut, i), ""), dut.aclk, dut.aresetn, reset_active_level=False) for i in range(16)]
     
     dut.aresetn.value = 0
@@ -79,7 +78,6 @@ async def feedback_loop(dut):
 
 @cocotb.test
 async def test_all_in_one(dut):
-    cocotb.start_soon(Clock(dut.aclk, 1, units="ns").start())
 
     axi_master = [AxiMaster(AxiBus.from_prefix(AxiWrapper(dut, i), ""), dut.aclk, dut.aresetn, reset_active_level=False) for i in range(16)]
     
@@ -108,7 +106,6 @@ async def test_all_in_one(dut):
 
 @cocotb.test
 async def test_random(dut):
-    cocotb.start_soon(Clock(dut.aclk, 1, units="ns").start())
 
     axi_master = [AxiMaster(AxiBus.from_prefix(AxiWrapper(dut, i), ""), dut.aclk, dut.aresetn, reset_active_level=False) for i in range(9)]
     
@@ -118,7 +115,7 @@ async def test_random(dut):
     dut.aresetn.value = 1
     await RisingEdge(dut.aclk)
 
-    for i in range(10):
+    for i in range(1000):
         cocotb.log.info(f"pass {i}")
         processes = []
         datas = [b'0000000000000000', b'1111111111111111', b'2222222222222222', b'3333333333333333',
