@@ -75,6 +75,23 @@ interface axi_if #(
         output RVALID, RID, RDATA, RLAST,
         input RREADY
     );
+
+    modport mon (
+        input AWREADY,
+        input AWVALID, AWID, AWADDR, AWLEN, AWSIZE, AWBURST,
+
+        input WREADY,
+        input WVALID, WDATA, WSTRB, WLAST,
+
+        input BVALID, BID,
+        input BREADY,
+
+        input ARREADY,
+        input ARVALID, ARID, ARADDR, ARLEN, ARSIZE, ARBURST,
+
+        input RVALID, RID, RDATA, RLAST,
+        input RREADY
+    );
     
     
 endinterface

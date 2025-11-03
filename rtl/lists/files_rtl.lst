@@ -17,6 +17,7 @@ tb/router/tb_router/tb_router.sv
 tb/router/tb_mesh/tb_mesh.sv
 tb/tb_bridgeless/tb_bridgeless.sv
 tb/tb_bridge/tb_bridge.sv
+tb/mesh_throughput/throughput_wrapper.sv
 cores/src/sm_register.v 
 cores/src/sm_rom.v 
 cores/src/sr_cpu.sv
@@ -44,3 +45,4 @@ axi/ram_if.sv
 axi/ram.sv
 axi/stream_arbiter.sv
 axi/stream_fifo.sv
+axi/axi_pmu.sv
