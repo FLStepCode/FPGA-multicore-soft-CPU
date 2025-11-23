@@ -23,6 +23,7 @@ cores/src/sm_rom.v
 cores/src/sr_cpu.sv
 cores/src/sr_cpu_axi.sv
 cores/src/sr_axi_adapter.sv
+axi/cross_router_logic/algorithm_selector_XY.sv
 axi/router/src/algorithm.sv
 axi/router/src/algorithm_dual.sv
 axi/router/src/arbiter.sv

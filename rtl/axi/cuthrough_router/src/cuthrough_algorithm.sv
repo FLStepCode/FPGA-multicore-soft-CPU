@@ -1,3 +1,4 @@
+// TODO Not actually implemented
 module algorithm #(
     parameter DATA_WIDTH = 32
     `ifdef TID_PRESENT
