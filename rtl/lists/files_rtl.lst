@@ -30,8 +30,10 @@ axi/router/src/arbiter.sv
 axi/router/src/queue.sv
 axi/router/src/router.sv
 axi/router/src/router_dual.sv
+axi/router/src/router_dual_parallel.sv
 axi/XY_mesh/XY_mesh.sv
 axi/XY_mesh/XY_mesh_dual.sv
+axi/XY_mesh/XY_mesh_dual_parallel.sv
 axi/XY_mesh/XY_mesh_dual_cpu.sv
 axi/axi_demux.sv
 axi/axi_if.sv

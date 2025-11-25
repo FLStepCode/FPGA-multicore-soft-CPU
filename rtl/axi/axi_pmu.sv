@@ -32,6 +32,16 @@ module axi_pmu (
 
     read_counters rc;
     write_counters wc;
+    logic [63:0] clock_counter;
+
+    always_ff @(posedge aclk or negedge aresetn) begin
+        if (!aresetn) begin
+            clock_counter <= 0;
+        end
+        else begin
+            clock_counter <= clock_counter + 1;
+        end
+    end
 
     always_ff @(posedge aclk or negedge aresetn) begin
         if (!aresetn) begin
@@ -122,7 +132,7 @@ module axi_pmu (
 
 
             // --- //
-            if ((wc.outstanding != 0) && !mon_axi.WVALID) begin
+            if ((wc.outstanding != 0) && (wc.outstanding != wc.responding) && !mon_axi.WVALID) begin
                 wc.wvalid_stall <= wc.wvalid_stall + 1;
             end
 

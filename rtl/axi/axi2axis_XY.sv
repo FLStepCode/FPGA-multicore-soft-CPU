@@ -9,11 +9,11 @@ module axi2axis_XY #(
     parameter ROUTER_X = 0,
     parameter MAX_ROUTERS_X = 4,
     parameter MAX_ROUTERS_X_WIDTH
-    = $clog2(MAX_ROUTERS_X-1),
+    = $clog2(MAX_ROUTERS_X),
     parameter ROUTER_Y = 0,
     parameter MAX_ROUTERS_Y = 4,
     parameter MAX_ROUTERS_Y_WIDTH
-    = $clog2(MAX_ROUTERS_Y-1),
+    = $clog2(MAX_ROUTERS_Y),
 
     parameter Ax_FIFO_LEN = 4,
     parameter W_FIFO_LEN = 4
@@ -286,7 +286,7 @@ module axi2axis_XY #(
                 m_axis_req_out.TDATA = aw_subheader_out;
                 m_axis_req_out.TSTRB = '1;
                 m_axis_req_out.TLAST = '0;
-                s_axi_in.AWREADY = '0;
+                s_axi_in.AWREADY = m_axis_req_out.TREADY;
                 s_axi_in.ARREADY = '0;
 
             end
@@ -301,7 +301,7 @@ module axi2axis_XY #(
                 m_axis_req_out.TDATA = w_data_out;
                 m_axis_req_out.TSTRB = s_axi_in.WSTRB;
                 m_axis_req_out.TLAST = s_axi_in.WVALID & s_axi_in.WLAST;
-                s_axi_in.AWREADY = m_axis_req_out.TREADY & s_axi_in.WVALID & s_axi_in.WLAST;
+                s_axi_in.AWREADY = '0;
                 s_axi_in.ARREADY = '0;
             end
             AR_SEND: begin

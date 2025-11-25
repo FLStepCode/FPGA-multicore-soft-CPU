@@ -1,4 +1,4 @@
-module XY_mesh_dual #(
+module XY_mesh_dual_parallel #(
     parameter ADDR_WIDTH = 16,
     parameter DATA_WIDTH = 8,
     parameter ID_W_WIDTH = 5,
@@ -127,7 +127,7 @@ module XY_mesh_dual #(
                     .m_axis_resp_out(from_home[i+1][j+1][HOME_RESP])
                 );
                 
-                router_dual #(
+                router_dual_parallel #(
                     .DATA_WIDTH(AXIS_CHANNEL_WIDTH),
                     .ID_WIDTH(3),
                     .ROUTER_X(j),
