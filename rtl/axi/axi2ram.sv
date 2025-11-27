@@ -25,7 +25,8 @@ module axi2ram
     logic write_en_b [DATA_WIDTH/BYTE_WIDTH];
 
     generate
-        for (genvar i = 0; i < (DATA_WIDTH/BYTE_WIDTH); i++) begin
+        genvar i;
+        for (i = 0; i < (DATA_WIDTH/BYTE_WIDTH); i++) begin : assign_ports
             always_comb begin
                 ram_ports[i].addr_a = addr_a[i];
                 data_a[i] = ram_ports[i].data_a;

@@ -28,7 +28,8 @@ module axi_ram
     );
 
     generate
-        for (genvar i = 0; i < WSRTB_W; i++) begin : generate_rams
+        genvar i;
+        for (i = 0; i < WSRTB_W; i++) begin : generate_rams
             ram #(
                 .ADDR_WIDTH(ADDR_WIDTH),
                 .BYTE_WIDTH(BYTE_WIDTH)

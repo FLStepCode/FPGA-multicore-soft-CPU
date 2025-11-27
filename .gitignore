@@ -6,6 +6,10 @@ build_system/modelsim/*
 !build_system/modelsim/modelsim_script.tcl
 !build_system/modelsim/makefile
 
+build_system/quartus/*
+!build_system/quartus/Setup_sh.tcl
+!build_system/quartus/makefile
+
 build_system/icarus/*
 !build_system/icarus/makefile
 

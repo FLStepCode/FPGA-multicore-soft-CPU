@@ -3,7 +3,6 @@ module axi2axis_XY #(
     parameter DATA_WIDTH = 32,
     parameter ID_W_WIDTH = 4,
     parameter ID_R_WIDTH = 4,
-    parameter MAX_ID_WIDTH = 4,
     parameter AXIS_CHANNEL_WIDTH = 40,
 
     parameter ROUTER_X = 0,
@@ -13,10 +12,7 @@ module axi2axis_XY #(
     parameter ROUTER_Y = 0,
     parameter MAX_ROUTERS_Y = 4,
     parameter MAX_ROUTERS_Y_WIDTH
-    = $clog2(MAX_ROUTERS_Y),
-
-    parameter Ax_FIFO_LEN = 4,
-    parameter W_FIFO_LEN = 4
+    = $clog2(MAX_ROUTERS_Y)
 ) (
     input ACLK, ARESETn,
 
@@ -108,7 +104,7 @@ module axi2axis_XY #(
         .ARESETn(ARESETn),
 
         .data_i('{AR, AW}),
-        .valid_i('{s_axi_in.AWVALID, s_axi_in.ARVALID}),
+        .valid_i({s_axi_in.AWVALID, s_axi_in.ARVALID}),
         // .ready_o(READY_arbiter_o),
 
         .data_o(request_data_o),
@@ -124,7 +120,7 @@ module axi2axis_XY #(
         .ARESETn(ARESETn),
 
         .data_i('{R, B}),
-        .valid_i('{m_axi_out.BVALID, m_axi_out.RVALID}),
+        .valid_i({m_axi_out.BVALID, m_axi_out.RVALID}),
         // .ready_o(READY_arbiter_o),
 
         .data_o(response_data_o),

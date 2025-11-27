@@ -2,7 +2,10 @@ module axi_pmu (
     input  logic aclk,
     input  logic aresetn,
 
-    axi_if.mon mon_axi
+    axi_if.mon mon_axi,
+
+    input  logic [4:0]  addr_i,
+    output logic [63:0] data_o
 );
 
     typedef struct packed {
@@ -33,6 +36,31 @@ module axi_pmu (
     read_counters rc;
     write_counters wc;
     logic [63:0] clock_counter;
+
+    always_comb begin
+        case (addr_i)
+            0:  data_o <= rc.idle;
+            1:  data_o <= rc.outstanding;
+            2:  data_o <= rc.ar_stall;
+            3:  data_o <= rc.ar_handshake;
+            4:  data_o <= rc.rvalid_stall;
+            5:  data_o <= rc.rready_stall;
+            6:  data_o <= rc.r_handshake;
+            7:  data_o <= wc.idle;
+            8:  data_o <= wc.outstanding;
+            9:  data_o <= wc.responding;
+            10: data_o <= wc.aw_stall;
+            11: data_o <= wc.aw_handshake;
+            12: data_o <= wc.wvalid_stall;
+            13: data_o <= wc.wready_stall;
+            14: data_o <= wc.w_handshake;
+            15: data_o <= wc.bvalid_stall;
+            16: data_o <= wc.bready_stall;
+            17: data_o <= wc.b_handshake;
+            18: data_o <= clock_counter;
+            default: data_o <= '0;
+        endcase
+    end
 
     always_ff @(posedge aclk or negedge aresetn) begin
         if (!aresetn) begin
@@ -80,7 +108,7 @@ module axi_pmu (
             end
             
             if (mon_axi.RVALID && !mon_axi.RREADY) begin
-                rc.rvalid_stall <= rc.rvalid_stall + 1;
+                rc.rready_stall <= rc.rready_stall + 1;
             end
 
             if (mon_axi.RVALID && mon_axi.RREADY) begin

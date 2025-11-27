@@ -6,7 +6,8 @@ module algorithm_selector #(
     parameter MAX_ROUTERS_Y_WIDTH
     = $clog2(MAX_ROUTERS_Y),
     parameter ROUTER_X = 0,
-    parameter ROUTER_Y = 0
+    parameter ROUTER_Y = 0,
+    parameter CHANNEL_NUMBER = 5
 ) (
     input  logic [MAX_ROUTERS_X_WIDTH-1:0] target_x,
     input  logic [MAX_ROUTERS_Y_WIDTH-1:0] target_y,

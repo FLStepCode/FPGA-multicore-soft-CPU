@@ -39,8 +39,9 @@ interface axis_if #(
     `endif
 
     modport m (
+        output TVALID,
         input TREADY,
-        output TVALID, TDATA
+        output TDATA
 
         `ifdef TSTRB_PRESENT
         , TSTRB
@@ -63,8 +64,9 @@ interface axis_if #(
     );
 
     modport s (
+        input TVALID,
         output TREADY,
-        input TVALID, TDATA
+        input TDATA
 
         `ifdef TSTRB_PRESENT
         , TSTRB

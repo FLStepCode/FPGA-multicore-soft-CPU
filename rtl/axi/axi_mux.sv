@@ -141,7 +141,7 @@ module axi_mux #(
     );
 
     stream_fifo #(
-        .DATA_TYPE(logic [ID_W_WIDTH + ADDR_WIDTH + 8 + 3 + 2 - 1:0]),
+        .DATA_WIDTH(ID_W_WIDTH + ADDR_WIDTH + 8 + 3 + 2),
         .FIFO_LEN(Ax_FIFO_LEN)
     ) stream_fifo_aw (
         .ACLK(ACLK),

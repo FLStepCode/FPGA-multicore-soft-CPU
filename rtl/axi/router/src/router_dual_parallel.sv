@@ -79,6 +79,57 @@ module router_dual_parallel #(
     logic [MAX_ROUTERS_X_WIDTH-1:0] target_x_req, target_x_resp;
     logic [MAX_ROUTERS_Y_WIDTH-1:0] target_y_req, target_y_resp;
 
+    axis_if #(
+        .DATA_WIDTH(DATA_WIDTH)
+        `ifdef TID_PRESENT
+        ,
+        .ID_WIDTH(ID_WIDTH)
+        `endif
+        `ifdef TDEST_PRESENT
+        ,
+        .DEST_WIDTH(DEST_WIDTH)
+        `endif
+        `ifdef TUSER_PRESENT
+        ,
+        .USER_WIDTH(USER_WIDTH)
+        `endif
+    ) 
+    arb_req_axis [CHANNEL_NUMBER/2](), arb_resp_axis [CHANNEL_NUMBER/2](), alg_req_axis [CHANNEL_NUMBER/2](), alg_resp_axis [CHANNEL_NUMBER/2]();
+
+    generate
+        genvar i;
+        for (i = 0; i < CHANNEL_NUMBER/2; i++) begin : interfaces_concat
+            assign arb_req_axis[i].TVALID = queue_out[i*2].TVALID;
+            assign queue_out[i*2].TREADY  = arb_req_axis[i].TREADY;
+            assign arb_req_axis[i].TDATA  = queue_out[i*2].TDATA;
+            assign arb_req_axis[i].TID    = queue_out[i*2].TID  ;
+            assign arb_req_axis[i].TSTRB  = queue_out[i*2].TSTRB;
+            assign arb_req_axis[i].TLAST  = queue_out[i*2].TLAST;
+
+            
+            assign arb_resp_axis[i].TVALID   = queue_out[i*2 + 1].TVALID;
+            assign queue_out[i*2 + 1].TREADY = arb_resp_axis[i].TREADY;
+            assign arb_resp_axis[i].TDATA    = queue_out[i*2 + 1].TDATA;
+            assign arb_resp_axis[i].TID      = queue_out[i*2 + 1].TID  ;
+            assign arb_resp_axis[i].TSTRB    = queue_out[i*2 + 1].TSTRB;
+            assign arb_resp_axis[i].TLAST    = queue_out[i*2 + 1].TLAST;
+
+            assign out[i*2].TVALID        = alg_req_axis[i].TVALID;
+            assign alg_req_axis[i].TREADY = out[i*2].TREADY;
+            assign out[i*2].TDATA         = alg_req_axis[i].TDATA;
+            assign out[i*2].TID           = alg_req_axis[i].TID  ;
+            assign out[i*2].TSTRB         = alg_req_axis[i].TSTRB;
+            assign out[i*2].TLAST         = alg_req_axis[i].TLAST;
+
+            assign out[i*2 + 1].TVALID     = alg_resp_axis[i].TVALID;
+            assign alg_resp_axis[i].TREADY = out[i*2 + 1].TREADY;
+            assign out[i*2 + 1].TDATA      = alg_resp_axis[i].TDATA;
+            assign out[i*2 + 1].TID        = alg_resp_axis[i].TID  ;
+            assign out[i*2 + 1].TSTRB      = alg_resp_axis[i].TSTRB;
+            assign out[i*2 + 1].TLAST      = alg_resp_axis[i].TLAST;
+        end
+        
+    endgenerate
     arbiter #(
         .DATA_WIDTH(DATA_WIDTH)
         `ifdef TID_PRESENT
@@ -100,7 +151,7 @@ module router_dual_parallel #(
         .MAXIMUM_PACKAGES_NUMBER(MAXIMUM_PACKAGES_NUMBER)
     ) arb_req (
         clk, rst_n,
-        {queue_out[0], queue_out[2], queue_out[4], queue_out[6], queue_out[8]},
+        arb_req_axis,
         arbiter_out_req,
         current_grant_req,
         target_x_req,
@@ -128,7 +179,7 @@ module router_dual_parallel #(
         .MAXIMUM_PACKAGES_NUMBER(MAXIMUM_PACKAGES_NUMBER)
     ) arb_resp (
         clk, rst_n,
-        {queue_out[1], queue_out[3], queue_out[5], queue_out[7], queue_out[9]},
+        arb_resp_axis,
         arbiter_out_resp,
         current_grant_resp,
         target_x_resp,
@@ -158,7 +209,7 @@ module router_dual_parallel #(
     ) alg_req (
         clk, rst_n,
         arbiter_out_req,
-        '{out[0], out[2], out[4], out[6], out[8]},
+        alg_req_axis,
         target_x_req,
         target_y_req
     );
@@ -186,13 +237,12 @@ module router_dual_parallel #(
     ) alg_resp (
         clk, rst_n,
         arbiter_out_resp,
-        '{out[1], out[3], out[5], out[7], out[9]},
+        alg_resp_axis,
         target_x_resp,
         target_y_resp
     );
 
     generate
-        genvar i;
         for(i = 0; i < CHANNEL_NUMBER; i++) begin : axis_if_gen
 
             queue_datatype data_i, data_o;
@@ -226,7 +276,7 @@ module router_dual_parallel #(
             `endif
 
             stream_fifo #(
-                .DATA_TYPE(queue_datatype),
+                .DATA_WIDTH($bits(data_i)),
                 .FIFO_LEN(BUFFER_LENGTH)
             ) q (
                 .ACLK(clk),

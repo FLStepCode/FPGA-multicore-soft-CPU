@@ -34,7 +34,10 @@ module XY_mesh #(
     ) from_home[MAX_ROUTERS_Y+2][MAX_ROUTERS_X+2]();
 
     generate
-        for (genvar i = 0; i < MAX_ROUTERS_Y; i++) begin
+        genvar i;
+        genvar j;
+
+        for (i = 0; i < MAX_ROUTERS_Y; i++) begin : zeroing_Y
             assign router_if[i][0][WEST].TVALID = '0;
             assign router_if[i][MAX_ROUTERS_X+1][EAST].TVALID = '0;
 
@@ -42,7 +45,7 @@ module XY_mesh #(
             assign router_if[i][MAX_ROUTERS_X+1][EAST].TREADY = '1;
         end
 
-        for (genvar i = 0; i < MAX_ROUTERS_X; i++) begin
+        for (i = 0; i < MAX_ROUTERS_X; i++) begin : zeroing_X
             assign router_if[0][i][NORTH].TVALID = '0;
             assign router_if[MAX_ROUTERS_Y+1][i][SOUTH].TVALID = '0;
 
@@ -52,8 +55,8 @@ module XY_mesh #(
     endgenerate
 
     generate
-        for (genvar i = 0; i < MAX_ROUTERS_Y; i++) begin : Y
-            for (genvar j = 0; j < MAX_ROUTERS_X; j++) begin : X
+        for (i = 0; i < MAX_ROUTERS_Y; i++) begin : Y
+            for (j = 0; j < MAX_ROUTERS_X; j++) begin : X
                 
                 axi2axis_XY #(
                     .ADDR_WIDTH(ADDR_WIDTH),

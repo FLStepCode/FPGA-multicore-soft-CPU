@@ -166,7 +166,7 @@ module router #(
             `endif
 
             stream_fifo #(
-                .DATA_TYPE(queue_datatype),
+                .DATA_WIDTH($bits(data_i)),
                 .FIFO_LEN(BUFFER_LENGTH)
             ) q (
                 .ACLK(clk),

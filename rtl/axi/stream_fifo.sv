@@ -1,22 +1,22 @@
 module stream_fifo #(
-    type DATA_TYPE = logic [31:0],
+    parameter DATA_WIDTH = 32,
     parameter FIFO_LEN = 16
 ) (
     input logic ACLK,
     input logic ARESETn,
     
-    input DATA_TYPE data_i,
+    input logic [DATA_WIDTH-1:0] data_i,
     input logic valid_i,
     output logic ready_o,
 
-    output DATA_TYPE data_o,
+    output logic [DATA_WIDTH-1:0]  data_o,
     output logic valid_o,
     input logic ready_i
     
 );
     localparam ADDR_WIDTH = $clog2(FIFO_LEN);
 
-    DATA_TYPE fifo_mem [FIFO_LEN];
+    logic [DATA_WIDTH-1:0] fifo_mem [FIFO_LEN];
     logic [ADDR_WIDTH-1:0] read_ptr, read_ptr_reg;
     logic [ADDR_WIDTH-1:0] write_ptr;
     logic [ADDR_WIDTH:0] count;

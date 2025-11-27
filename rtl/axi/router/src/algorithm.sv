@@ -60,10 +60,12 @@ module algorithm #(
        .MAX_ROUTERS_X(MAX_ROUTERS_X), 
        .MAX_ROUTERS_Y(MAX_ROUTERS_Y), 
        .ROUTER_X(ROUTER_X),
-       .ROUTER_Y(ROUTER_Y)
-    ) (
+       .ROUTER_Y(ROUTER_Y),
+       .CHANNEL_NUMBER(CHANNEL_NUMBER)
+    ) algorithm_selector (
         .target_x(target_x),
-        .target_y(target_y)
+        .target_y(target_y),
+        .selector(selector)
     );
 
     always_comb begin
