@@ -17,8 +17,10 @@ module queue #(
 ) (
     input clk, rst_n,
     axis_if.s in,
-    axis_if.m out
-    output logic half_full
+    axis_if.m out,
+    output logic empty,
+    output logic half_full,
+    output logic full
 );
 
     typedef struct packed {
@@ -50,6 +52,8 @@ module queue #(
 
     logic [$clog2(BUFFER_LENGTH)-1:0] ptr_write;
     logic [$clog2(BUFFER_LENGTH)-1:0] ptr_read;
+
+    logic [$clog2(BUFFER_LENGTH)-1:0] count;
 
     localparam HALF_WAY_POINT = BUFFER_LENGTH/2;
 
@@ -114,38 +118,30 @@ module queue #(
             ptr_write <= '0;
             ptr_read <= '0;
             in.TREADY <= 1'b1;
-            yes_data <= 0;
+            count <= '0;
         end else begin
             if(in.TVALID && in.TREADY) begin
                 queue_buffers[ptr_write] <= stored_axis_w;
                 ptr_write = (ptr_write + 1'b1) % BUFFER_LENGTH;
-                yes_data <= 1'b1;
+                count = count + 1'b1;
             end
-            if(out.TREADY && yes_data) begin
+            if(out.TREADY && count) begin
                 ptr_read = (ptr_read + 1'b1) % BUFFER_LENGTH;
                 in.TREADY <= 1'b1;
+                count = count - 1'b1;
             end
             if(in.TVALID && in.TREADY) begin
                 if(ptr_write == ptr_read) begin
                     in.TREADY <= 1'b0;
                 end
             end
-            if(out.TREADY && yes_data) begin
-                if(ptr_write == ptr_read) begin
-                    yes_data <= 1'b0;
-                end
-            end
         end
     end
 
     always_comb begin
-        distance = ptr_write - ptr_read;
-        if(distance[$clog2(BUFFER_LENGTH)]) begin
-            distance = ~distance;
-            distance = distance + 1'b1;
-        end
-
-        half_full = distance > HALF_WAY_POINT;
+        empty = count == 0;
+        half_full = count > HALF_WAY_POINT;
+        full = count == BUFFER_LENGTH;
     end
 
 endmodule

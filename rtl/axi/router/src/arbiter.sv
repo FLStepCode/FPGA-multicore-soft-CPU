@@ -74,8 +74,8 @@ module arbiter #(
             current_grant <= '0;
             for (int i = 0; i < CHANNEL_NUMBER; i++) begin
                 packages_left[i] <= '0;
-                target_x_reg[i] <= '0;
-                target_y_reg[i] <= '0;
+                target_x_reg[i]  <= '0;
+                target_y_reg[i]  <= '0;
             end
         end
         else begin

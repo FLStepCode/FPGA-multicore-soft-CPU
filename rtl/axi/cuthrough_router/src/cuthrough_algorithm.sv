@@ -1,4 +1,3 @@
-// TODO Not actually implemented
 module algorithm #(
     parameter DATA_WIDTH = 32
     `ifdef TID_PRESENT
@@ -29,10 +28,9 @@ module algorithm #(
     input clk, rst_n,
     
     axis_if.s in,
-    axis_if.m out [CHANNEL_NUMBER],
+    axis_if.m out,
 
-    input logic [MAX_ROUTERS_X_WIDTH-1:0] target_x,
-    input logic [MAX_ROUTERS_Y_WIDTH-1:0] target_y
+    output logic [CHANNEL_NUMBER-1:0] selector
 );
 
     axis_if #(
@@ -51,11 +49,13 @@ module algorithm #(
         `endif
     ) in_filtered();
 
-    logic [CHANNEL_NUMBER_WIDTH-1:0] ctrl;
-    logic [CHANNEL_NUMBER-1:0] selector;
+    logic [7:0] packages_left;
 
-    logic [CHANNEL_NUMBER-1:0] busy;
-    logic [CHANNEL_NUMBER-1:0] busy_next;
+    logic busy;
+    logic busy_next;
+
+    logic [MAX_ROUTERS_X_WIDTH-1:0]  target_x;
+    logic [MAX_ROUTERS_Y_WIDTH-1:0]  target_y;
 
     algorithm_selector #(
        .MAX_ROUTERS_X(MAX_ROUTERS_X), 
@@ -64,17 +64,9 @@ module algorithm #(
        .ROUTER_Y(ROUTER_Y)
     ) (
         .target_x(target_x),
-        .target_y(target_y)
+        .target_y(target_y),
+        .selector(selector)
     );
-
-    always_comb begin
-        ctrl = '0;
-        for (int i = 0; i < CHANNEL_NUMBER; i++) begin
-            if(selector[CHANNEL_NUMBER - 1 - i]) begin
-                ctrl = CHANNEL_NUMBER - 1 - i;
-            end
-        end
-    end
 
     always_ff @(posedge clk or negedge rst_n) begin
         if(!rst_n) begin
@@ -84,33 +76,50 @@ module algorithm #(
         end
     end
 
+    always_ff @(posedge clk or negedge rst_n) begin
+        if(!rst_n) begin
+            target_x <= '0;
+            target_y <= '0;
+        end else begin
+            if(in.TID == ROUTING_HEADER) begin
+                target_y <= in.TDATA[
+                    MAX_ROUTERS_X_WIDTH-1:0
+                ];
+                target_x <= in.TDATA[
+                    MAX_ROUTERS_X_WIDTH+MAX_ROUTERS_Y_WIDTH-1:
+                    MAX_ROUTERS_X_WIDTH
+                ];
+            end
+        end
+    end
+
     always_comb begin
         busy_next = busy;
         if (in.TVALID && (in.TID == ROUTING_HEADER)) begin
 
-            in_filtered.TVALID = !busy[ctrl] ? '1 : '0;
-            in_filtered.TDATA  = !busy[ctrl] ? in.TDATA : '0;
+            in_filtered.TVALID = !busy ? '1 : '0;
+            in_filtered.TDATA  = !busy ? in.TDATA : '0;
             `ifdef TSTRB_PRESENT
-            in_filtered.TSTRB  = !busy[ctrl] ? in.TSTRB : '0;
+            in_filtered.TSTRB  = !busy ? in.TSTRB : '0;
             `endif
             `ifdef TKEEP_PRESENT
-            in_filtered.TKEEP  = !busy[ctrl] ? in.TKEEP : '0;
+            in_filtered.TKEEP  = !busy ? in.TKEEP : '0;
             `endif
             `ifdef TLAST_PRESENT
-            in_filtered.TLAST  = !busy[ctrl] ? in.TLAST : '0;
+            in_filtered.TLAST  = !busy ? in.TLAST : '0;
             `endif
             `ifdef TID_PRESENT
-            in_filtered.TID    = !busy[ctrl] ? in.TID : '0;
+            in_filtered.TID    = !busy ? in.TID : '0;
             `endif
             `ifdef TDEST_PRESENT
-            in_filtered.TDEST  = !busy[ctrl] ? in.TDEST : '0;
+            in_filtered.TDEST  = !busy ? in.TDEST : '0;
             `endif
             `ifdef TUSER_PRESENT
-            in_filtered.TUSER  = !busy[ctrl] ? in.TUSER : '0;
+            in_filtered.TUSER  = !busy ? in.TUSER : '0;
             `endif
 
-            in.TREADY = !busy[ctrl] ? in_filtered.TREADY : 1'b0;
-            busy_next[ctrl] = in_filtered.TREADY ? 1'b1 : busy[ctrl];
+            in.TREADY = !busy ? in_filtered.TREADY : 1'b0;
+            busy_next = in_filtered.TREADY ? 1'b1 : busy;
         end
         else if (in.TVALID) begin
             in_filtered.TVALID = in.TVALID;
@@ -137,7 +146,7 @@ module algorithm #(
             in.TREADY = in_filtered.TREADY;
 
             if (in.TLAST && in_filtered.TREADY) begin
-                busy_next[ctrl] = 1'b0;
+                busy_next = 1'b0;
             end
         end
         else begin
@@ -165,27 +174,5 @@ module algorithm #(
             in.TREADY = in_filtered.TREADY;
         end
     end
-
-    axis_if_demux #(
-        .CHANNEL_NUMBER(CHANNEL_NUMBER),
-        .DATA_WIDTH(DATA_WIDTH)
-        `ifdef TID_PRESENT
-        ,
-        .ID_WIDTH(ID_WIDTH)
-        `endif
-        `ifdef TDEST_PRESENT
-        ,
-        .DEST_WIDTH(DEST_WIDTH)
-        `endif
-        `ifdef TUSER_PRESENT
-        ,
-        .USER_WIDTH(USER_WIDTH)
-        `endif
-    ) demux (
-        in_filtered,
-        1'b1,
-        ctrl,
-        out
-    );
 
 endmodule
