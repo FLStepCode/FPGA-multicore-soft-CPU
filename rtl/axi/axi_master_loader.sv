@@ -37,8 +37,8 @@ module axi_master_loader #(
     logic [7:0] bresp_cnt, bresp_cnt_next, rresp_cnt, rresp_cnt_next;
     states_t state, state_next;
 
-    logic ar_was, aw_was, w_was;
-    logic ar_was_next, aw_was_next, w_was_next;
+    logic aw_was, w_was;
+    logic aw_was_next, w_was_next;
 
 
     assign m_axi_o.AWID    = id_rd;

@@ -1,31 +1,18 @@
-module quartus_wrapper (
+module mesh_with_loaders (
     input  logic        aclk,
     input  logic        aresetn,
-    
-    input  logic [3:0]  core_select,
 
-    input  logic [4:0]  pmu_addr,
-    output logic [63:0] pmu_data_o,
+    input  logic [4:0]  pmu_addr_i   [16],
+    output logic [63:0] pmu_data_o   [16],
 
     input  logic [7:0]  req_depth_i,
-    input  logic [5:0]  id_i,
-    input  logic        write_i,
-    input  logic [7:0]  axlen_i,
-    input  logic        fifo_push_i,
+    input  logic [4:0]  id_i         [16],
+    input  logic        write_i      [16],
+    input  logic [7:0]  axlen_i      [16],
+    input  logic        fifo_push_i  [16],
     input  logic        start_i,
-    output logic        idle_o
+    output logic        idle_o       [16]
 );
-
-    logic [63:0] pmu_data_os[16];
-
-    assign pmu_data_o = pmu_data_os[core_select];
-    assign idle_o = idle[core_select];
-
-    logic [5:0] id [16];
-    logic       write [16];
-    logic [7:0] axlen [16];
-    logic       fifo_push [16];
-    logic       idle [16];
 
     axi_if #(
         .DATA_WIDTH(8),
@@ -37,20 +24,13 @@ module quartus_wrapper (
     generate
         genvar i;
         for (i = 0; i < 16; i++) begin : map_wires
-            
-            always_comb begin
-                id[i] = (core_select == i) ? id_i : '0;
-                write[i] = (core_select == i) ? write_i : '0;
-                axlen[i] = (core_select == i) ? axlen_i : '0;
-                fifo_push[i] = (core_select == i) ? fifo_push_i : '0;
-            end
 
             axi_pmu pmu (
                 .aclk    (aclk),
                 .aresetn (aresetn),
                 .mon_axi (axi[i]),
-                .addr_i  (pmu_addr),
-                .data_o  (pmu_data_os[i])
+                .addr_i  (pmu_addr_i[i]),
+                .data_o  (pmu_data_o[i])
             );
 
             axi_master_loader #(
@@ -62,12 +42,12 @@ module quartus_wrapper (
                 .clk_i       (aclk),
                 .arstn_i     (aresetn),
                 .req_depth_i (req_depth_i),
-                .id_i        (id[i]),
-                .write_i     (write[i]),
-                .axlen_i     (axlen[i]),
-                .fifo_push_i (fifo_push[i]),
+                .id_i        (id_i[i]),
+                .write_i     (write_i[i]),
+                .axlen_i     (axlen_i[i]),
+                .fifo_push_i (fifo_push_i[i]),
                 .start_i     (start_i),
-                .idle_o      (idle[i]),
+                .idle_o      (idle_o[i]),
                 .m_axi_o     (axi[i])
             );
         end

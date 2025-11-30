@@ -9,3 +9,7 @@ tb/tb_cpu/tb_cpu.py
 tb/tb_cpu/tb_mesh_cpu.py
 tb/mesh_throughput/throughput.py
 tb/tb_loader/tb_axi_loader.py
+tb/tb_uart/tb_uart_rec.py
+tb/tb_uart/tb_uart_trans.py
+tb/tb_with_loaders/tb_with_loaders.py
+tb/tb_with_loaders/tb_cosim.py

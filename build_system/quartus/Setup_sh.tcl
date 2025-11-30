@@ -13,6 +13,10 @@ set_global_assignment -name DEVICE 5CSXFC6D6F31C6
 set_global_assignment -name TOP_LEVEL_ENTITY $TOPLEVEL
 
 foreach rtl $FILES_RTL_LIST {
+    if { [string match $rtl tb*] } {
+        continue
+    }
+
     set_global_assignment -name SYSTEMVERILOG_FILE ../../../rtl/$rtl
 }
 

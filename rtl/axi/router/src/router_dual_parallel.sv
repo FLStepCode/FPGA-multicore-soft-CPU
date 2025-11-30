@@ -75,7 +75,7 @@ module router_dual_parallel #(
     queue_out [CHANNEL_NUMBER](),
     arbiter_out_req(), arbiter_out_resp();
     
-    logic [CHANNEL_NUMBER_WIDTH-1:0] current_grant_req, current_grant_resp;
+    logic [$clog2(CHANNEL_NUMBER/2)-1:0] current_grant_req, current_grant_resp;
     logic [MAX_ROUTERS_X_WIDTH-1:0] target_x_req, target_x_resp;
     logic [MAX_ROUTERS_Y_WIDTH-1:0] target_y_req, target_y_resp;
 

@@ -32,4 +32,8 @@ axi/ram.sv
 axi/stream_arbiter.sv
 axi/stream_fifo.sv
 axi/axi_pmu.sv
-quartus_wrapper.sv
+uart/receiver.sv
+uart/transmitter.sv
+uart/uart_control.sv
+cosimulation/mesh_with_loaders.sv
+cosimulation/cosim_top.sv
