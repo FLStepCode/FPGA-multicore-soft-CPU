@@ -9,6 +9,7 @@ build_system/modelsim/*
 build_system/quartus/*
 !build_system/quartus/Setup_sh.tcl
 !build_system/quartus/makefile
+!build_system/quartus/custom_assignments.tcl
 
 build_system/icarus/*
 !build_system/icarus/makefile
