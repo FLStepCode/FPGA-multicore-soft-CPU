@@ -1,7 +1,7 @@
 module cosim_top #(
     parameter CORE_COUNT    = 16,
     parameter AXI_ID_WIDTH  = 5,
-    parameter BAUD_RATE     = 115_200,
+    parameter BAUD_RATE     = 9_600,
     parameter CLK_FREQ      = 50_000_000
 ) (
     input  logic clk_i,

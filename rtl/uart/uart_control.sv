@@ -28,11 +28,11 @@ module uart_control #(
         IDLE,
         TEST,             // rx_i <- 0x01;  rx_i <- any number;                         tx_o -> rx_i + 1.
         SET_REQ_DEPTH,    // rx_i <- 0x02;  rx_i <- request depth;
-        CREATE_AXI_READ,  // rx_i <- 0x03;  rx_i <- core ID (LSB to MSB);               rx_i <- AXI_ID_BYTES transactions.
-        CREATE_AXI_WRITE, // rx_i <- 0x04;  rx_i <- core ID (LSB to MSB);               rx_i <- AXI_ID_BYTES transactions.
+        CREATE_AXI_READ,  // rx_i <- 0x03;  rx_i <- core ID (LSB to MSB);               rx_i <- AXI_ID_BYTES transactions; rx_i <- AXLEN; 
+        CREATE_AXI_WRITE, // rx_i <- 0x04;  rx_i <- core ID (LSB to MSB);               rx_i <- AXI_ID_BYTES transactions; rx_i <- AXLEN;
         READ_IDLE_STATUS, // rx_i <- 0x05;  tx_o -> idle status bit for every AXI gen.
         AXI_START,        // rx_i <- 0x06.
-        READ_PMU_DATA,    // rx_i <- 0x07;  rx_i <- core ID (LSB to MSB);               rx_i <- PMU metric;  tx_o -> PMU data.
+        READ_PMU_DATA,    // rx_i <- 0x07;  rx_i <- core ID (LSB to MSB);               rx_i <- PMU metric;                tx_o -> PMU data.
         READ_CTRL_STATUS  // rx_i <- 0x08;  tx_o -> uart_control current state.
     } commands_t;
 
