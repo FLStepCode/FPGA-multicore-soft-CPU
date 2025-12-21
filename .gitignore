@@ -1,15 +1,35 @@
-modelsim/*
-!modelsim/instr_node*
-!modelsim/ram_image*
-!modelsim/modelsim_script.tcl
-!modelsim/modelsim_run.bat
+build_system/questa/*
+!build_system/questa/questa_script.tcl
+!build_system/questa/makefile
 
-quartus/*
+build_system/modelsim/*
+!build_system/modelsim/modelsim_script.tcl
+!build_system/modelsim/makefile
 
-boards/*
-!boards/*.sv
-!boards/DE10-Standard/
+build_system/quartus/*
+!build_system/quartus/Setup_sh.tcl
+!build_system/quartus/makefile
+!build_system/quartus/custom_assignments.tcl
 
-boards/DE10-Standard/*
-!boards/DE10-Standard/*.sv
-!boards/DE10-Standard/*.tcl
+build_system/icarus/*
+!build_system/icarus/makefile
+
+cctb/*
+!cctb/build
+!cctb/build/makefile
+!cctb/build/move_files.py
+!cctb/build/requirements.py
+!cctb/build/user_requirements.py
+
+rtl/boards/*
+!rtl/boards/*.sv
+!rtl/boards/DE10-Standard/
+
+rtl/boards/DE10-Standard/*
+!rtl/boards/DE10-Standard/*.sv
+!rtl/boards/DE10-Standard/*.tcl
+
+*.bak
+transcript
+
+venv

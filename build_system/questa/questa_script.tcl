@@ -1,0 +1,43 @@
+source vars.tcl
+
+set fp [open $FILES_HEX_PATH r]
+set file_data [read $fp]
+close $fp
+
+set FILES_HEX_LIST [split $file_data "\n"]
+foreach hex $FILES_HEX_LIST {
+    set hexfile_path [file tail $hex]
+    if { [file exists $hexfile_path] != 1} {
+        file link $hexfile_path ../../../rtl/$hex
+    }
+}
+
+set fp [open $FILES_RTL_PATH r]
+set file_data [read $fp]
+close $fp
+
+set FILES_RTL_LIST [split $file_data "\n"]
+for {set i 0} {$i < [llength $FILES_RTL_LIST]} {incr i} {
+    set appended ../../../rtl/[lindex $FILES_RTL_LIST $i]
+    lset FILES_RTL_LIST $i $appended
+}
+
+set fp [open "files_rtl.lst" w+]  
+foreach rtl $FILES_RTL_LIST {
+    puts $fp $rtl
+}
+close $fp
+
+vlib work
+vlog -mfcu -f files_rtl.lst
+
+vsim -voptargs=+acc work.$TOPLEVEL
+set WildcardFilter [lsearch -not -all -inline $WildcardFilter Memory]
+log -r /*
+run -all
+
+foreach hex $FILES_HEX_LIST {
+    file delete [file tail $hex]
+}
+
+exit
