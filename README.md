@@ -14,17 +14,25 @@ All AXI LD and AXI PMU instances are controlled/read by UART overlord, which rea
 * Runs on wsl using Ubuntu 22.04, probably runs on most Linux distributions as long as necessary software is installed.
 
 ## Repository contents
+<pre>
+Directiry                      Description
 
-| Directiry | Description |
-| --------- | ----------- |
-|||
-|||
-|||
-|||
-|||
-|||
-|||
-|||
+build_system                   Contains a build system allowing icarus/Questa simulation and Quartus compilation using `make`|
+├ icarus                       Icarus build system (doesn't work for a whole design since it uses a lot of unsupported SystemVerilog syntax)|
+├ quartus                      Questa build system (main simulation engine for this project)|
+└ questa                       Quartus build system (for generating FPGA programming files)|
+cctb                           Cocotb build system (only supports Questa for the purposes of this project)|
+├ build                        Contains everything for cocotb to work|
+│   ├ user_requirements.txt    List of custom python modules
+│   └ *everything else*        Things that make cocotb work in this project
+└ *sim_run*                    Contains a particular simulation run associated with a .py module used for it|
+data                     
+doc                      
+python                   
+rtl                      
+.gitignore               
+README.<area>md          
+</pre>
 
 ## Necessary software
 * Quartus Prime Lite (only verified version - 17.1)
