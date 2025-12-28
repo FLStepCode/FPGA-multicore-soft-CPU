@@ -2,7 +2,7 @@
 An open-source and free to use performance measuring framework of AXI-based interconnects using cosimulation principles. Contains a 4x4 mesh NoC, which connects with masters and slaves using AXI, RAM banks (AXI RAM) connected as slaves, programmable AXI-loaders (AXI LD) connected as masters and readable AXI perfoemance metric units (AXI PMU) cutting between AXI LD and interconnect.
 All AXI LD and AXI PMU instances are controlled/read by UART overlord, which reads commands from a PC using UART and controls units accordingly.
 
-![noc](doc\cosim.png)
+![noc](./doc/cosim.png)
 
 ### Key features
 * A 4x4 mesh NoC which uses an XY algorithm and cut-through routing, and has AXI-stream interfaces as connections;
@@ -51,7 +51,7 @@ README.md                      README.md
 
 ### NoC
 
-![noc](doc\noc.png)
+![noc](./doc/noc.png)
 
 ## Credits
 Special thanks to [Elgrush](https://github.com/Elgrush) for immense contributions to this project, starting from
