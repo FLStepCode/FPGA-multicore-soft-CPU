@@ -1,88 +1,30 @@
-# FPGA-multicore-soft-CPU
-An open-source and free to use NoC description using SystemVerilog. Includes a 4x4 mesh NoC, an array of modified schoolRISCV cores connected to each of the routers and a shared memory, which is distributed across all of the routers in equally. The NoC provides a connection between each of the cores and the memory.
+# AXI-NoC-with-PMUs-and-cosim
+An open-source and free to use performance measuring framework of AXI-based interconnects using cosimulation principles. Contains a 4x4 mesh NoC, which connects with masters and slaves using AXI, RAM banks (AXI RAM) connected as slaves, programmable AXI-loaders (AXI LD) connected as masters and readable AXI perfoemance metric units (AXI PMU) cutting between AXI LD and interconnect.
+All AXI LD and AXI PMU instances are controlled/read by UART overlord, which reads commands from a PC using UART and controls units accordingly.
 
-![noc](https://github.com/user-attachments/assets/aa34831d-684f-4f62-a5ef-b4c694798db7)
+![noc](https://github.com/FLStepCode/FPGA-multicore-soft-CPU/blob/main/doc/cosim.png?raw=true)
 
 ### Key features
-* A router equipped with input buffers, arbiter and a routing algorithm with all of the connections being full duplex;
-* Packet adapters that can mitigate a length mismatch between full data packets and transferrable data packets;
-* Modified schoolRISC core that can work with data memory thus modelling CPU's behaviour to test the NoC;
-* A controller that connects CPU to the NoC through converters;
-* Written in SystemVerilog;
-* ModelSim simulation capabilities out of the box;
-* Everything ready to be programmed on a DE10-Standard board;
-* Full documentation.
+* A 4x4 mesh NoC which uses an XY algorithm, which have AXI-stream interfaces as connections;
+* NoC routers connect to local nodes using an AXI-to-AXIS bridge, which turns a AXI stream interface into a full fledged AXI;
+* Uses cosimulation principles to accelerate modelling and performance measurement (FPGA modelling is around 250,000x faster than conventional simulation in my case);
+* Uses Questa/cocotb+Questa for simulation;
+* Supports Quartus for FPGA synthesis;
+* Offers a build system that can be used with a single `make` call with a possibility of more fine tuning;
+* Runs on wsl using Ubuntu 22.04, probably runs on most Linux distributions as long as necessary software is installed.
 
 ## Repository contents
 
-### main
 | Directiry | Description |
 | --------- | ----------- |
-| doc | |
-| └ UserManual.pdf | user manual for this project |
-| boards | HDL files and scripts for programming FPGA boards |
-| ├ *board\_name* | a directory containing files for generating a Quartus project for a specific board |
-| ├ toplevel.sv | a common toplevel module to be used in board-specific modules for hardware-on-loop |
-| └ toplevel\_onboard.sv | a common toplevel module to be used in board-specific modules for self-contained |
-| cores | HDL files for schoolRISCV soft core and supporting modules |
-| ├ converters | HDL files for converters between memory controller (MC) packets and NoC packets |
-| <p>├ packet\_collector.sv</p> | converter from NoC to MC |
-| <p>└ splitter.sv</p> | converter from MC to NoC |
-| └ src | HDL files for the schoolRISCV soft core |
-| <p>├ cpu\_with\_ram.sv</p> | module that connects CPU and RAM to the MC |
-| <p>├ ram.sv</p> | a two-port RAM |
-| <p>├ sm\_register.v</p> | a DFF for an instruction counter |
-| <p>├ sm\_rom.v</p> | preloaded instructions |
-| <p>├ sr\_cpu.v</p> | a CPU module with a counter, decoder, register file, ALU, AGU and a control unit |
-| <p>├ sr\_cpu.vh</p> | `define macros for RISCV opcodes and ALU/AGU oper codes |
-| <p>├ sr\_mem\_ctrl.sv</p> | a memory controller (MC) connecting CPU to RAM through the NoC |
-| <p>└ sr\_mem\_ctrl.svh</p> | `define macros for MC instructions |
-| cpu | HDL files for the 16-core CPU on a NoC |
-| ├ noc\_with\_cores.sv | connects 16 CPU cores to the mesh 4x4 NoC |
-| └ uart.sv | hooks up the 16-core CPU to the UART to monitor RAM data at a given address |
-| mesh\_4x4 | HDL files for the 4x4 mesh NoC |
-| ├ inc | `define macros for NoC configuration |
-| <p>├ noc.svh</p> | macros for general NoC parameters |
-| <p>├ noc\_XY.svh</p> | macros for topology-specific (mesh) parameters |
-| <p>├ queue.svh</p> | macros for queue parameters |
-| <p>└ router.svh</p> | macros for router parameters |
-| ├ noc | |
-| <p>└ noc.sv</p> | module that connects 16 routers into a NoC |
-| └ src | HDL files for router components |
-| <p>├ algorithm.sv</p> | an XY algorithm for packet switching |
-| <p>├ arbiter.sv</p> | a module that chooses a packet to be switched |
-| <p>├ queue.sv</p> | FIFOs for collecting incoming packets |
-| <p>└ router.sv</p> | a module that creates a router from its components |
-| modelsim | |
-| ├ ram\_image\_0..5.hex | RAM images that contain a picture |
-| ├ instr\_node\_0..15.hex | RAM images that contain RISCV codes for each core|
-| ├ modelsim\_run.bat | a batch file that launches ModelSim using modelsim\_script.tcl script |
-| └ modelsim\_script.tcl | a script, according to which the simulation is ran |
-| tb | HDL files for testbenches |
-| └ tb.sv | a testbench files that tests the CPU, dumping RAM contents at the end |
-
-### network-with-generators
-
-This is a secondary branch of this project, which contains an HDL description of the NoC connection subsystem
-itself at ./mesh_3x3 and the "core substitute" at ./generators. A complete description contains a single 3x3 mesh
-with 3 "core substitutes", one for each router on the main diagonal. Core substitute consists of 2 modules
-for generating pseudo-random 32-bit data packet and splitting it up into transferrable data flits and
-1 module for receiving data flits and assembling back them into valid 32-bit packets.
-
-Along with the SystemVerilog code there are tcl-scripts for simulation in ModelSim 
-(./modelsim/modelsim_script.tcl) and compilation in Quartus Prime Lite 17.1 for a DE10-Lite board
-(./board/de10lite/quartus_project.tcl). These scripts have been tested for Quartus Prime Lite 17.1 and for a
-ModelSim version, that comes bundled with it, and there is no guarantee that they will work for any other
-configuration.
-
-As long as you have both ModelSim executable and Quartus executables folders in PATH, the usage for the scripts should be:
-```
-vsim -do .\modelsim_script.tcl          # Launches a ModelSim GUI with relevant signals in the wave window
-```
-```
-quartus_sh -t .\quartus_project.tcl     # compiles a quartus project fully in CLI
-```
-For more information regarding the NoC read the ```UserManual.pdf``` in the ```main``` branch
+|||
+|||
+|||
+|||
+|||
+|||
+|||
+|||
 
 ## Necessary software
 * Quartus Prime Lite (only verified version - 17.1)
