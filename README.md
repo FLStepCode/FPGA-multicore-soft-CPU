@@ -51,6 +51,10 @@ README.md                      README.md
 
 /* coming soon */
 
+## Using the cosimulation
+
+/* coming soon */
+
 ## HDL design insights
 
 ### NoC
