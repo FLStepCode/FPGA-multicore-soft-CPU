@@ -47,11 +47,44 @@ README.md                      README.md
 * Intel® Quartus® Prime Lite (verified version - 17.1, [installation guide](https://cdrdv2-public.intel.com/666293/quartus_install-683472-666293.pdf));
 * Questa*-FPGAs Standard Edition (verified version - 24.1);
 
+## Using the build system
+
+/* coming soon */
+
 ## HDL design insights
 
 ### NoC
+The performance measuring system is tailored for usage in AXI interconnects. A 4x4 mesh NoC with cut-through
+routing is used as an example of such interconnect. The NoC itself works using an AXI-stream protocol for
+continuous data streaming between routers, but each of the routers is connected to a bidirectional AXI to
+AXI-stream bridge, so IP cores can connect to the network using a full-fledged AXI interface.
 
 ![noc](./doc/noc.png)
+
+### AXI LD
+Each of the slave ports of the NoC is connected to an AXI-LD instance, which receives commands, collects them
+in a FIFO and upon receiving a start signal through a special port AXI-LD begins to create AXI transactions.
+Depending on the value on a `req depth` port the unit initiates N AXI transactions before waiting for B-responses.
+AXI-LD allows setting AxID and AxLEN of the transaction and whether it is a read/write transactions.
+
+![noc](./doc/axi_ld.png)
+
+### AXI PMU
+AXI PMU consists of a single AXI port in monitor mode (all of the signals are inputs). AXI signals are monitored
+by an event decoder, which looks for certain combinations of signals, and depending on them increments certain
+counters (shoutout to [ZipCPU](https://zipcpu.com/blog/2021/08/14/axiperf.html)). Each of the counters is assigned
+to a certain event such as awvalid-stall, b-handshake, bvalid-stall and others (non-programmable). Also this module
+has an `address` input and a `value` output, which allows reading values of different counters depending on the
+chosen `address`. All of the AXI PMU instances are connected between AXI LD - NoC connections.
+
+![noc](./doc/axi_pmu.png)
+
+### UART overlord
+The UART overlord is connected straight to the `tx` and `rx` UART signals. This module has receiver and transmitter
+FSMs embedded in it, which converts bitstreams into 8-bit words and transmits/receives those words by a handshake
+mechanism. Certain words are interpreted as commands, which allows for programming AXI LD instances or reading
+counter values from AXI PMU instances.
+![noc](./doc/uart_overlord.png)
 
 ## Credits
 Special thanks to [Elgrush](https://github.com/Elgrush) for immense contributions to this project, starting from
