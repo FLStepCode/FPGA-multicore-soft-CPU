@@ -5,7 +5,7 @@ All AXI LD and AXI PMU instances are controlled/read by UART overlord, which rea
 ![noc](https://github.com/FLStepCode/FPGA-multicore-soft-CPU/blob/main/doc/cosim.png?raw=true)
 
 ### Key features
-* A 4x4 mesh NoC which uses an XY algorithm, which have AXI-stream interfaces as connections;
+* A 4x4 mesh NoC which uses an XY algorithm and cut-through routing, and has AXI-stream interfaces as connections;
 * NoC routers connect to local nodes using an AXI-to-AXIS bridge, which turns a AXI stream interface into a full fledged AXI;
 * Uses cosimulation principles to accelerate modelling and performance measurement (FPGA modelling is around 250,000x faster than conventional simulation in my case);
 * Uses Questa/cocotb+Questa for simulation;
@@ -43,24 +43,14 @@ README.md                      README.md
 </pre>
 
 ## Necessary software
-* Quartus Prime Lite (only verified version - 17.1)
-* Modelsim - Intel FPGA Starter Edition 10.5b (came bundled with Quartus)
+* OS - Linux, Windows (for use in WSL2, verified distro - Ubuntu 22.04);
+* Intel® Quartus® Prime Lite (verified version - 17.1, [installation guide](https://cdrdv2-public.intel.com/666293/quartus_install-683472-666293.pdf));
+* Questa*-FPGAs Standard Edition (verified version - 24.1);
 
-Make sure that the folder containing Quartus executables and ModelSim executable are in PATH 
-
-### Simulation quick start guide
-Run ```modelsim_run.bat``` from the ```modelsim``` repository to launch ModelSim and run the simulation. The process generates multiple new files: ```latency_log_*.csv``` and ```output_image_chunk_*.hex```, that contain ```lw``` and ```sw``` latencies in clock cycles for each of the cores and the RAM contents of each of the RAM chunks, that contain the resulting image, respectively. For more details refer to the ```UserManual.pdf```.
-
-### Programming quick start guide
-Run the following cmd command from the ```boards/DE10-Standard``` directory:
-```
-quartus_sh -t quartus_onboard.tcl
-```
-This creates a Quartus project, that can be then opened so you can program the board from there using Device Programmer. For more details refer to the ```UserManual.pdf```.
 
 ## Credits
-Special thanks to Grushevskiy Nikita Ivanovich for taking a huge part in developing different router componoetnts
-and different topologies of the NoC connection subsystem. *github handle*
-
-Special thanks to Nigmatullin Nikolay Rafaelevich for developing componentry that is being used for
-"core substitutes". *github handle*
+Special thanks to [Elgrush](https://github.com/Elgrush) for immense contributions to this project, starting from
+helping me improve our NoC design and continuing with improving our project infrastructure, which started as a
+humble build system by me and is now growing into a full fledged CI/CD for easy testing of our designs. This
+repository is a moment frozen in time, to see our actuall current work refer to the
+https://github.com/apoj-inc/AXI-NoC-with-built-in-PMUs
