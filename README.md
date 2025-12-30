@@ -211,6 +211,9 @@ then the respective table cell has ```None``` written in it.
 
 To reset the contents of all of the PMUs you have to reset the whole design (async negative reset).
 
+Check out [this](https://zipcpu.com/blog/2021/08/14/axiperf.html) ZipCPU for more info about the principles
+of event-based performance measurement.
+
 # HDL design insights
 
 ### NoC
