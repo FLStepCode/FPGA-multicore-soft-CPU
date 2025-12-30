@@ -42,14 +42,77 @@ rtl
 README.md                      README.md
 </pre>
 
-## Necessary software
+# Necessary software
 * OS - Linux, Windows (for use in WSL2, verified distro - Ubuntu 22.04);
 * Intel® Quartus® Prime Lite (verified version - 17.1, [installation guide](https://cdrdv2-public.intel.com/666293/quartus_install-683472-666293.pdf));
 * Questa*-FPGAs Standard Edition (verified version - 24.1);
 
-## Using the build system
+# Using the build system
 
-/* coming soon */
+There are several build systems built in the repository to ease the simulation and FPGA synthesis. All of the
+makefiles should be called from the root of the repository.
+
+## Lists
+There are three .lst files in ```./rtl/lists/```: ```files_hex.lst```, ```files_rtl.lst```, ```modules_cctb.lst```.
+All of them contain a list of paths relative to the ```./rtl/``` directory.
+* ```files_hex.lst```: list of all .hex files (memory initialization files);
+* ```files_rtl.lst```: list of all Verilog/SystemVerilog files that you want to be compiled;
+* ```modules_cctb.lst```: list of all python modules that you want to be accessible to cocotb.
+
+## Using the scripts
+### Icarus/Questa
+#### Usage:
+* Icarus: ``` make -f build_system/icarus/makefile TOPLEVEL=<> [SIM_PATH=<>] [VCD_FILE=<>] *target* ```
+* Questa: ``` make -f build_system/questa/makefile TOPLEVEL=<> [SIM_PATH=<>] *target* ```
+#### Variables:
+|Variable                              |Description|
+|-                                     |-|
+|```TOPLEVEL```                        |Name of the toplevel module of the simulated design|
+|```SIM_PATH``` (optional)             |Path where the simulation is ran relative to the ```./build_system/icarus/```<br> (default: ```./build_system/icarus/$(TOPLEVEL)```) |
+|```VCD_FILE``` (optional, Icarus only)|Path of the ```.vcd``` file relative to the ```SIM_PATH``` <br> (default: ```$(SIM_PATH)/$(TOPLEVEL).vcd```)|
+#### Targets:
+|Target             |Description|
+|-                  |-|
+|```run```          |Runs the simulation|
+|```clean```        |Removes the folder specified at ```SIM_PATH``` (specify ```TOPLEVEL``` if you never used ```SIM_PATH``` when launching ```run```)|
+|```wave``` (Icarus)|Launch GTKWave to see the wave ```$(SIM_PATH)/$(VCD_FILE)``` (specify TOPLEVEL if you never used ```SIM_PATH``` or ```VCD_FILE``` when launching ```run```)|
+|```wave``` (Questa)|Launch Questa GUI to see the wave ```$(SIM_PATH)/vsim.wlf``` (specify ```TOPLEVEL``` if you never used ```SIM_PATH``` when launching ```run```)|
+#### Limitations:
+* Icarus: very limited support of SystemVerilog syntax, cannot compile this whole design;
+* Questa: not that I know of.
+
+### Quartus
+#### Usage:
+``` make -f build_system/quartus/makefile TOPLEVEL=<> *target* ```
+#### Variables:
+|Variable      |Description|
+|-             |-|
+|```TOPLEVEL```|Name of the toplevel module of the synthesized design|
+#### Targets:
+|Target       |Description|
+|-            |-|
+|```compile```|Synthesizes the design at ```./build_system/quartus/$(TOPLEVEL)``` starting from Elaboration and finishing with Timing Analysis|
+|```clean```  |Removes the ```./build_system/quartus/$(TOPLEVEL)``` directory|
+#### Tcl scripting:
+At ```./build_system/quartus/``` there is a ```.tcl``` script called ```custom_assignments.tcl```. It is sourced
+in the main ```Setup_sh.tcl``` script, which collects all of the design files into the project (ignoring those at
+```./rtl/tb```, which is for testbenches) and launches the compilation. The sourced ```custom_assignments.tcl```
+can contain things such as device assignments and pin assignments.<br>
+Example:
+```tcl filename="custom_assignments.tcl"
+set_global_assignment -name FAMILY "Cyclone V"
+set_global_assignment -name DEVICE 5CSXFC6D6F31C6
+
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CLOCK2_50
+set_instance_assignment -name IO_STANDARD "2.5 V" -to CLOCK3_50
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CLOCK4_50
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CLOCK_50
+set_location_assignment PIN_AA16 -to CLOCK2_50
+set_location_assignment PIN_Y26 -to CLOCK3_50
+set_location_assignment PIN_K14 -to CLOCK4_50
+set_location_assignment PIN_AF14 -to CLOCK_50
+... # Rest of the assignments
+```
 
 ## Using the cosimulation
 

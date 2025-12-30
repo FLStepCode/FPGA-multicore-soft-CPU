@@ -38,3 +38,5 @@ uart/uart_control.sv
 cosimulation/mesh_with_loaders.sv
 cosimulation/cosim_top.sv
 de10standard_top.sv
+tb/tb_cpu/tb_cpu_tb.sv
+tb/tb_cpu/tb_mesh_cpu.sv

@@ -20,6 +20,9 @@ run:
 	cd $(SIM_PATH); \
 	vsim -c -do ../questa_script.tcl
 
+clean:
+	rm -rf $(SIM_PATH)
+
 wave:
 	cd $(SIM_PATH); \
 	vsim -view vsim.wlf
