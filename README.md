@@ -97,9 +97,9 @@ All of them contain a list of paths relative to the ```./rtl/``` directory.
 At ```./build_system/quartus/``` there is a ```.tcl``` script called ```custom_assignments.tcl```. It is sourced
 in the main ```Setup_sh.tcl``` script, which collects all of the design files into the project (ignoring those at
 ```./rtl/tb```, which is for testbenches) and launches the compilation. The sourced ```custom_assignments.tcl```
-can contain things such as device assignments and pin assignments.<br>
+can contain things such as device assignments and pin assignments.<br><br>
 Example:
-```tcl filename="custom_assignments.tcl"
+```tcl
 set_global_assignment -name FAMILY "Cyclone V"
 set_global_assignment -name DEVICE 5CSXFC6D6F31C6
 
