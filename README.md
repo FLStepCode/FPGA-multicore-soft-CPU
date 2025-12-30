@@ -74,9 +74,9 @@ All of them contain a list of paths relative to the ```./rtl/``` directory.
 |Target             |Description|
 |-                  |-|
 |```run```          |Runs the simulation|
-|```clean```        |Removes the folder specified at ```SIM_PATH``` (specify ```TOPLEVEL``` if you never used ```SIM_PATH``` when launching ```run```)|
-|```wave``` (Icarus)|Launch GTKWave to see the wave ```$(SIM_PATH)/$(VCD_FILE)``` (specify TOPLEVEL if you never used ```SIM_PATH``` or ```VCD_FILE``` when launching ```run```)|
-|```wave``` (Questa)|Launch Questa GUI to see the wave ```$(SIM_PATH)/vsim.wlf``` (specify ```TOPLEVEL``` if you never used ```SIM_PATH``` when launching ```run```)|
+|```clean```        |Removes the folder specified at ```SIM_PATH``` <br> (specify ```TOPLEVEL``` if you never used ```SIM_PATH``` when launching ```run```)|
+|```wave``` (Icarus)|Launch GTKWave to see the wave ```$(SIM_PATH)/$(VCD_FILE)``` <br> (specify TOPLEVEL if you never used ```SIM_PATH``` or ```VCD_FILE``` when launching ```run```)|
+|```wave``` (Questa)|Launch Questa GUI to see the wave ```$(SIM_PATH)/vsim.wlf``` <br> (specify ```TOPLEVEL``` if you never used ```SIM_PATH``` when launching ```run```)|
 #### Limitations:
 * Icarus: very limited support of SystemVerilog syntax, cannot compile this whole design;
 * Questa: not that I know of.
@@ -114,6 +114,33 @@ set_location_assignment PIN_AF14 -to CLOCK_50
 ... # Rest of the assignments
 ```
 
+### Cocotb
+Cocotb is a python framework allowing for writing testbenches on python while using conventinal HDL simulators
+(only Questa in this case).
+#### Python packages:
+There are two txt files at ```./cctb```: ```requirements.txt``` and ```user_requirements.txt```. Those contain
+a list of python packages, that need to be installed upon the creation of ```venv```.
+* ```requirements.txt```: basic ```cocotb``` requirements (```cocotb``` and ```pytest```), not user-editable;
+* ```user_requirements.txt```: any custom packages that the user might need, you can write there whatever you need.
+#### Usage:
+``` make -f cctb/build/makefile TOPLEVEL=<> MODULE=<> [SIM=<>] [SIM_BUILD=<>] [WAVES=<>] [TOPLEVEL_LANG=<>] *target* ```
+#### Variables:
+|Variable                          |Description|
+|-                                 |-|
+|```TOPLEVEL```                    |Name of the toplevel HDL module of the simulated design|
+|```MODULE```                      |Name of the python module that runs the simulation (python file without ```.py```)|
+|```SIM``` (don't touch)           |Simulator engine (default: ```questa```, but you can try other ones, just <br> watch out for the ```SIM_ARGS``` variable in the makefile)|
+|```SIM_BUILD```                   |Directory at which the simulation is ran relative to ```./cctb/``` (default: ```$(MODULE)```)|
+|```WAVES```                       |```1``` if you want to generate waves, ```0``` otherwise (default: `1`)|
+|```TOPLEVEL_LANG``` (don't touch) |HDL language of the toplevel (default: ```verilog```. don't change it, it ain't gonna <br> work without heavy modification)|
+#### Targets:
+|Target              |Description|
+|-                   |-|
+|```run```           |Run the simulation (creates a python venv at ```.venv``` if there's none or the requirements changed)|
+|```clean_run```     |Clean the run located at ```./cctb/$(SIM_BUILD)``` (specify ```$(MODULE)``` if you've never used <br> ```$(SIM_BUILD)``` for that run)|
+|```clean_all_runs```|Clean all of the runs located inside ```./cctb/```|
+|```clean_venv```    |Clean the python venv at ```./cctb/venv/```|
+|```clean_all```     |Same as ```clean_venv``` and ```clean_all``` together|
 ## Using the cosimulation
 
 /* coming soon */
