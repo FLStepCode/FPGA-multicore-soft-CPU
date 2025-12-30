@@ -179,12 +179,12 @@ then the respective table cell has ```None``` written in it.
 |Command type                                                                                         |Transaction 0   |Transaction 1        |Transaction 2         |Transaction 3          |...       |
 |-                                                                                                    |-               |-                    |-                     |-                      |-         |
 |Test                                                                                                 |```tx -> 0x01```|```tx -> N```        |```rx <- N + 1```     |```None```             |```None```|
-|Set request depth to ```N``` <br> (check [AXI LD](#axi-ld))                                          |```tx -> 0x02```|```tx -> N```        |```None```            |```None```             |```None```|
-|Create AXI READ transaction <br> of ```K``` transfers from core <br> ```N``` to core ```M```         |```tx -> 0x03```|```tx -> N```        |```tx -> M + 1```     |```tx -> K - 1```      |```None```|
-|Create AXI WRITE transaction of ```K``` <br> transfers from core ```N``` to core ```M```             |```tx -> 0x04```|```tx -> N```        |```tx -> M + 1```     |```tx -> K - 1```      |```None```|
-|Read idle status of all AXI LD <br> instances (1 if idle, 0 if not, each <br>  bit for each instance)|```tx -> 0x05```|```rx <- CORE 0..7```|```rx <- CORE 8..15```|```rx <- CORE 16..23```|```...``` |
-|Start AXI transactions from all <br> cores simultaneously                                            |```tx -> 0x06```|```None```           |```None```            |```None```             |```None```|
-|Read a PMU metric ```M``` <br> from core ```N```                                                     |```tx -> 0x07```|```tx -> N```        |```tx -> M```         |```rx <- metric[0:7]```|```...``` |
+|Set request depth to ```N```  (check [AXI LD](#axi-ld))                                          |```tx -> 0x02```|```tx -> N```        |```None```            |```None```             |```None```|
+|Create AXI READ transaction  of ```K``` transfers from core  ```N``` to core ```M```         |```tx -> 0x03```|```tx -> N```        |```tx -> M + 1```     |```tx -> K - 1```      |```None```|
+|Create AXI WRITE transaction of ```K``` transfers from core ```N``` to core ```M```             |```tx -> 0x04```|```tx -> N```        |```tx -> M + 1```     |```tx -> K - 1```      |```None```|
+|Read idle status of all AXI LD  instances (1 if idle, 0 if not, each   bit for each instance)|```tx -> 0x05```|```rx <- CORE 0..7```|```rx <- CORE 8..15```|```rx <- CORE 16..23```|```...``` |
+|Start AXI transactions from all  cores simultaneously                                            |```tx -> 0x06```|```None```           |```None```            |```None```             |```None```|
+|Read a PMU metric ```M```  from core ```N```                                                     |```tx -> 0x07```|```tx -> N```        |```tx -> M```         |```rx <- metric[0:7]```|```...``` |
 
 ### PMU metric memory map
 |Index|Name                 |Width       |Description|
