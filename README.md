@@ -64,6 +64,7 @@ All of them contain a list of paths relative to the ```./rtl/``` directory.
 #### Usage:
 * Icarus: ``` make -f build_system/icarus/makefile TOPLEVEL=<> [SIM_PATH=<>] [VCD_FILE=<>] *target* ```
 * Questa: ``` make -f build_system/questa/makefile TOPLEVEL=<> [SIM_PATH=<>] *target* ```
+Example: ``` make -f build_system/questa/makefile TOPLEVEL=tb_mesh_cpu run ```
 #### Variables:
 |Variable                              |Description|
 |-                                     |-|
@@ -84,6 +85,7 @@ All of them contain a list of paths relative to the ```./rtl/``` directory.
 ### Quartus
 #### Usage:
 ``` make -f build_system/quartus/makefile TOPLEVEL=<> *target* ```
+Example: ``` make -f build_system/quartus/makefile TOPLEVEL=de10standard_top compile ```
 #### Variables:
 |Variable      |Description|
 |-             |-|
@@ -124,6 +126,7 @@ a list of python packages, that need to be installed upon the creation of ```ven
 * ```user_requirements.txt```: any custom packages that the user might need, you can write there whatever you need.
 #### Usage:
 ``` make -f cctb/build/makefile TOPLEVEL=<> MODULE=<> [SIM=<>] [SIM_BUILD=<>] [WAVES=<>] [TOPLEVEL_LANG=<>] *target* ```
+Example: ``` make -f cctb/build/makefile TOPLEVEL=throughput MODULE=throughput_wrapper run ```
 #### Variables:
 |Variable                          |Description|
 |-                                 |-|
@@ -141,11 +144,46 @@ a list of python packages, that need to be installed upon the creation of ```ven
 |```clean_all_runs```|Clean all of the runs located inside ```./cctb/```|
 |```clean_venv```    |Clean the python venv at ```./cctb/venv/```|
 |```clean_all```     |Same as ```clean_venv``` and ```clean_all``` together|
-## Using the cosimulation
 
-/* coming soon */
+# Using the cosimulation
+## Setup
+To use the cosimulation you first need to create a toplevel file with a ```cosim_top``` instance in it with
+all of its ports connected to the ports of the toplevel. You can parametrize stuff (mainly ```BAUD_RATE``` for
+UART baud and ```CLK_FREQ``` for the frequency at which the design works. ```CORE_COUNT``` and ```AXI_ID_WIDTH```
+are kinda fake because my code is bad). The toplevel with pin assignments (clock generator pin, reset button,
+tx and rx GPIO pins or anything to connect UART to the FPGA) will provide the ```cosim_top``` with all of the
+signals needed for its functionality. Then you need to compile the design in Quartus to generate a ```.sof```
+file for FPGA configuration (you can use the build system to do it) and flash the FPGA with said file (using
+Quartus GUI or CLI). Connect the USB-UART adapter to your PC and wire GND, RX and TX pins to the FPGA. I'm
+using a conventional UART naming scheme so the connection should be crossed:<br>
+```
+RX TX   PC
+|   | 
+ \ /
+  X
+ / \
+|   |
+RX TX   FPGA
+```
+Next, there are two python files that read and write UART: ```./python/perpetual_read.py``` and
+```./python/uart_write.py```. Both of the files have the ```with serial.Serial('/dev/ttyUSB0', 9600) as ser:```,
+you need to change the `'/dev/ttyUSB0'` to whatever the USB plug that has the USB-UART in it is named. After
+doing all that you are free to use the system.
 
-## HDL design insights
+## Usage.
+The cosimulation design has a command system that allows talking with it via UART. Following table describes
+all of the commands, ```tx``` and ```rx``` are from the perspective of a PC. If there is no ```Transaction N```,
+then the respective table cell has ```None``` written in it.
+|Command type|Transaction 0   |Transaction 1|Transaction 2    |Transaction 3|
+|-           |-               |-            |-                |-            |
+|Test        |```tx -> 0x01```|```tx -> N```|```rx <- N + 1```|```None```|
+|Set request depth (check [AXI LD](###axi-ld))|``````|``````|``````|``````|
+||``````|``````|``````|``````|
+||``````|``````|``````|``````|
+||``````|``````|``````|``````|
+||``````|``````|``````|``````|
+
+# HDL design insights
 
 ### NoC
 The performance measuring system is tailored for usage in AXI interconnects. A 4x4 mesh NoC with cut-through
