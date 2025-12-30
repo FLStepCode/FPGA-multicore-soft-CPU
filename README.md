@@ -150,12 +150,12 @@ Example: ``` make -f cctb/build/makefile TOPLEVEL=throughput MODULE=throughput_w
 To use the cosimulation you first need to create a toplevel file with a ```cosim_top``` instance in it with
 all of its ports connected to the ports of the toplevel. You can parametrize stuff (mainly ```BAUD_RATE``` for
 UART baud and ```CLK_FREQ``` for the frequency at which the design works. ```CORE_COUNT``` and ```AXI_ID_WIDTH```
-are kinda fake because my code is bad). The toplevel with pin assignments (clock generator pin, reset button,
-tx and rx GPIO pins or anything to connect UART to the FPGA) will provide the ```cosim_top``` with all of the
-signals needed for its functionality. Then you need to compile the design in Quartus to generate a ```.sof```
-file for FPGA configuration (you can use the build system to do it) and flash the FPGA with said file (using
-Quartus GUI or CLI). Connect the USB-UART adapter to your PC and wire GND, RX and TX pins to the FPGA. I'm
-using a conventional UART naming scheme so the connection should be crossed:<br>
+are kinda fake because my code is bad). The toplevel with pin assignments (clock generator pin, async negative
+reset button, tx and rx GPIO pins or anything to connect UART to the FPGA) will provide the ```cosim_top```
+with all of the signals needed for its functionality. Then you need to compile the design in Quartus to generate
+a ```.sof``` file for FPGA configuration (you can use the build system to do it) and flash the FPGA with said
+file (using Quartus GUI or CLI). Connect the USB-UART adapter to your PC and wire GND, RX and TX pins to the
+FPGA. I'm using a conventional UART naming scheme so the connection should be crossed:<br>
 ```
 RX TX   PC
 |   | 
@@ -174,14 +174,42 @@ doing all that you are free to use the system.
 The cosimulation design has a command system that allows talking with it via UART. Following table describes
 all of the commands, ```tx``` and ```rx``` are from the perspective of a PC. If there is no ```Transaction N```,
 then the respective table cell has ```None``` written in it.
-|Command type|Transaction 0   |Transaction 1|Transaction 2    |Transaction 3|
-|-           |-               |-            |-                |-            |
-|Test        |```tx -> 0x01```|```tx -> N```|```rx <- N + 1```|```None```|
-|Set request depth (check [AXI LD](###axi-ld))|``````|``````|``````|``````|
-||``````|``````|``````|``````|
-||``````|``````|``````|``````|
-||``````|``````|``````|``````|
-||``````|``````|``````|``````|
+
+### Commands
+|Command type                                                                                         |Transaction 0   |Transaction 1        |Transaction 2         |Transaction 3          |...       |
+|-                                                                                                    |-               |-                    |-                     |-                      |-         |
+|Test                                                                                                 |```tx -> 0x01```|```tx -> N```        |```rx <- N + 1```     |```None```             |```None```|
+|Set request depth to ```N``` <br> (check [AXI LD](#axi-ld))                                          |```tx -> 0x02```|```tx -> N```        |```None```            |```None```             |```None```|
+|Create AXI READ transaction <br> of ```K``` transfers from core <br> ```N``` to core ```M```         |```tx -> 0x03```|```tx -> N```        |```tx -> M + 1```     |```tx -> K - 1```      |```None```|
+|Create AXI WRITE transaction of ```K``` <br> transfers from core ```N``` to core ```M```             |```tx -> 0x04```|```tx -> N```        |```tx -> M + 1```     |```tx -> K - 1```      |```None```|
+|Read idle status of all AXI LD <br> instances (1 if idle, 0 if not, each <br>  bit for each instance)|```tx -> 0x05```|```rx <- CORE 0..7```|```rx <- CORE 8..15```|```rx <- CORE 16..23```|```...``` |
+|Start AXI transactions from all <br> cores simultaneously                                            |```tx -> 0x06```|```None```           |```None```            |```None```             |```None```|
+|Read a PMU metric ```M``` <br> from core ```N```                                                     |```tx -> 0x07```|```tx -> N```        |```tx -> M```         |```rx <- metric[0:7]```|```...``` |
+
+### PMU metric memory map
+|Index|Name                 |Width       |Description|
+|-    |-                    |-           |-|
+|0    |```rc.idle```        |```[63:0]```|AXI `R` channel wasn't doing anything|
+|1    |```rc.outstanding``` |```[63:0]```|Number of outstanding AXI `R` transactions|
+|2    |```rc.ar_stall```    |```[63:0]```|Number of clock cycles, where `ARVALID` is `1` and `ARREADY` is `0`|
+|3    |```rc.ar_handshake```|```[63:0]```|Number of clock cycles, where `ARVALID` is `1` and `ARREADY` is `1` (`AR` handshake)|
+|4    |```rc.rvalid_stall```|```[63:0]```|Number of clock cycles, where `RVALID` is `0` and there is at least `1` outstanding AXI `R` transactions|
+|5    |```rc.rready_stall```|```[63:0]```|Number of clock cycles, where `RVALID` is `1` and `RREADY` is `0` (useless)|
+|6    |```rc.r_handshake``` |```[63:0]```|Number of clock cycles, where `RVALID` is `1` and `RREADY` is `1` (`R` handshake)|
+|7    |```wc.idle```        |```[63:0]```|AXI `W` channel wasn't doing anything|
+|8    |```wc.outstanding``` |```[63:0]```|Number of outstanding AXI `W` transactions|
+|9    |```wc.responding```  |```[63:0]```|Number of outstanding transactions waiting for the `B`-response|
+|10   |```wc.aw_stall```    |```[63:0]```|Number of clock cycles, where `AWVALID` is `1` and `AWREADY` is `0`|
+|11   |```wc.aw_handshake```|```[63:0]```|Number of clock cycles, where `AWVALID` is `1` and `AWREADY` is `1` (`AW` handshake)|
+|12   |```wc.wvalid_stall```|```[63:0]```|Number of clock cycles, where `WVALID` is `0` and there is at least `1` outstanding AXI `W` transactions waiting for `WDATA` (useless)|
+|13   |```wc.wready_stall```|```[63:0]```|Number of clock cycles, where `WVALID` is `1` and `WREADY` is `0`|
+|14   |```wc.w_handshake``` |```[63:0]```|Number of clock cycles, where `WVALID` is `1` and `WREADY` is `1` (`W` handshake)|
+|15   |```wc.bvalid_stall```|```[63:0]```|Number of clock cycles, where `BVALID` is `0` and there is at least `1` outstanding AXI `W` transactions waiting for the `B`-response|
+|16   |```wc.bready_stall```|```[63:0]```|Number of clock cycles, where `BVALID` is `1` and `BREADY` is `0` (useless)|
+|17   |```wc.b_handshake``` |```[63:0]```|Number of clock cycles, where `BVALID` is `1` and `BREADY` is `1` (`B` handshake)|
+|18   |```clock_counter```  |```[63:0]```|Number of clocks cycles elapsed from the last reset|
+
+To reset the contents of all of the PMUs you have to reset the whole design (async negative reset).
 
 # HDL design insights
 
